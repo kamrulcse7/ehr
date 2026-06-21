@@ -75,29 +75,50 @@
             background: radial-gradient(circle at top right, #eff6ff 0%, #f8fafc 100%);
         }
 
+        html.dark body {
+            background: radial-gradient(circle at top right, #1a2333 0%, #0f1622 100%);
+        }
+
         .login-card-shadow {
             box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.05), 0 2px 4px -2px rgb(0 0 0 / 0.05), 0 20px 25px -5px rgb(0 0 0 / 0.03);
+        }
+
+        html.dark .login-card-shadow {
+            box-shadow: 0 4px 20px -1px rgb(0 0 0 / 0.6), 0 20px 30px -5px rgb(0 0 0 / 0.4);
         }
 
         .material-symbols-outlined {
             font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 20;
         }
+
+
+        html.dark input:-webkit-autofill,
+        html.dark input:-webkit-autofill:hover,
+        html.dark input:-webkit-autofill:focus,
+        html.dark input:-webkit-autofill:active {
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: #f3f4f6 !important;
+            transition: background-color 5000s ease-in-out 0s;
+            box-shadow: inset 0 0 0 50px #1e293b !important;
+        }
     </style>
 </head>
 
-<body class="min-h-screen flex flex-col items-center justify-center p-4">
+<body class="min-h-screen flex flex-col items-center justify-center p-4 transition-colors duration-300">
     [[include]]
 </body>
 <script>
         (() => {
             const savedTheme = localStorage.getItem("theme");
-            console.log(savedTheme)
             if (savedTheme === "dark") {
                 document.documentElement.classList.add("dark");
             } else if (savedTheme === "light") {
                 document.documentElement.classList.remove("dark");
+            } else {
+                if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+                    document.documentElement.classList.add("dark");
+                }
             }
-
         })();
 </script>
 
