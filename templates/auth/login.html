@@ -20,6 +20,7 @@
     <form class="flex flex-col gap-4" id="loginForm" action="[[=URL('auth/login')]]" method="POST"
         onsubmit="return handleLoginSubmit(this)">
 
+        <!-- User ID Input Field -->
         <div class="flex flex-col gap-1.5">
             <label class="text-xs font-semibold tracking-wide text-gray-600 dark:text-slate-400 uppercase"
                 for="userId">User ID / Email</label>
@@ -27,12 +28,13 @@
                 <span
                     class="material-symbols-outlined absolute left-3.5 top-1/2 -translate-y-1/2 text-outline dark:text-slate-400 group-focus-within:text-primary transition-colors text-[20px]"
                     data-icon="person">person</span>
-                <input
+                <input autocomplete="username"
                     class="w-full h-[40px] pl-10 pr-4 bg-surface-container dark:bg-[#1e293b] border border-outline-variant dark:border-[#2e3e56] rounded-lg text-sm text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-primary/10 focus:border-primary outline-none transition-all placeholder:text-slate-400 dark:placeholder:text-slate-500"
                     id="userId" name="username" placeholder="admin@hrms.com" type="text" required />
             </div>
         </div>
 
+        <!-- Password Input Field -->
         <div class="flex flex-col gap-1.5">
             <label class="text-xs font-semibold tracking-wide text-gray-600 dark:text-slate-400 uppercase"
                 for="password">Password</label>
@@ -40,7 +42,7 @@
                 <span
                     class="material-symbols-outlined absolute left-3.5 top-1/2 -translate-y-1/2 text-outline dark:text-slate-400 group-focus-within:text-primary transition-colors text-[20px]"
                     data-icon="lock">lock</span>
-                <input
+                <input autocomplete="current-password"
                     class="w-full h-[40px] pl-10 pr-10 bg-surface-container dark:bg-[#1e293b] border border-outline-variant dark:border-[#2e3e56] rounded-lg text-sm text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-primary/10 focus:border-primary outline-none transition-all placeholder:text-slate-400 dark:placeholder:text-slate-500"
                     id="password" name="password" placeholder="••••••••" type="password" required />
                 <button
@@ -51,10 +53,11 @@
             </div>
         </div>
 
+        <!-- Remember Me & Forgot Password -->
         <div class="flex justify-between items-center pt-0.5">
             <label class="flex items-center gap-2 cursor-pointer group">
-                <input
-                    class="w-4 h-4 rounded border-gray-300 dark:border-slate-700 text-primary focus:ring-primary/20 bg-white dark:bg-[#1e293b] cursor-pointer transition-all"
+                <input id="rememberMe"
+                    class="w-4 h-4 rounded border-gray-300 dark:border-[#2e3e56] text-primary focus:ring-primary/20 bg-white dark:bg-[#1e293b] dark:checked:bg-primary cursor-pointer transition-all"
                     type="checkbox" />
                 <span
                     class="text-xs text-on-surface-variant dark:text-slate-400 group-hover:text-on-surface dark:group-hover:text-slate-200 transition-colors select-none">Remember
@@ -64,6 +67,7 @@
                 href="#">Forgot Password?</a>
         </div>
 
+        <!-- Error Alert Container -->
         [[if globals().get('error'):]]
         <div id="errorContainer"
             class="w-full p-2.5 text-xs text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-950/50 rounded-lg border border-red-200 dark:border-red-900/50 font-medium flex items-center gap-1.5 justify-center transition-all duration-600 ease-in-out transform scale-100 opacity-100 max-h-[100px] overflow-hidden">
@@ -72,6 +76,7 @@
         </div>
         [[pass]]
 
+        <!-- Sign In Button -->
         <button id="signInBtn"
             class="w-full h-[40px] bg-gradient-to-r from-primary to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white font-medium text-sm rounded-lg flex items-center justify-center gap-2 shadow-lg shadow-primary/25 hover:shadow-primary/35 hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.99] transition-all duration-300 mt-1 group"
             type="submit">
@@ -84,6 +89,7 @@
         </button>
     </form>
 
+    <!-- Help Links Footer -->
     <div class="pt-4 border-t border-surface-container-highest dark:border-slate-800">
         <p class="text-xs text-on-surface-variant dark:text-slate-400 text-center leading-relaxed">
             Need help accessing your account?<br />
@@ -109,6 +115,29 @@
     const userIdInput = document.getElementById('userId');
     const passwordInput = document.getElementById('password');
     const errorContainer = document.getElementById('errorContainer');
+    const rememberMeCheckbox = document.getElementById('rememberMe');
+
+    const EXPIRATION_TIME = 60 * 24 * 60 * 60 * 1000;
+
+    document.addEventListener("DOMContentLoaded", () => {
+        const savedUsername = localStorage.getItem("rememberedUsername");
+        const savedPassword = localStorage.getItem("rememberedPassword");
+        const savedTime = localStorage.getItem("rememberedTime");
+
+        if (savedUsername && savedPassword && savedTime) {
+            const currentTime = new Date().getTime();
+
+            if (currentTime - savedTime > EXPIRATION_TIME) {
+                localStorage.removeItem("rememberedUsername");
+                localStorage.removeItem("rememberedPassword");
+                localStorage.removeItem("rememberedTime");
+            } else {
+                userIdInput.value = savedUsername;
+                passwordInput.value = savedPassword;
+                rememberMeCheckbox.checked = true;
+            }
+        }
+    });
 
     function hideError() {
         if (errorContainer) {
@@ -128,6 +157,17 @@
         const btnText = document.getElementById('btnText');
         const btnIcon = document.getElementById('btnIcon');
         const spinner = document.getElementById('loadingSpinner');
+
+        if (rememberMeCheckbox.checked) {
+            const currentTime = new Date().getTime();
+            localStorage.setItem("rememberedUsername", userIdInput.value);
+            localStorage.setItem("rememberedPassword", passwordInput.value);
+            localStorage.setItem("rememberedTime", currentTime);
+        } else {
+            localStorage.removeItem("rememberedUsername");
+            localStorage.removeItem("rememberedPassword");
+            localStorage.removeItem("rememberedTime");
+        }
 
         if (btn) {
             btn.disabled = true;
