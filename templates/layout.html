@@ -1,0 +1,492 @@
+[[extend 'base.html']]
+<div class="fixed inset-0 w-screen h-screen flex overflow-hidden bg-slate-50 font-sans text-slate-800">
+
+    <aside id="main-sidebar"
+        class="w-64 bg-white dark:bg-slate-900 flex flex-col z-20 shadow-xl md:shadow-none border-r border-slate-200 dark:border-slate-800 transition-all duration-300 fixed inset-y-0 left-0 md:relative md:translate-x-0">
+
+        <div
+            class="h-16 flex items-center px-5 border-b border-slate-200 dark:border-slate-800 gap-3 shrink-0 overflow-hidden">
+            <span class="material-symbols-outlined text-primary text-2xl shrink-0 font-semibold">domain</span>
+            <span
+                class="sidebar-text text-slate-800 dark:text-white font-bold text-base tracking-wide uppercase truncate">HRMS
+                Admin</span>
+        </div>
+
+        <div class="sidebar-text p-3 border-b border-slate-200 dark:border-slate-800 shrink-0">
+            <div class="relative w-full h-9 flex items-center">
+                <span
+                    class="material-symbols-outlined absolute left-3 text-slate-400 dark:text-slate-500 text-lg pointer-events-none">search</span>
+                <input type="text" id="menu-search" placeholder="Search menu..."
+                    class="w-full h-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl pl-9 pr-3 text-xs text-slate-800 dark:text-slate-200 placeholder-slate-400 focus:outline-none focus:border-primary transition-colors">
+            </div>
+        </div>
+
+        <nav id="sidebar-menu" class="flex-1 px-2.5 py-4 flex flex-col gap-1 overflow-y-auto overflow-x-hidden">
+
+            <div class="menu-item-wrapper relative group">
+                <a href="[[=URL('dashboard')]]"
+                    class="menu-link flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-semibold text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white transition-all duration-200">
+                    <span
+                        class="material-symbols-outlined text-slate-500 dark:text-slate-400 group-hover:text-primary text-[20px] shrink-0">dashboard</span>
+                    <span class="sidebar-text truncate">Dashboard</span>
+                </a>
+                <div
+                    class="hover-flyout absolute left-full top-0 ml-2 w-48 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl shadow-xl py-1.5 hidden z-30">
+                </div>
+            </div>
+
+            <div class="menu-item-wrapper relative group">
+                <button
+                    class="submenu-toggle w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-semibold text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white transition-all duration-200 outline-none">
+                    <span
+                        class="material-symbols-outlined text-slate-500 dark:text-slate-400 group-hover:text-primary text-[20px] shrink-0">badge</span>
+                    <span class="sidebar-text truncate text-left flex-1">Employees</span>
+                    <span
+                        class="material-symbols-outlined sidebar-text text-sm text-slate-400 transition-transform duration-200 arrow-icon">chevron_right</span>
+                </button>
+                <div
+                    class="submenu-container max-h-0 overflow-hidden transition-all duration-300 ease-in-out bg-slate-50/50 dark:bg-slate-950/30 rounded-xl mt-0.5 pl-9 pr-2 flex flex-col gap-0.5">
+                    <a href="[[=URL('employees')]]"
+                        class="block py-2 px-3 text-xs font-medium text-slate-600 dark:text-slate-400 hover:text-primary dark:hover:text-white transition-all duration-150">All
+                        Employees</a>
+                    <a href="#"
+                        class="block py-2 px-3 text-xs font-medium text-slate-600 dark:text-slate-400 hover:text-primary dark:hover:text-white transition-all duration-150">Designations</a>
+                </div>
+                <div
+                    class="hover-flyout absolute left-full top-0 ml-2 w-48 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl shadow-xl py-1.5 hidden z-30">
+                </div>
+            </div>
+
+            <div class="menu-item-wrapper relative group">
+                <button
+                    class="submenu-toggle w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-semibold text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white transition-all duration-200 outline-none">
+                    <span
+                        class="material-symbols-outlined text-slate-500 dark:text-slate-400 group-hover:text-primary text-[20px] shrink-0">calendar_today</span>
+                    <span class="sidebar-text truncate text-left flex-1">Attendance</span>
+                    <span
+                        class="material-symbols-outlined sidebar-text text-sm text-slate-400 transition-transform duration-200 arrow-icon">chevron_right</span>
+                </button>
+                <div
+                    class="submenu-container max-h-0 overflow-hidden transition-all duration-300 ease-in-out bg-slate-50/50 dark:bg-slate-950/30 rounded-xl mt-0.5 pl-9 pr-2 flex flex-col gap-0.5">
+                    <a href="[[=URL('attendance')]]"
+                        class="block py-2 px-3 text-xs font-medium text-slate-600 dark:text-slate-400 hover:text-primary dark:hover:text-white transition-all duration-150">Daily
+                        Logs</a>
+                    <a href="#"
+                        class="block py-2 px-3 text-xs font-medium text-slate-600 dark:text-slate-400 hover:text-primary dark:hover:text-white transition-all duration-150">Attendance
+                        Report</a>
+                </div>
+                <div
+                    class="hover-flyout absolute left-full top-0 ml-2 w-48 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl shadow-xl py-1.5 hidden z-30">
+                </div>
+            </div>
+
+            <div class="menu-item-wrapper relative group opacity-50">
+                <a href="#"
+                    class="flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-semibold text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800">
+                    <span
+                        class="material-symbols-outlined text-slate-500 dark:text-slate-500 text-[20px] shrink-0">payments</span>
+                    <span class="sidebar-text truncate">Payroll</span>
+                </a>
+            </div>
+
+            <div class="menu-item-wrapper relative group">
+                <a href="#"
+                    class="flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-semibold text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white transition-all duration-200">
+                    <span
+                        class="material-symbols-outlined text-slate-500 dark:text-slate-400 group-hover:text-primary text-[20px] shrink-0">settings</span>
+                    <span class="sidebar-text truncate">Settings</span>
+                </a>
+            </div>
+
+        </nav>
+        <div
+            class="sidebar-text mt-auto py-3 px-5 border-t border-slate-200 dark:border-slate-800 flex items-center justify-between shrink-0 opacity-70 hover:opacity-100 transition-opacity">
+            <span class="text-[11px] font-medium text-slate-500 dark:text-slate-400">Powered by <a href="#"
+                    class="hover:text-primary transition-colors">Eon Systems</a></span>
+            <span
+                class="text-[10px] font-bold px-1.5 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 tracking-wider">v1.0.0</span>
+        </div>
+    </aside>
+
+    <div id="sidebar-backdrop" class="fixed inset-0 bg-slate-950/20 z-10 hidden backdrop-blur-sm transition-opacity">
+    </div>
+
+    <div class="flex-1 flex flex-col min-w-0 overflow-hidden relative">
+
+        <header
+            class="h-16 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between px-6 z-10 shrink-0 shadow-sm text-slate-700 dark:text-slate-200">
+
+            <!-- Left: Sidebar Toggle -->
+            <div class="flex items-center shrink-0">
+                <button id="sidebar-toggle"
+                    class="text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-white p-1.5 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors flex items-center justify-center">
+                    <span class="material-symbols-outlined text-[22px]">menu</span>
+                </button>
+            </div>
+
+            <!-- Center: Company Name -->
+            <div class="flex-1 flex justify-center px-4 overflow-hidden">
+                <h1
+                    class="text-base sm:text-lg font-bold text-slate-900 dark:text-white tracking-wide uppercase truncate">
+                    Eon Systems
+                </h1>
+            </div>
+
+            <!-- Right: Controls -->
+            <div class="flex items-center gap-1.5 sm:gap-2 shrink-0">
+                <!-- Language Dropdown -->
+                <div class="relative">
+                    <button id="lang-dropdown-btn"
+                        class="w-9 h-9 flex items-center justify-center text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-white rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors text-xs font-semibold outline-none">
+                        EN
+                    </button>
+                    <div id="lang-dropdown"
+                        class="absolute right-0 mt-2 w-48 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-2xl p-2 hidden z-30">
+                        <div class="relative w-full h-8 flex items-center mb-1.5">
+                            <span
+                                class="material-symbols-outlined absolute left-2.5 text-slate-400 text-xs pointer-events-none">search</span>
+                            <input type="text" id="lang-search" placeholder="Search language..."
+                                class="w-full h-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-lg pl-8 pr-2 text-[11px] text-slate-700 dark:text-slate-200 placeholder-slate-400 focus:outline-none focus:border-primary">
+                        </div>
+                        <div id="lang-list" class="max-h-32 overflow-y-auto flex flex-col gap-0.5">
+                            <button
+                                class="lang-item w-full text-left px-2.5 py-1.5 text-xs rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800 text-primary font-semibold">English
+                                (EN)</button>
+                            <button
+                                class="lang-item w-full text-left px-2.5 py-1.5 text-xs rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300">Bangla
+                                (BN)</button>
+                            <button
+                                class="lang-item w-full text-left px-2.5 py-1.5 text-xs rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300">Arabic
+                                (AR)</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Theme Toggle -->
+                <button id="theme-toggle-btn"
+                    class="w-9 h-9 flex items-center justify-center text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-white rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+                    title="Toggle Theme">
+                    <span class="material-symbols-outlined text-[20px] dark:hidden">dark_mode</span>
+                    <span class="material-symbols-outlined text-[20px] hidden dark:block">light_mode</span>
+                </button>
+
+                <!-- Notification -->
+                <button
+                    class="w-9 h-9 flex items-center justify-center text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-white rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 relative transition-colors">
+                    <span class="material-symbols-outlined text-[21px]">notifications</span>
+                    <span
+                        class="absolute top-2 right-2 w-2 h-2 bg-rose-500 rounded-full ring-2 ring-white dark:ring-slate-900"></span>
+                </button>
+
+                <div class="h-5 w-px bg-slate-200 dark:bg-slate-800 mx-1"></div>
+
+                <!-- Profile -->
+                <div class="relative">
+                    <button id="profile-dropdown-btn"
+                        class="flex items-center gap-2 p-1 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 transition-all text-left outline-none group">
+                        <div
+                            class="w-8 h-8 rounded-full bg-primary flex items-center justify-center text-white font-bold text-xs shadow-sm">
+                            KH
+                        </div>
+                        <div class="flex flex-col min-w-0 hidden md:flex">
+                            <span
+                                class="text-xs font-semibold text-slate-700 dark:text-slate-200 leading-tight truncate">Kamrul
+                                Hasan</span>
+                            <span
+                                class="text-[10px] text-slate-400 dark:text-slate-500 font-medium leading-none truncate">Programmer</span>
+                        </div>
+                        <span
+                            class="material-symbols-outlined text-slate-400 text-[16px] hidden sm:block group-hover:text-slate-600 dark:group-hover:text-slate-300">keyboard_arrow_down</span>
+                    </button>
+
+                    <!-- Profile Dropdown -->
+                    <div id="profile-dropdown"
+                        class="absolute right-0 mt-2 w-52 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-2xl py-1.5 hidden z-30">
+                        <div class="px-4 py-2 border-b border-slate-100 dark:border-slate-800 sm:hidden">
+                            <p class="text-xs font-semibold text-slate-800 dark:text-white truncate">Kamrul Hasan</p>
+                            <p class="text-[10px] text-slate-400 truncate">Programmer</p>
+                        </div>
+                        <a href="#"
+                            class="flex items-center gap-2.5 px-4 py-2 text-xs font-medium text-slate-700 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white transition-colors">
+                            <span class="material-symbols-outlined text-[18px] text-slate-400">account_circle</span> My
+                            Profile
+                        </a>
+                        <a href="#"
+                            class="flex items-center gap-2.5 px-4 py-2 text-xs font-medium text-slate-700 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white transition-colors">
+                            <span class="material-symbols-outlined text-[18px] text-slate-400">settings</span> Account
+                            Settings
+                        </a>
+                        <div class="border-t border-slate-100 dark:border-slate-800 my-1"></div>
+                        <a href="[[=URL('auth/login')]]"
+                            class="flex items-center gap-2.5 px-4 py-2 text-xs font-semibold text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/30 transition-colors">
+                            <span class="material-symbols-outlined text-[18px]">logout</span> Sign Out
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <main class="flex-1 overflow-y-auto p-6 bg-slate-50">
+            [[include]]
+        </main>
+
+    </div>
+</div>
+
+
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        const toggleBtn = document.getElementById("sidebar-toggle");
+        const sidebar = document.getElementById("main-sidebar");
+        const backdrop = document.getElementById("sidebar-backdrop");
+        const sidebarTexts = document.querySelectorAll(".sidebar-text");
+        const menuWrappers = document.querySelectorAll(".menu-item-wrapper");
+
+
+        function handleSidebarToggle() {
+            if (window.innerWidth >= 768) {
+                sidebar.classList.toggle("w-64");
+                sidebar.classList.toggle("w-20");
+                sidebar.classList.toggle("sidebar-mini");
+
+                document.querySelectorAll(".submenu-container").forEach(el => el.style.maxHeight = null);
+                document.querySelectorAll(".arrow-icon").forEach(el => el.classList.remove("rotate-90"));
+
+                sidebarTexts.forEach(txt => txt.classList.toggle("hidden"));
+            } else {
+                sidebar.classList.toggle("-translate-x-full");
+                backdrop.classList.toggle("hidden");
+            }
+        }
+
+        if (toggleBtn) toggleBtn.addEventListener("click", handleSidebarToggle);
+        if (backdrop) backdrop.addEventListener("click", handleSidebarToggle);
+
+        const submenuToggles = document.querySelectorAll(".submenu-toggle");
+        submenuToggles.forEach(toggle => {
+            toggle.addEventListener("click", function (e) {
+                if (sidebar.classList.contains("sidebar-mini")) return;
+
+                const parent = this.parentElement;
+                const container = parent.querySelector(".submenu-container");
+                const arrow = this.querySelector(".arrow-icon");
+
+                if (container) {
+                    if (container.style.maxHeight) {
+                        container.style.maxHeight = null;
+                        arrow.classList.remove("rotate-90");
+                    } else {
+                        container.style.maxHeight = container.scrollHeight + "px";
+                        arrow.classList.add("rotate-90");
+                    }
+                }
+            });
+        });
+
+        const menuSearch = document.getElementById("menu-search");
+        if (menuSearch) {
+            menuSearch.addEventListener("input", function (e) {
+                const query = e.target.value.toLowerCase().trim();
+
+                menuWrappers.forEach(item => {
+                    const toggleOrLink = item.querySelector("a, button");
+                    if (!toggleOrLink) return;
+
+                    const mainText = toggleOrLink.innerText.toLowerCase();
+                    const subLinks = item.querySelectorAll(".submenu-container a");
+                    let isSubMatch = false;
+
+                    subLinks.forEach(subLink => {
+                        if (subLink.innerText.toLowerCase().includes(query)) {
+                            isSubMatch = true;
+                            subLink.classList.add("text-primary", "font-bold");
+                        } else {
+                            if (query !== "") subLink.classList.remove("text-primary", "font-bold");
+                        }
+                    });
+
+                    if (mainText.includes(query) || isSubMatch) {
+                        item.style.display = "block";
+
+                        const container = item.querySelector(".submenu-container");
+                        const arrow = item.querySelector(".arrow-icon");
+                        if (isSubMatch && container && !sidebar.classList.contains("sidebar-mini")) {
+                            container.style.maxHeight = container.scrollHeight + "px";
+                            if (arrow) arrow.classList.add("rotate-90");
+                        }
+                    } else {
+                        item.style.display = "none";
+                    }
+                });
+
+                if (query === "") {
+                    menuWrappers.forEach(item => {
+                        const container = item.querySelector(".submenu-container");
+                        const arrow = item.querySelector(".arrow-icon");
+
+                        if (container) {
+                            if (container.classList.contains("active-menu-parent") && !sidebar.classList.contains("sidebar-mini")) {
+                                container.style.maxHeight = container.scrollHeight + "px";
+                                if (arrow) arrow.classList.add("rotate-90");
+                            } else {
+                                container.style.maxHeight = null;
+                                if (arrow) arrow.classList.remove("rotate-90");
+                            }
+                        }
+                    });
+                }
+            });
+        }
+
+        menuWrappers.forEach(wrapper => {
+            wrapper.addEventListener("mouseenter", function () {
+                if (sidebar.classList.contains("sidebar-mini")) {
+                    const flyout = this.querySelector(".hover-flyout");
+                    const targetBtnOrLink = this.querySelector("a, button");
+                    if (flyout && targetBtnOrLink) {
+                        flyout.innerHTML = '';
+
+                        const mainTitle = targetBtnOrLink.innerText.replace('chevron_right', '').trim();
+                        const headerDiv = document.createElement("div");
+                        headerDiv.className = "px-4 py-1.5 text-xs font-bold text-slate-400 dark:text-slate-500 border-b border-slate-100 dark:border-slate-800 mb-1 uppercase tracking-wider";
+                        headerDiv.innerText = mainTitle;
+                        flyout.appendChild(headerDiv);
+
+                        const subLinks = this.querySelectorAll(".submenu-container a");
+                        if (subLinks.length > 0) {
+                            subLinks.forEach(sub => {
+                                const newLink = sub.cloneNode(true);
+                                newLink.className = "block px-4 py-2 text-xs font-medium text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 hover:text-primary transition-colors";
+                                flyout.appendChild(newLink);
+                            });
+                        } else {
+                            const mainLink = this.querySelector("a");
+                            if (mainLink && mainLink.getAttribute("href") !== "#") {
+                                const newLink = mainLink.cloneNode(true);
+                                newLink.className = "block px-4 py-2 text-xs font-medium text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 hover:text-primary transition-colors";
+                                newLink.innerHTML = `Go to ${mainTitle}`;
+                                flyout.appendChild(newLink);
+                            }
+                        }
+
+                        flyout.classList.remove("hidden");
+                    }
+                }
+            });
+
+            wrapper.addEventListener("mouseleave", function () {
+                if (sidebar.classList.contains("sidebar-mini")) {
+                    const flyout = this.querySelector(".hover-flyout");
+                    if (flyout) flyout.classList.add("hidden");
+                }
+            });
+        });
+
+        const langBtn = document.getElementById("lang-dropdown-btn");
+        const langDropdown = document.getElementById("lang-dropdown");
+        const langSearch = document.getElementById("lang-search");
+        const langItems = document.querySelectorAll(".lang-item");
+
+        if (langBtn && langDropdown) {
+            langBtn.addEventListener("click", function (e) {
+                e.stopPropagation();
+                langDropdown.classList.toggle("hidden");
+                if (!langDropdown.classList.contains("hidden") && langSearch) langSearch.focus();
+            });
+
+            if (langSearch) {
+                langSearch.addEventListener("input", function (e) {
+                    const q = e.target.value.toLowerCase().trim();
+                    langItems.forEach(item => {
+                        if (item.innerText.toLowerCase().includes(q)) {
+                            item.style.display = "block";
+                        } else {
+                            item.style.display = "none";
+                        }
+                    });
+                });
+            }
+        }
+
+        const profileBtn = document.getElementById("profile-dropdown-btn");
+        const profileDropdown = document.getElementById("profile-dropdown");
+        const themeToggleBtn = document.getElementById("theme-toggle-btn");
+
+        if (profileBtn && profileDropdown) {
+            profileBtn.addEventListener("click", function (e) {
+                e.stopPropagation();
+                profileDropdown.classList.toggle("hidden");
+            });
+        }
+
+        if (themeToggleBtn) {
+
+            themeToggleBtn.addEventListener("click", function () {
+
+                const isDark =
+                    document.documentElement.classList.toggle("dark");
+
+                localStorage.setItem(
+                    "theme",
+                    isDark ? "dark" : "light"
+                );
+
+            });
+
+        }
+
+        document.addEventListener("click", function () {
+            if (profileDropdown) profileDropdown.classList.add("hidden");
+            if (langDropdown) langDropdown.classList.add("hidden");
+        });
+
+        const currentPath = window.location.pathname;
+        const menuLinks = document.querySelectorAll(".menu-link, .submenu-container a");
+
+        menuLinks.forEach(link => {
+            const linkHref = link.getAttribute("href");
+            if (!linkHref || linkHref === "#") return;
+
+            const helperAnchor = document.createElement('a');
+            helperAnchor.href = link.href;
+            const linkPath = helperAnchor.pathname;
+
+            if (currentPath === linkPath || window.location.href.includes(link.href)) {
+                const parentContainer = link.closest(".submenu-container");
+
+                if (parentContainer) {
+                    parentContainer.classList.add("active-menu-parent");
+                    parentContainer.style.maxHeight = parentContainer.scrollHeight + "px";
+
+                    const parentWrapper = parentContainer.closest(".menu-item-wrapper");
+                    const arrow = parentWrapper.querySelector(".arrow-icon");
+                    if (arrow) arrow.classList.add("rotate-90");
+
+                    const parentButton = parentWrapper.querySelector(".submenu-toggle");
+                    if (parentButton) {
+                        parentButton.classList.add("bg-slate-200", "dark:bg-slate-800", "text-slate-900", "dark:text-white", "font-bold");
+                        parentButton.classList.remove("text-slate-700", "dark:text-slate-300");
+
+                        const parentIcon = parentButton.querySelector(".material-symbols-outlined");
+                        if (parentIcon) {
+                            parentIcon.classList.remove("text-slate-500", "dark:text-slate-400");
+                            parentIcon.classList.add("text-primary");
+                        }
+                    }
+
+                    link.classList.add("text-primary", "dark:text-white", "font-bold", "bg-primary/10", "dark:bg-primary/20", "pl-4", "rounded-r-lg", "border-l-4", "border-primary");
+                    link.classList.remove("text-slate-600", "dark:text-slate-400");
+                } else {
+                    link.classList.add("bg-slate-200", "dark:bg-slate-800", "text-slate-900", "dark:text-white", "font-bold");
+                    link.classList.remove("text-slate-700", "dark:text-slate-300");
+
+                    const icon = link.querySelector(".material-symbols-outlined");
+                    if (icon) {
+                        icon.classList.remove("text-slate-500", "dark:text-slate-400");
+                        icon.classList.add("text-primary");
+                    }
+                }
+            }
+        });
+    });
+</script>

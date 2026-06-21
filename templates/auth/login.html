@@ -1,0 +1,165 @@
+[[extend 'base.html']]
+
+<main
+    class="w-full max-w-[380px] bg-white rounded-card login-card-shadow p-6 flex flex-col gap-5 border border-outline-variant transition-all">
+
+    <header class="flex flex-col items-center text-center gap-2 mb-1">
+        <div
+            class="relative flex items-center justify-center w-11 h-11 rounded-2xl bg-gradient-to-tr from-primary to-blue-400 shadow-lg shadow-primary/20">
+            <span class="absolute inset-0 rounded-2xl bg-primary/10 blur-sm"></span>
+            <span class="material-symbols-outlined text-white text-[24px]" data-icon="lock_open">lock_open</span>
+        </div>
+
+        <div class="flex flex-col gap-0.5 mt-1">
+            <h1 class="text-2xl font-bold text-on-surface tracking-tight">Sign In</h1>
+            <p class="text-xs text-on-surface-variant font-medium">Enter your credentials to continue</p>
+        </div>
+    </header>
+
+    <form class="flex flex-col gap-4" id="loginForm" action="[[=URL('auth/login')]]" method="POST"
+        onsubmit="return handleLoginSubmit(this)">
+
+        <div class="flex flex-col gap-1.5">
+            <label class="text-xs font-semibold tracking-wide text-gray-600 uppercase" for="userId">User ID /
+                Email</label>
+            <div class="relative group">
+                <span
+                    class="material-symbols-outlined absolute left-3.5 top-1/2 -translate-y-1/2 text-outline group-focus-within:text-primary transition-colors text-[20px]"
+                    data-icon="person">person</span>
+                <input
+                    class="w-full h-[40px] pl-10 pr-4 bg-surface-container border border-outline-variant rounded-lg text-sm focus:ring-2 focus:ring-primary/10 focus:border-primary outline-none transition-all placeholder:text-slate-400"
+                    id="userId" name="username" placeholder="admin@hrms.com" type="text" required />
+            </div>
+        </div>
+
+        <div class="flex flex-col gap-1.5">
+            <label class="text-xs font-semibold tracking-wide text-gray-600 uppercase" for="password">Password</label>
+            <div class="relative group">
+                <span
+                    class="material-symbols-outlined absolute left-3.5 top-1/2 -translate-y-1/2 text-outline group-focus-within:text-primary transition-colors text-[20px]"
+                    data-icon="lock">lock</span>
+                <input
+                    class="w-full h-[40px] pl-10 pr-10 bg-surface-container border border-outline-variant rounded-lg text-sm focus:ring-2 focus:ring-primary/10 focus:border-primary outline-none transition-all placeholder:text-slate-400"
+                    id="password" name="password" placeholder="••••••••" type="password" required />
+                <button
+                    class="absolute right-3.5 top-1/2 -translate-y-1/2 text-outline hover:text-on-surface-variant transition-colors cursor-pointer flex items-center justify-center"
+                    onclick="togglePassword()" type="button">
+                    <span class="material-symbols-outlined text-[20px]" id="passwordToggleIcon">visibility</span>
+                </button>
+            </div>
+        </div>
+
+        <div class="flex justify-between items-center pt-0.5">
+            <label class="flex items-center gap-2 cursor-pointer group">
+                <input
+                    class="w-4 h-4 rounded border-gray-300 text-primary focus:ring-primary/20 cursor-pointer transition-all"
+                    type="checkbox" />
+                <span
+                    class="text-xs text-on-surface-variant group-hover:text-on-surface transition-colors select-none">Remember
+                    Me</span>
+            </label>
+            <a class="text-xs font-medium text-primary hover:text-blue-700 transition-colors" href="#">Forgot
+                Password?</a>
+        </div>
+
+        [[if globals().get('error'):]]
+        <div id="errorContainer"
+            class="w-full p-2.5 text-xs text-red-600 bg-red-50 rounded-lg border border-red-200 font-medium flex items-center gap-1.5 justify-center transition-all duration-600 ease-in-out transform scale-100 opacity-100 max-h-[100px] overflow-hidden">
+            <span class="material-symbols-outlined text-[16px]">error</span>
+            <span id="errorMessage">[[=error]]</span>
+        </div>
+        [[pass]]
+
+        <button id="signInBtn"
+            class="w-full h-[40px] bg-gradient-to-r from-primary to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white font-medium text-sm rounded-lg flex items-center justify-center gap-2 shadow-lg shadow-primary/25 hover:shadow-primary/35 hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.99] transition-all duration-300 mt-1 group"
+            type="submit">
+            <div id="loadingSpinner"
+                class="hidden w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+            <span id="btnText">Sign In</span>
+            <span id="btnIcon"
+                class="material-symbols-outlined text-[18px] transition-transform duration-300 group-hover:translate-x-0.5"
+                data-icon="login">login</span>
+        </button>
+    </form>
+
+    <div class="pt-4 border-t border-surface-container-highest">
+        <p class="text-xs text-on-surface-variant text-center leading-relaxed">
+            Need help accessing your account?<br />
+            <a class="text-primary font-medium hover:underline" href="#">Contact System Administrator</a>
+        </p>
+    </div>
+</main>
+
+<script>
+    function togglePassword() {
+        const passwordInput = document.getElementById('password');
+        const toggleIcon = document.getElementById('passwordToggleIcon');
+        if (passwordInput.type === 'password') {
+            passwordInput.type = 'text';
+            toggleIcon.innerText = 'visibility_off';
+        } else {
+            passwordInput.type = 'password';
+            toggleIcon.innerText = 'visibility';
+        }
+    }
+
+    const userIdInput = document.getElementById('userId');
+    const passwordInput = document.getElementById('password');
+    const errorContainer = document.getElementById('errorContainer');
+
+    function hideError() {
+        if (errorContainer) {
+            errorContainer.classList.remove('opacity-100', 'scale-100');
+            errorContainer.classList.add('opacity-0', 'scale-95', 'max-h-0', 'p-0', 'border-0');
+            setTimeout(() => {
+                errorContainer.style.display = 'none';
+            }, 600);
+        }
+    }
+
+    if (userIdInput) userIdInput.addEventListener('input', hideError);
+    if (passwordInput) passwordInput.addEventListener('input', hideError);
+
+    function handleLoginSubmit(form) {
+        const btn = document.getElementById('signInBtn');
+        const btnText = document.getElementById('btnText');
+        const btnIcon = document.getElementById('btnIcon');
+        const spinner = document.getElementById('loadingSpinner');
+
+        if (btn) {
+            btn.disabled = true;
+            btn.classList.add('animate-pulse', 'cursor-not-allowed', 'opacity-90');
+            btn.classList.remove('hover:-translate-y-0.5', 'active:scale-[0.99]');
+            btnText.innerText = "Verifying...";
+            if (btnIcon) btnIcon.style.display = 'none';
+            if (spinner) spinner.classList.remove('hidden');
+        }
+        return true;
+    }
+
+    if (window.history.replaceState) {
+        window.history.replaceState(null, null, window.location.href);
+    }
+
+    function reloadPage() {
+        window.location.href = window.location.href;
+    }
+
+    window.addEventListener('pageshow', function (event) {
+        if (event.persisted || window.performance && window.performance.navigation.type === 2) {
+            const btn = document.getElementById('signInBtn');
+            const btnText = document.getElementById('btnText');
+            const btnIcon = document.getElementById('btnIcon');
+            const spinner = document.getElementById('loadingSpinner');
+
+            if (btn) {
+                btn.disabled = false;
+                btn.classList.remove('animate-pulse', 'cursor-not-allowed', 'opacity-90');
+                btn.classList.add('hover:-translate-y-0.5', 'active:scale-[0.99]');
+                if (btnText) btnText.innerText = "Sign In";
+                if (btnIcon) btnIcon.style.display = 'inline-block';
+                if (spinner) spinner.classList.add('hidden');
+            }
+        }
+    });
+</script>
