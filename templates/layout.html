@@ -128,7 +128,7 @@
             <div class="flex-1 flex justify-center px-4 overflow-hidden">
                 <h1
                     class="text-base sm:text-lg font-bold text-slate-900 dark:text-white tracking-wide uppercase truncate">
-                    Eon Systems
+                    [[=session.auth.get('company_name', 'Eon Systems') if session.auth else 'Eon Systems']]
                 </h1>
             </div>
 
@@ -223,7 +223,7 @@
                             Settings
                         </a>
                         <div class="border-t border-slate-100 dark:border-slate-800 my-1"></div>
-                        <a href="[[=URL('auth/login')]]"
+                        <a href="[[=URL('auth/logout')]]"
                             class="flex items-center gap-2.5 px-4 py-2 text-xs font-semibold text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/30 transition-colors">
                             <span class="material-symbols-outlined text-[18px]">logout</span> Sign Out
                         </a>

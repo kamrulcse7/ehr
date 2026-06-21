@@ -120,6 +120,17 @@
     const EXPIRATION_TIME = 60 * 24 * 60 * 60 * 1000;
 
     document.addEventListener("DOMContentLoaded", () => {
+        function preventBack() {
+            window.history.forward();
+        }
+        setTimeout(preventBack, 0);
+        window.onunload = function () { null };
+        window.addEventListener('pageshow', function (event) {
+            if (event.persisted || (window.performance && window.performance.navigation.type === 2)) {
+                window.location.reload();
+            }
+        });
+
         const savedUsername = localStorage.getItem("rememberedUsername");
         const savedPassword = localStorage.getItem("rememberedPassword");
         const savedTime = localStorage.getItem("rememberedTime");

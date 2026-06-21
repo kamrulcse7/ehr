@@ -3,6 +3,16 @@
 <head>
     <meta charset="utf-8" />
     <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+    <script>
+        (function () {
+            const savedTheme = localStorage.getItem("theme");
+            if (savedTheme === "dark" || (!savedTheme && window.matchMedia("(prefers-color-scheme: dark)").matches)) {
+                document.documentElement.classList.add("dark");
+            } else {
+                document.documentElement.classList.remove("dark");
+            }
+        })();
+    </script>
     <title>[[=globals().get('page_title', 'HRMS Admin')]]</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap"
         rel="stylesheet" />
@@ -107,19 +117,5 @@
 <body class="min-h-screen flex flex-col items-center justify-center p-4 transition-colors duration-300">
     [[include]]
 </body>
-<script>
-        (() => {
-            const savedTheme = localStorage.getItem("theme");
-            if (savedTheme === "dark") {
-                document.documentElement.classList.add("dark");
-            } else if (savedTheme === "light") {
-                document.documentElement.classList.remove("dark");
-            } else {
-                if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
-                    document.documentElement.classList.add("dark");
-                }
-            }
-        })();
-</script>
 
 </html>
