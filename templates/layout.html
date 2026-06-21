@@ -162,6 +162,12 @@
                     </div>
                 </div>
 
+                <button id="fullscreen-toggle-btn"
+                    class="w-9 h-9 flex items-center justify-center text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-white rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+                    title="Toggle Fullscreen">
+                    <span class="material-symbols-outlined text-[20px]" id="fs-icon">fullscreen</span>
+                </button>
+
                 <!-- Theme Toggle -->
                 <button id="theme-toggle-btn"
                     class="w-9 h-9 flex items-center justify-center text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-white rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
@@ -487,6 +493,21 @@
                     }
                 }
             }
+        });
+
+        const fullscreenBtn = document.getElementById("fullscreen-toggle-btn");
+        const fsIcon = document.getElementById("fs-icon");
+        const toggleFS = () => {
+            if (!document.fullscreenElement) {
+                document.documentElement.requestFullscreen().catch(err => console.log(err));
+            } else {
+                document.exitFullscreen();
+            }
+        };
+
+        fullscreenBtn?.addEventListener("click", toggleFS);
+        document.addEventListener("fullscreenchange", () => {
+            if (fsIcon) fsIcon.innerText = document.fullscreenElement ? "fullscreen_exit" : "fullscreen";
         });
     });
 </script>
