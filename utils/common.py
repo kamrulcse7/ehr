@@ -6,7 +6,7 @@ session = Session(
     same_site=settings.SAME_SITE,
     secret=settings.SECRET_KEY,
     algorithm=settings.ALGORITHM,
-    expiration=settings.WEB_SESSION_EXPIRE_MINUTES,
+    expiration=settings.WEB_SESSION_EXPIRE_MINUTES * 60,
 )
 flash = Flash()
 

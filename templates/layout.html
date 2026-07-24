@@ -3,14 +3,14 @@
 
     <!-- Sidebar -->
     <aside id="main-sidebar"
-        class="w-64 bg-white dark:bg-slate-900 flex flex-col z-20 shadow-xl md:shadow-none border-r border-slate-200 dark:border-slate-800 transition-all duration-300 fixed inset-y-0 left-0 md:relative md:translate-x-0">
+        class="w-64 bg-white dark:bg-slate-900 flex flex-col z-40 shadow-xl md:shadow-none border-r border-slate-200 dark:border-slate-800 transition-transform duration-300 fixed md:static inset-y-0 left-0 -translate-x-full md:translate-x-0">
 
         <!-- Logo -->
         <div
             class="h-16 flex items-center px-5 border-b border-slate-200 dark:border-slate-800 gap-3 shrink-0 overflow-hidden">
             <span class="material-symbols-outlined text-primary text-2xl shrink-0 font-semibold">domain</span>
             <span
-                class="sidebar-text text-slate-800 dark:text-white font-bold text-base tracking-wide uppercase truncate">HRMS
+                class="sidebar-text text-slate-800 dark:text-white font-bold text-base tracking-wide uppercase truncate">EMS
                 Admin</span>
         </div>
 
@@ -40,6 +40,30 @@
                 </div>
             </div>
 
+            <!-- Administration -->
+            <div class="menu-item-wrapper relative group">
+                <button
+                    class="submenu-toggle w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-semibold text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white transition-all duration-200 outline-none">
+                    <span
+                        class="material-symbols-outlined text-slate-500 dark:text-slate-400 group-hover:text-primary text-[20px] shrink-0">admin_panel_settings</span>
+                    <span class="sidebar-text truncate text-left flex-1">Administration</span>
+                    <span
+                        class="material-symbols-outlined sidebar-text text-sm text-slate-400 transition-transform duration-200 arrow-icon">chevron_right</span>
+                </button>
+                <div
+                    class="submenu-container max-h-0 overflow-hidden transition-all duration-300 ease-in-out bg-slate-50/50 dark:bg-slate-950/30 rounded-xl mt-0.5 pl-9 pr-2 flex flex-col gap-0.5">
+                    <a href="#"
+                        class="block py-2 px-3 text-xs font-medium text-slate-600 dark:text-slate-400 hover:text-primary dark:hover:text-white transition-all duration-150">User
+                        Management</a>
+                    <a href="[[=URL('administration/role_management')]]"
+                        class="block py-2 px-3 text-xs font-medium text-slate-600 dark:text-slate-400 hover:text-primary dark:hover:text-white transition-all duration-150">Role
+                        Management</a>
+                </div>
+                <div
+                    class="hover-flyout absolute left-full top-0 ml-2 w-48 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl shadow-xl py-1.5 hidden z-30">
+                </div>
+            </div>
+
             <!-- Employees -->
             <div class="menu-item-wrapper relative group">
                 <button
@@ -52,69 +76,62 @@
                 </button>
                 <div
                     class="submenu-container max-h-0 overflow-hidden transition-all duration-300 ease-in-out bg-slate-50/50 dark:bg-slate-950/30 rounded-xl mt-0.5 pl-9 pr-2 flex flex-col gap-0.5">
-                    <a href="[[=URL('employees')]]"
-                        class="block py-2 px-3 text-xs font-medium text-slate-600 dark:text-slate-400 hover:text-primary dark:hover:text-white transition-all duration-150">All
-                        Employees</a>
                     <a href="#"
-                        class="block py-2 px-3 text-xs font-medium text-slate-600 dark:text-slate-400 hover:text-primary dark:hover:text-white transition-all duration-150">Designations</a>
+                        class="block py-2 px-3 text-xs font-medium text-slate-600 dark:text-slate-400 hover:text-primary dark:hover:text-white transition-all duration-150">
+                        Employees Management</a>
+                    <a href="#"
+                        class="block py-2 px-3 text-xs font-medium text-slate-600 dark:text-slate-400 hover:text-primary dark:hover:text-white transition-all duration-150">Transfer
+                        Management</a>
                 </div>
                 <div
                     class="hover-flyout absolute left-full top-0 ml-2 w-48 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl shadow-xl py-1.5 hidden z-30">
                 </div>
             </div>
 
-            <!-- Attendance -->
+            <!-- Organization -->
             <div class="menu-item-wrapper relative group">
                 <button
                     class="submenu-toggle w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-semibold text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white transition-all duration-200 outline-none">
                     <span
-                        class="material-symbols-outlined text-slate-500 dark:text-slate-400 group-hover:text-primary text-[20px] shrink-0">calendar_today</span>
-                    <span class="sidebar-text truncate text-left flex-1">Attendance</span>
+                        class="material-symbols-outlined text-slate-500 dark:text-slate-400 group-hover:text-primary text-[20px] shrink-0">account_tree</span>
+                    <span class="sidebar-text truncate text-left flex-1">Organization</span>
                     <span
                         class="material-symbols-outlined sidebar-text text-sm text-slate-400 transition-transform duration-200 arrow-icon">chevron_right</span>
                 </button>
                 <div
                     class="submenu-container max-h-0 overflow-hidden transition-all duration-300 ease-in-out bg-slate-50/50 dark:bg-slate-950/30 rounded-xl mt-0.5 pl-9 pr-2 flex flex-col gap-0.5">
-                    <a href="[[=URL('attendance')]]"
-                        class="block py-2 px-3 text-xs font-medium text-slate-600 dark:text-slate-400 hover:text-primary dark:hover:text-white transition-all duration-150">Daily
-                        Logs</a>
                     <a href="#"
-                        class="block py-2 px-3 text-xs font-medium text-slate-600 dark:text-slate-400 hover:text-primary dark:hover:text-white transition-all duration-150">Attendance
-                        Report</a>
+                        class="block py-2 px-3 text-xs font-medium text-slate-600 dark:text-slate-400 hover:text-primary dark:hover:text-white transition-all duration-150">Departments</a>
+                    <a href="#"
+                        class="block py-2 px-3 text-xs font-medium text-slate-600 dark:text-slate-400 hover:text-primary dark:hover:text-white transition-all duration-150">Designations</a>
+                    <a href="#"
+                        class="block py-2 px-3 text-xs font-medium text-slate-600 dark:text-slate-400 hover:text-primary dark:hover:text-white transition-all duration-150">Branches</a>
                 </div>
                 <div
                     class="hover-flyout absolute left-full top-0 ml-2 w-48 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl shadow-xl py-1.5 hidden z-30">
                 </div>
             </div>
-
-            <!-- Payroll -->
-            <div class="menu-item-wrapper relative group opacity-50">
+            <!-- Report -->
+            <div class="menu-item-wrapper relative group">
                 <a href="#"
-                    class="flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-semibold text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800">
+                    class="menu-link flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-semibold text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white transition-all duration-200">
                     <span
-                        class="material-symbols-outlined text-slate-500 dark:text-slate-500 text-[20px] shrink-0">payments</span>
-                    <span class="sidebar-text truncate">Payroll</span>
-                </a>
-            </div>
-            <div class="menu-item-wrapper relative group opacity-50">
-                <a href="#"
-                    class="flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-semibold text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800">
-                    <span
-                        class="material-symbols-outlined text-slate-500 dark:text-slate-500 text-[20px] shrink-0">payments</span>
-                    <span class="sidebar-text truncate">Payroll</span>
+                        class="material-symbols-outlined text-slate-500 dark:text-slate-400 group-hover:text-primary text-[20px] shrink-0">bar_chart</span>
+                    <span class="sidebar-text truncate">Reports</span>
                 </a>
             </div>
 
             <!-- Settings -->
             <div class="menu-item-wrapper relative group">
                 <a href="#"
-                    class="flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-semibold text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white transition-all duration-200">
+                    class="menu-link flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-semibold text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white transition-all duration-200">
                     <span
                         class="material-symbols-outlined text-slate-500 dark:text-slate-400 group-hover:text-primary text-[20px] shrink-0">settings</span>
                     <span class="sidebar-text truncate">Settings</span>
                 </a>
             </div>
 
+        </nav>
         </nav>
 
         <!-- Footer -->
@@ -128,7 +145,7 @@
     </aside>
 
     <!-- Mobile Backdrop -->
-    <div id="sidebar-backdrop" class="fixed inset-0 bg-slate-950/20 z-10 hidden backdrop-blur-sm transition-opacity">
+    <div id="sidebar-backdrop" class="fixed inset-0 bg-slate-950/40 z-20 hidden backdrop-blur-sm transition-opacity">
     </div>
 
     <!-- Main Content Area -->
@@ -136,7 +153,7 @@
 
         <!-- Top Header -->
         <header
-            class="h-16 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between px-6 z-10 shrink-0 shadow-sm text-slate-700 dark:text-slate-200">
+            class="h-16 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between px-3 sm:px-6 z-10 shrink-0 shadow-sm text-slate-700 dark:text-slate-200">
 
             <!-- Sidebar Toggle Button -->
             <div class="flex items-center shrink-0">
@@ -147,15 +164,19 @@
             </div>
 
             <!-- Company Title -->
-            <div class="flex-1 flex justify-center px-4 overflow-hidden">
-                <h1
-                    class="text-base sm:text-lg font-bold text-slate-900 dark:text-white tracking-wide uppercase truncate">
-                    [[=session.auth.get('company_name', 'Eon Systems') if session.auth else 'Eon Systems']]
+            <div class="flex-1 flex items-center justify-center min-w-0 px-2 overflow-hidden">
+                <h1 class="text-xs xl:text-sm font-bold text-slate-900 dark:text-white uppercase tracking-wide text-center leading-tight">
+                    
+                    <span class="inline xl:hidden truncate">BADC</span>
+                    <span class="hidden xl:inline-block line-clamp-2">
+                        Bangladesh Agricultural Development Corporation
+                    </span>
+                    
                 </h1>
             </div>
 
             <!-- Header Right Controls -->
-            <div class="flex items-center gap-1.5 sm:gap-2 shrink-0">
+            <div class="flex items-center gap-0.5 sm:gap-2 shrink-0">
 
                 <!-- Language Dropdown -->
                 <div class="relative">
@@ -178,24 +199,6 @@
                             <button data-lang="bn"
                                 class="lang-item notranslate w-full text-left px-2.5 py-1.5 text-xs rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300"
                                 translate="no">বাংলা</button>
-                            <button data-lang="zh-CN"
-                                class="lang-item notranslate w-full text-left px-2.5 py-1.5 text-xs rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300"
-                                translate="no">中文</button>
-                            <button data-lang="es"
-                                class="lang-item notranslate w-full text-left px-2.5 py-1.5 text-xs rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300"
-                                translate="no">Español</button>
-                            <button data-lang="hi"
-                                class="lang-item notranslate w-full text-left px-2.5 py-1.5 text-xs rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300"
-                                translate="no">हिन्दी</button>
-                            <button data-lang="ar"
-                                class="lang-item notranslate w-full text-left px-2.5 py-1.5 text-xs rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300"
-                                translate="no">العربية</button>
-                            <button data-lang="fr"
-                                class="lang-item notranslate w-full text-left px-2.5 py-1.5 text-xs rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300"
-                                translate="no">Français</button>
-                            <button data-lang="pt"
-                                class="lang-item notranslate w-full text-left px-2.5 py-1.5 text-xs rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300"
-                                translate="no">Português</button>
                         </div>
                     </div>
                 </div>
@@ -276,7 +279,8 @@
         </header>
 
         <!-- Main Content Included Area -->
-        <main class="flex-1 overflow-y-auto p-6 bg-slate-50">
+        <main
+            class="flex-1 overflow-y-auto p-3 sm:p-4 md:p-6 bg-slate-50 dark:bg-slate-950 transition-colors duration-200">
             [[include]]
         </main>
 

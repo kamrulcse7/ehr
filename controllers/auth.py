@@ -110,24 +110,4 @@ def logout():
     session.clear()
     redirect(URL("auth/login"))
 
-@action("dashboard")
-@view_page("dashboard.html")
-@web_auth_required
-def dashboard():
-    page_title = "Dashboard | HRMS"
-    return dict(page_title=page_title, session=session)
 
-
-@action("employees")
-@view_page("employees.html")
-@web_auth_required
-def employees():
-    page_title = "Employees Management | HRMS"
-    return dict(page_title=page_title)
-
-
-@action("attendance")
-@action.uses("attendance.html")
-def attendance():
-    page_title = "Attendance | HRMS"
-    return dict(page_title=page_title)
