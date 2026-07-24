@@ -1,68 +1,74 @@
 [[ extend 'layout.html' ]]
+[[ import json ]]
+
+<script>
+    window.ROLE_DATA = [[= XML(json.dumps(roles)) ]];
+</script>
 
 <div class="w-full space-y-4 text-slate-700 dark:text-slate-200">
     <div class="max-w-[1800px] mx-auto space-y-4">
 
-        <!-- ULTRA COMPACT & SLIM HEADER SECTION -->
-        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-2.5 border-b border-slate-200/60 dark:border-slate-800/60">
-            <!-- Left Side: Breadcrumb -->
-            <div class="flex items-center gap-1 text-[11px] font-medium tracking-tight">
-                <span class="text-slate-400 dark:text-slate-500">Administration</span>
-                <span class="material-symbols-outlined text-[12px] text-slate-300 dark:text-slate-600 select-none">chevron_right</span>
-                <span class="text-primary font-bold">Role Management</span>
+        <!-- HEADER SECTION -->
+        <div class="flex items-center justify-between gap-2 pb-2.5 border-b border-slate-200/60 dark:border-slate-800/60">
+            <!-- Left side: Breadcrumb -->
+            <div class="flex items-center gap-1 text-[11px] font-medium tracking-tight min-w-0">
+                <span class="text-slate-400 dark:text-slate-500 truncate">Administration</span>
+                <span class="material-symbols-outlined text-[12px] text-slate-300 dark:text-slate-600 select-none shrink-0">chevron_right</span>
+                <span class="text-primary font-bold truncate">Role Management</span>
             </div>
             
-            <!-- Right Side: Compact Action Button -->
-            <a href="[[=URL('administration/create_role')]]" class="inline-flex items-center justify-center gap-1 px-3 py-1.5 bg-primary hover:opacity-90 active:scale-[0.98] text-white rounded-md font-semibold text-[10px] shadow-sm transition-all shrink-0">
+            <!-- Right side: Create Role Button -->
+            <a href="[[=URL('administration/role_form')]]" class="inline-flex items-center justify-center gap-1 px-3 py-1.5 bg-primary hover:opacity-90 active:scale-[0.98] text-white rounded-md font-semibold text-[10px] shadow-sm transition-all shrink-0 whitespace-nowrap">
                 <span class="material-symbols-outlined text-[14px]">add</span>
                 <span>Create Role</span>
             </a>
         </div>
 
-        <!-- MAIN LAYOUT GRID -->
+        <!-- MAIN LAYOUT GRID (3/9 RATIO) -->
         <div class="grid grid-cols-1 lg:grid-cols-12 gap-5">
 
-            <!-- LEFT SIDEBAR: AVAILABLE ROLES (4 COLS) -->
-            <div class="lg:col-span-4 space-y-4">
-                
-                <!-- Roles Card -->
+            <!-- LEFT SIDEBAR: ROLES (Python Loop - Guarantee 100% Load) -->
+            <div class="lg:col-span-3 space-y-4">
                 <div class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-800/80 shadow-sm p-3.5">
                     <div class="flex items-center justify-between mb-2.5 px-1">
                         <h2 class="text-[10px] font-bold tracking-wider text-slate-400 dark:text-slate-500 uppercase">Available Roles</h2>
                         <span class="text-[10px] font-semibold bg-slate-100 dark:bg-slate-800 px-2 py-0.5 rounded-full text-slate-500">[[=len(roles)]] Roles</span>
                     </div>
                     
-                    <div class="space-y-1.5">
-                        [[ for index, role in enumerate(roles): ]]
-                        <a href="[[=URL('administration/roles', vars=dict(role_id=role['id']))]]" class="p-2.5 rounded-xl border transition-all cursor-pointer flex items-center justify-between group block
-                            [[= 'bg-primary/10 border-primary/40 text-primary dark:text-primary-light shadow-sm' if index == 0 else 'bg-white dark:bg-slate-900 border-slate-100 dark:border-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800/40' ]]">
-                            <div>
-                                <h3 class="text-xs font-bold text-slate-900 dark:text-white group-hover:text-primary transition-colors">[[=role['name']]]</h3>
-                                <p class="text-[10px] text-slate-500 dark:text-slate-400 mt-0.5">[[=role['description']]]</p>
-                            </div>
-                            <span class="material-symbols-outlined text-[16px] text-slate-400 group-hover:text-primary">chevron_right</span>
-                        </a>
+                    <div class="space-y-1.5" id="role-list-container">
+                        [[ if not roles: ]]
+                            <p class="text-xs text-slate-400 p-2">No roles found.</p>
+                        [[ else: ]]
+                            [[ for idx, role in enumerate(roles): ]]
+                            <button type="button" 
+                               onclick="switchRole('[[=role.get('role_id')]]')"
+                               id="role-btn-[[=role.get('role_id')]]"
+                               class="role-card-btn w-full p-2.5 rounded-xl border transition-all cursor-pointer flex items-center justify-between group text-left
+                               [[= 'bg-primary/10 border-primary/40 text-primary dark:text-primary-light shadow-sm' if idx == 0 else 'bg-white dark:bg-slate-900 border-slate-100 dark:border-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800/40' ]]">
+                                <div class="min-w-0 pr-2">
+                                    <h3 class="text-xs font-bold text-slate-900 dark:text-white group-hover:text-primary transition-colors truncate">[[=role.get('role_name', '')]]</h3>
+                                    <p class="text-[10px] text-slate-500 dark:text-slate-400 mt-0.5 truncate">[[=role.get('description', '')]]</p>
+                                </div>
+                                <span class="material-symbols-outlined text-[16px] text-slate-400 group-hover:text-primary shrink-0">chevron_right</span>
+                            </button>
+                            [[ pass ]]
                         [[ pass ]]
                     </div>
                 </div>
             </div>
 
-            <!-- RIGHT CONTENT: PERMISSION MATRIX (8 COLS) -->
-            <div class="lg:col-span-8 space-y-4">
-
-                <!-- Permission Matrix Table Card -->
+            <!-- RIGHT CONTENT: PERMISSION MATRIX -->
+            <div class="lg:col-span-9 space-y-4">
                 <div class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-800/80 shadow-sm overflow-hidden">
                     
-                    <!-- Table Header with Edit Button -->
                     <div class="flex items-center justify-between px-4 py-3 border-b border-slate-100 dark:border-slate-800">
                         <div class="flex items-center gap-2">
                             <span class="text-xs font-bold text-slate-800 dark:text-slate-100">
-                                Permissions for: <span class="text-primary">[[=selected_role['name'] if 'selected_role' in globals() else roles[0]['name']]]</span>
+                                Permissions for: <span class="text-primary" id="selected-role-name">--</span>
                             </span>
                         </div>
                         
-                        <!-- Edit Icon/Button -->
-                        <a href="[[=URL('administration/edit_role', selected_role['id'] if 'selected_role' in globals() else roles[0]['id'])]]" 
+                        <a id="edit-role-link" href="#" 
                            class="inline-flex items-center gap-1 px-2.5 py-1 text-[11px] font-semibold text-primary bg-primary/10 hover:bg-primary/20 rounded-lg transition-colors">
                             <span class="material-symbols-outlined text-[15px]">edit</span>
                             <span>Edit Role</span>
@@ -73,60 +79,120 @@
                         <table class="w-full text-left border-collapse">
                             <thead>
                                 <tr class="bg-slate-100/70 dark:bg-slate-800/60 text-[10px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 border-b border-slate-200/80 dark:border-slate-800">
-                                    <th class="py-2.5 px-4 min-w-[200px]">Navigation / Action</th>
-                                    <th class="py-2.5 px-2 text-center w-14">View</th>
-                                    <th class="py-2.5 px-2 text-center w-14">Create</th>
-                                    <th class="py-2.5 px-2 text-center w-14">Edit</th>
-                                    <th class="py-2.5 px-2 text-center w-14">Delete</th>
-                                    <th class="py-2.5 px-2 text-center w-14">Export</th>
-                                    <th class="py-2.5 px-2 text-center w-14">Approve</th>
+                                    <th class="py-2.5 px-4 min-w-[200px]">Navigation / Module</th>
+                                    <th class="py-2.5 px-2 text-center w-16">View</th>
+                                    <th class="py-2.5 px-2 text-center w-16">Create</th>
+                                    <th class="py-2.5 px-2 text-center w-16">Edit</th>
+                                    <th class="py-2.5 px-2 text-center w-16">Delete</th>
+                                    <th class="py-2.5 px-2 text-center w-16">Export</th>
+                                    <th class="py-2.5 px-2 text-center w-16">Approve</th>
                                 </tr>
                             </thead>
-                            <tbody class="divide-y divide-slate-100 dark:divide-slate-800/60 text-xs">
-
-                                [[ for group in permission_groups: ]]
-                                <!-- Group Header Row -->
-                                <tr class="bg-slate-50/80 dark:bg-slate-800/40 text-[10px] font-bold tracking-wider text-slate-400 dark:text-slate-500 uppercase">
-                                    <td colspan="7" class="py-1.5 px-4">
-                                        [[=group['group_name']]] Group
-                                    </td>
-                                </tr>
-
-                                <!-- Modules in Group -->
-                                [[ for module in group['modules']: ]]
-                                <tr class="hover:bg-slate-50/70 dark:hover:bg-slate-800/40 transition-colors">
-                                    <td class="py-2.5 px-4">
-                                        <div class="flex items-center gap-2">
-                                            <span class="material-symbols-outlined text-[16px] text-slate-400">[[=module.get('icon', 'folder')]]</span>
-                                            <span class="font-bold text-[11px] text-slate-900 dark:text-white">[[=module['name']]]</span>
-                                        </div>
-                                    </td>
-                                    
-                                    <!-- Read-only Display with Simple Check Icon -->
-                                    [[ for action in ['view', 'create', 'edit', 'delete', 'export', 'approve']: ]]
-                                    <td class="py-2.5 px-2 text-center">
-                                        [[ if action in module.get('disabled_actions', []): ]]
-                                            <span class="material-symbols-outlined text-[14px] text-slate-300 dark:text-slate-600 select-none">block</span>
-                                        [[ elif module.get('perms', {}).get(action): ]]
-                                            <!-- Granted Permission: Simple Checkmark -->
-                                            <span class="material-symbols-outlined text-[18px] text-primary font-bold select-none">check</span>
-                                        [[ else: ]]
-                                            <!-- No Permission: Dash/Empty indicator -->
-                                            <span class="text-slate-300 dark:text-slate-700 select-none">—</span>
-                                        [[ pass ]]
-                                    </td>
-                                    [[ pass ]]
-                                </tr>
-                                [[ pass ]]
-                                [[ pass ]]
-
+                            <tbody id="permission-table-body" class="divide-y divide-slate-100 dark:divide-slate-800/60 text-xs">
+                                <!-- Rendered via JavaScript -->
                             </tbody>
                         </table>
                     </div>
                 </div>
-
             </div>
 
         </div>
     </div>
 </div>
+
+<!-- INSTANT CLIENT-SIDE SWITCHING SCRIPT -->
+<script>
+    const EDIT_URL_BASE = "[[=URL('administration/role_form')]]";
+
+    function renderPermissions(role) {
+        const tbody = document.getElementById('permission-table-body');
+        const roleNameSpan = document.getElementById('selected-role-name');
+        const editBtn = document.getElementById('edit-role-link');
+
+        if (!role) {
+            tbody.innerHTML = `<tr><td colspan="7" class="text-center py-6 text-slate-400 text-xs">No role selected.</td></tr>`;
+            return;
+        }
+
+        roleNameSpan.textContent = role.role_name || '--';
+        editBtn.href = `${EDIT_URL_BASE}?role_id=${role.role_id}`;
+
+        if (!role.permissions || role.permissions.length === 0) {
+            tbody.innerHTML = `
+                <tr>
+                    <td colspan="7" class="text-center py-6 text-slate-400 text-xs">
+                        No permissions assigned for this role.
+                    </td>
+                </tr>`;
+            return;
+        }
+
+        let html = '';
+        const actionKeys = ['can_view', 'can_create', 'can_edit', 'can_delete', 'can_export', 'can_approve'];
+
+        role.permissions.forEach(group => {
+            html += `
+                <tr class="bg-slate-50/80 dark:bg-slate-800/40 text-[10px] font-bold tracking-wider text-slate-400 dark:text-slate-500 uppercase">
+                    <td colspan="7" class="py-1.5 px-4">${group.module_group || ''} Group</td>
+                </tr>`;
+
+            (group.modules || []).forEach(module => {
+                html += `
+                    <tr class="hover:bg-slate-50/70 dark:hover:bg-slate-800/40 transition-colors">
+                        <td class="py-2.5 px-4 whitespace-nowrap">
+                            <div class="flex items-center gap-2">
+                                <span class="material-symbols-outlined text-[18px] text-primary shrink-0 select-none">
+                                    ${module.module_icon || 'extension'}
+                                </span>
+                                <span class="font-bold text-[11px] text-slate-900 dark:text-white">${module.module_name || ''}</span>
+                            </div>
+                        </td>`;
+
+                actionKeys.forEach(key => {
+                    if (module[key] === true) {
+                        html += `
+                            <td class="py-2.5 px-2 text-center">
+                                <span class="material-symbols-outlined text-[18px] text-emerald-500 font-bold select-none">check</span>
+                            </td>`;
+                    } else {
+                        html += `
+                            <td class="py-2.5 px-2 text-center">
+                                <span class="material-symbols-outlined text-[16px] text-rose-400/60 dark:text-rose-500/40 select-none">close</span>
+                            </td>`;
+                    }
+                });
+
+                html += `</tr>`;
+            });
+        });
+
+        tbody.innerHTML = html;
+    }
+
+    function switchRole(roleId) {
+        if (!window.ROLE_DATA || !Array.isArray(window.ROLE_DATA)) return;
+        
+        const selectedRole = window.ROLE_DATA.find(r => String(r.role_id) === String(roleId));
+        if (!selectedRole) return;
+
+        // Reset sidebar button highlights
+        document.querySelectorAll('.role-card-btn').forEach(btn => {
+            btn.className = 'role-card-btn w-full p-2.5 rounded-xl border transition-all cursor-pointer flex items-center justify-between group text-left bg-white dark:bg-slate-900 border-slate-100 dark:border-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800/40';
+        });
+
+        // Set active highlight on clicked button
+        const activeBtn = document.getElementById(`role-btn-${roleId}`);
+        if (activeBtn) {
+            activeBtn.className = 'role-card-btn w-full p-2.5 rounded-xl border transition-all cursor-pointer flex items-center justify-between group text-left bg-primary/10 border-primary/40 text-primary dark:text-primary-light shadow-sm';
+        }
+
+        renderPermissions(selectedRole);
+    }
+
+    // Initialize Page
+    document.addEventListener('DOMContentLoaded', () => {
+        if (window.ROLE_DATA && window.ROLE_DATA.length > 0) {
+            renderPermissions(window.ROLE_DATA[0]);
+        }
+    });
+</script>
