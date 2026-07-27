@@ -1,0 +1,301 @@
+[[ extend 'layout.html' ]]
+
+<div class="w-full space-y-4 text-slate-700 dark:text-slate-200">
+    <div class="max-w-[1800px] mx-auto space-y-4">
+
+        <!-- HEADER SECTION & BREADCRUMB -->
+        <div class="flex items-center justify-between gap-2 pb-2.5 border-b border-slate-200/60 dark:border-slate-800/60">
+            <div class="flex items-center gap-1 text-[11px] font-medium tracking-tight min-w-0">
+                <span class="text-slate-400 dark:text-slate-500 truncate">Administration</span>
+                <span class="material-symbols-outlined text-[12px] text-slate-300 dark:text-slate-600 select-none shrink-0">chevron_right</span>
+                <a href="[[=URL('administration/users')]]" class="text-slate-400 dark:text-slate-500 hover:text-primary transition-colors truncate">User Management</a>
+                <span class="material-symbols-outlined text-[12px] text-slate-300 dark:text-slate-600 select-none shrink-0">chevron_right</span>
+                <span class="text-primary font-bold truncate">Create User</span>
+            </div>
+
+            <a href="[[=URL('administration/users')]]" class="inline-flex items-center justify-center gap-1 px-3 py-1.5 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-200 rounded-md font-semibold text-[10px] shadow-sm transition-all shrink-0 whitespace-nowrap">
+                <span class="material-symbols-outlined text-[14px]">arrow_back</span>
+                <span>Back to Users</span>
+            </a>
+        </div>
+
+        <!-- FORM START - CHANGED TO 5-COLUMN GRID -->
+        <form action="[[=URL('administration/user_form')]]" method="POST" class="grid grid-cols-1 lg:grid-cols-5 gap-4">
+
+            <!-- LEFT COLUMN (SPAN 3 = 60% WIDTH) -->
+            <div class="lg:col-span-3 space-y-4">
+
+                <!-- 1. USER IDENTIFICATION CARD -->
+                <div class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-800/80 p-5 shadow-sm space-y-4">
+                    <div class="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
+                        <div class="flex items-center gap-2">
+                            <span class="material-symbols-outlined text-primary text-[20px]">badge</span>
+                            <h3 class="font-bold text-sm text-slate-900 dark:text-white">User Identification</h3>
+                        </div>
+                        
+                        <!-- Account Creation Mode Switch -->
+                        <div class="flex items-center bg-slate-100 dark:bg-slate-800 p-1 rounded-xl text-xs">
+                            <label class="cursor-pointer flex items-center gap-1.5 px-3 py-1 rounded-lg transition-all font-medium text-[11px] has-[:checked]:bg-white dark:has-[:checked]:bg-slate-700 has-[:checked]:text-primary has-[:checked]:shadow-sm">
+                                <input type="radio" name="creation_mode" value="employee" checked class="sr-only" onchange="toggleUserMode(this.value)">
+                                <span class="material-symbols-outlined text-[14px]">person_search</span>
+                                <span>Link Employee</span>
+                            </label>
+                            <label class="cursor-pointer flex items-center gap-1.5 px-3 py-1 rounded-lg transition-all font-medium text-[11px] has-[:checked]:bg-white dark:has-[:checked]:bg-slate-700 has-[:checked]:text-primary has-[:checked]:shadow-sm">
+                                <input type="radio" name="creation_mode" value="direct" class="sr-only" onchange="toggleUserMode(this.value)">
+                                <span class="material-symbols-outlined text-[14px]">person_add</span>
+                                <span>Direct User</span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- Employee Registry Dropdown -->
+                    <div id="employee_select_container">
+                        <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 mb-1">
+                            Search & Select Employee
+                        </label>
+                        <div class="relative">
+                            <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-[18px]">search</span>
+                            <select name="employee_id" id="employee_id_select" onchange="autofillEmployeeDetails(this)"
+                                class="w-full pl-9 pr-8 py-2 bg-slate-50/50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-medium text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all appearance-none cursor-pointer">
+                                <option value="" disabled selected>Select Employee from Registry...</option>
+                                <option value="1" data-userid="USR-1001" data-mobile="01700000001" data-email="nazrul@company.com">Kazi Nazrul Islam (EMP-1001) - Seeds Division</option>
+                                <option value="2" data-userid="USR-1002" data-mobile="01700000002" data-email="jasim@company.com">Jasim Uddin (EMP-1002) - HR & Admin</option>
+                            </select>
+                            <span class="material-symbols-outlined absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 text-[18px] pointer-events-none">expand_more</span>
+                        </div>
+                    </div>
+
+                    <!-- 2-COLUMN GRID FOR USER FIELDS -->
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                        <!-- User ID -->
+                        <div>
+                            <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 mb-1">
+                                User ID <span class="text-rose-500">*</span>
+                            </label>
+                            <input type="text" name="user_id" id="field_user_id" placeholder="e.g. USR-1001" required
+                                class="w-full px-3 py-2 bg-slate-50/50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-medium text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all">
+                        </div>
+
+                        <!-- Full Name -->
+                        <div>
+                            <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 mb-1">
+                                Full Name <span class="text-rose-500">*</span>
+                            </label>
+                            <input type="text" name="full_name" id="field_full_name" placeholder="e.g. Kazi Nazrul Islam" required
+                                class="w-full px-3 py-2 bg-slate-50/50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-medium text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all">
+                        </div>
+
+                        <!-- Mobile Number -->
+                        <div>
+                            <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 mb-1">
+                                Mobile Number <span class="text-rose-500">*</span>
+                            </label>
+                            <input type="tel" name="mobile" id="field_mobile" placeholder="e.g. +8801700000000" required
+                                class="w-full px-3 py-2 bg-slate-50/50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-medium text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all">
+                        </div>
+
+                        <!-- Email Address -->
+                        <div>
+                            <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 mb-1">
+                                Email Address <span class="text-rose-500">*</span>
+                            </label>
+                            <input type="email" name="email" id="field_email" placeholder="kazi.nazrul@company.com" required
+                                class="w-full px-3 py-2 bg-slate-50/50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-medium text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 2. AUTHENTICATION & SECURITY CARD -->
+                <div class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-800/80 p-5 shadow-sm space-y-4">
+                    <div class="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
+                        <div class="flex items-center gap-2">
+                            <span class="material-symbols-outlined text-primary text-[20px]">lock</span>
+                            <h3 class="font-bold text-sm text-slate-900 dark:text-white">Authentication & Security</h3>
+                        </div>
+                        <button type="button" onclick="generateRandomPassword()" 
+                            class="inline-flex items-center gap-1 text-[11px] font-bold text-primary hover:underline">
+                            <span class="material-symbols-outlined text-[14px]">key</span>
+                            <span>Auto-Generate Password</span>
+                        </button>
+                    </div>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <div>
+                            <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 mb-1">
+                                Password <span class="text-rose-500">*</span>
+                            </label>
+                            <div class="relative">
+                                <input type="password" name="password" id="password_input" required placeholder="••••••••"
+                                    class="w-full pl-3 pr-9 py-2 bg-slate-50/50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-medium text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all">
+                                <button type="button" onclick="togglePasswordVisibility('password_input', this)" class="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200">
+                                    <span class="material-symbols-outlined text-[18px]">visibility</span>
+                                </button>
+                            </div>
+                        </div>
+
+                        <div>
+                            <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 mb-1">
+                                Confirm Password <span class="text-rose-500">*</span>
+                            </label>
+                            <div class="relative">
+                                <input type="password" name="confirm_password" id="confirm_password_input" required placeholder="••••••••"
+                                    class="w-full pl-3 pr-9 py-2 bg-slate-50/50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-medium text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all">
+                                <button type="button" onclick="togglePasswordVisibility('confirm_password_input', this)" class="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200">
+                                    <span class="material-symbols-outlined text-[18px]">visibility</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- RIGHT COLUMN (SPAN 2 = 40% WIDTH) -->
+            <div class="lg:col-span-2 space-y-4">
+
+                <!-- 3. ROLE & PERMISSIONS CARD -->
+                <div class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-800/80 p-5 shadow-sm space-y-4">
+                    <div class="flex items-center gap-2 border-b border-slate-100 dark:border-slate-800 pb-3">
+                        <span class="material-symbols-outlined text-primary text-[20px]">admin_panel_settings</span>
+                        <h3 class="font-bold text-sm text-slate-900 dark:text-white">Role & Permissions</h3>
+                    </div>
+
+                    <div class="space-y-3.5">
+                        <div>
+                            <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 mb-1">
+                                Primary User Role
+                            </label>
+                            <div class="relative">
+                                <select name="role"
+                                    class="w-full px-3 py-2 bg-slate-50/50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-medium text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all appearance-none cursor-pointer">
+                                    <option value="Manager">Manager (Department Head)</option>
+                                    <option value="Admin">Administrator</option>
+                                    <option value="User">General User</option>
+                                </select>
+                                <span class="material-symbols-outlined absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 text-[18px] pointer-events-none">expand_more</span>
+                            </div>
+                        </div>
+
+                        <!-- Permissions Info Callout Box -->
+                        <div class="bg-sky-50/60 dark:bg-sky-950/30 border border-sky-100 dark:border-sky-900/50 rounded-xl p-3.5 flex gap-3 text-xs">
+                            <span class="material-symbols-outlined text-sky-600 dark:text-sky-400 text-[18px] shrink-0 mt-0.5">info</span>
+                            <div class="space-y-1">
+                                <div class="font-bold text-sky-900 dark:text-sky-300">Manager Permissions Included:</div>
+                                <ul class="list-disc list-inside space-y-0.5 text-[11px] text-sky-800/80 dark:text-sky-400">
+                                    <li>Approve transfer requests within department</li>
+                                    <li>Access to department-level performance reports</li>
+                                    <li>Modify employee master data (Basic fields)</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 4. ACCOUNT SETTINGS CARD -->
+                <div class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-800/80 p-5 shadow-sm space-y-4">
+                    <div class="flex items-center gap-2 border-b border-slate-100 dark:border-slate-800 pb-3">
+                        <span class="material-symbols-outlined text-primary text-[20px]">manage_accounts</span>
+                        <h3 class="font-bold text-sm text-slate-900 dark:text-white">Account Settings</h3>
+                    </div>
+
+                    <div class="space-y-3.5">
+                        <div class="flex items-center justify-between gap-2">
+                            <div>
+                                <div class="text-xs font-bold text-slate-800 dark:text-slate-200">Account Status</div>
+                                <div class="text-[10px] text-slate-400 dark:text-slate-500">Enable or disable login access</div>
+                            </div>
+                            <label class="relative inline-flex items-center cursor-pointer">
+                                <input type="checkbox" name="status" value="Active" checked class="sr-only peer">
+                                <div class="w-9 h-5 bg-slate-200 peer-focus:outline-none rounded-full peer dark:bg-slate-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all dark:border-slate-600 peer-checked:bg-primary"></div>
+                            </label>
+                        </div>
+
+                        <div class="flex items-center justify-between gap-2">
+                            <div>
+                                <div class="text-xs font-bold text-slate-800 dark:text-slate-200">Mobile App Access</div>
+                                <div class="text-[10px] text-slate-400 dark:text-slate-500">Allow login via mobile app</div>
+                            </div>
+                            <label class="relative inline-flex items-center cursor-pointer">
+                                <input type="checkbox" name="allow_mobile_login" value="1" checked class="sr-only peer">
+                                <div class="w-9 h-5 bg-slate-200 peer-focus:outline-none rounded-full peer dark:bg-slate-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all dark:border-slate-600 peer-checked:bg-primary"></div>
+                            </label>
+                        </div>
+
+                    </div>
+                </div>
+
+                <!-- FORM ACTIONS -->
+                <div class="flex items-center justify-end gap-2 pt-2">
+                    <a href="[[=URL('administration/users')]]" class="px-4 py-2 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 rounded-xl font-semibold text-xs transition-all">
+                        Cancel
+                    </a>
+                    <button type="submit" class="px-5 py-2 bg-primary hover:opacity-90 active:scale-[0.98] text-white rounded-xl font-semibold text-xs shadow-sm transition-all flex items-center gap-1.5">
+                        <span class="material-symbols-outlined text-[16px]">check_circle</span>
+                        <span>Save User</span>
+                    </button>
+                </div>
+
+            </div>
+
+        </form>
+    </div>
+</div>
+
+<!-- JAVASCRIPT HELPER -->
+<script>
+    function toggleUserMode(mode) {
+        const container = document.getElementById('employee_select_container');
+        const selectBox = document.getElementById('employee_id_select');
+        
+        if (mode === 'direct') {
+            container.style.display = 'none';
+            selectBox.value = '';
+        } else {
+            container.style.display = 'block';
+        }
+    }
+
+    function autofillEmployeeDetails(selectElement) {
+        const selectedOption = selectElement.options[selectElement.selectedIndex];
+        if (!selectedOption.value) return;
+
+        const text = selectedOption.text.split(' (')[0];
+        const userId = selectedOption.getAttribute('data-userid') || '';
+        const mobile = selectedOption.getAttribute('data-mobile') || '';
+        const email = selectedOption.getAttribute('data-email') || '';
+
+        const elUserId = document.getElementById('field_user_id');
+        const elFullName = document.getElementById('field_full_name');
+        const elMobile = document.getElementById('field_mobile');
+        const elEmail = document.getElementById('field_email');
+
+        if (elUserId) elUserId.value = userId;
+        if (elFullName) elFullName.value = text;
+        if (elMobile) elMobile.value = mobile;
+        if (elEmail) elEmail.value = email;
+    }
+
+    function togglePasswordVisibility(inputId, btn) {
+        const input = document.getElementById(inputId);
+        const icon = btn.querySelector('span');
+        if (input.type === 'password') {
+            input.type = 'text';
+            icon.textContent = 'visibility_off';
+        } else {
+            input.type = 'password';
+            icon.textContent = 'visibility';
+        }
+    }
+
+    function generateRandomPassword() {
+        const chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*";
+        let pass = "";
+        for (let i = 0; i < 12; i++) {
+            pass += chars.charAt(Math.floor(Math.random() * chars.length));
+        }
+        document.getElementById('password_input').value = pass;
+        document.getElementById('confirm_password_input').value = pass;
+        document.getElementById('password_input').type = 'text';
+        document.getElementById('confirm_password_input').type = 'text';
+    }
+</script>

@@ -1,8 +1,9 @@
 from py4web import URL, action, redirect, request
 from ..middleware.auth_middleware import web_auth_required
 from ..utils.common import db, flash, session, view_page
+import math
 
-roles = [
+all_roles = [
     {
         "role_id": "ROLE_SUPER_ADMIN",
         "role_name": "Super Admin",
@@ -201,18 +202,18 @@ roles = [
 ]
     
 
-@action("administration/role_management")
-@view_page("administration/role_management.html")
+@action("administration/roles")
+@view_page("administration/roles.html")
 @web_auth_required
-def role_management():
-    return dict(roles=roles)
+def roles():
+    return dict(all_roles=all_roles)
 
 
 
-@action("administration/role_form")
-@view_page("administration/role_form.html")
+@action("administration/role_manage")
+@view_page("administration/role_manage.html")
 @web_auth_required
-def role_form():
+def role_manage():
     role_id = request.params.get("role_id")
 
     module_groups = [
@@ -363,7 +364,7 @@ def role_form():
 
     if role_id:
         selected_role = next(
-            (r for r in roles if str(r["role_id"]) == str(role_id)), None
+            (r for r in all_roles if str(r["role_id"]) == str(role_id)), None
         )
 
         if selected_role:
@@ -390,3 +391,132 @@ def role_form():
         description=description,
         module_groups=module_groups,
     )
+
+@action("administration/users")
+@view_page("administration/users.html")
+@web_auth_required
+def users():
+    raw_users = [
+        {
+            "user_id": "1",
+            "user_name": "John Doe",
+            "user_email": "john@example.com",
+            "department": "Human Resources",
+            "designation": "Manager",
+            "branch": "Dhaka",
+            "last_login": "2022-01-01 12:00:00",
+            "user_role": "Admin",
+            "user_status": "Active",
+        },
+        {
+            "user_id": "2",
+            "user_name": "Jane Doe",
+            "user_email": "jane@example.com",
+            "department": "Human Resources",
+            "designation": "Manager",
+            "branch": "Dhaka",
+            "last_login": "2022-01-01 12:00:00",
+            "user_role": "Admin",
+            "user_status": "Active",
+        },
+        {
+            "user_id": "3",
+            "user_name": "Rahim Ahmed",
+            "user_email": "rahim@example.com",
+            "department": "IT",
+            "designation": "Developer",
+            "branch": "Dhaka",
+            "last_login": "2022-01-02 10:30:00",
+            "user_role": "User",
+            "user_status": "Active",
+        },
+        {
+            "user_id": "4",
+            "user_name": "Karim Uddin",
+            "user_email": "karim@example.com",
+            "department": "Finance",
+            "designation": "Accountant",
+            "branch": "Chittagong",
+            "last_login": "2022-01-03 15:20:00",
+            "user_role": "User",
+            "user_status": "Inactive",
+        },
+        {
+            "user_id": "5",
+            "user_name": "Sultana Razia",
+            "user_email": "sultana@example.com",
+            "department": "Operations",
+            "designation": "Executive",
+            "branch": "Sylhet",
+            "last_login": "2022-01-04 09:15:00",
+            "user_role": "Manager",
+            "user_status": "Active",
+        },
+        {
+            "user_id": "6",
+            "user_name": "Tanvir Hasan",
+            "user_email": "tanvir@example.com",
+            "department": "IT",
+            "designation": "SysAdmin",
+            "branch": "Dhaka",
+            "last_login": "2022-01-05 18:00:00",
+            "user_role": "Admin",
+            "user_status": "Locked",
+        },
+    
+    ]
+
+    # --- ১. Stats Calculation (Controller Side) ---
+    total_users = len(raw_users)
+    active_users = sum(1 for u in raw_users if u.get("user_status") == "Active")
+    inactive_users = sum(
+        1 for u in raw_users if u.get("user_status") in ["Inactive", "Locked"]
+    )
+    admin_users = sum(1 for u in raw_users if u.get("user_role") == "Admin")
+
+    stats = {
+        "total": total_users,
+        "active": active_users,
+        "inactive": inactive_users,
+        "admin": admin_users,
+    }
+
+    # --- ২. Pagination Logic ---
+    try:
+        page = int(request.query.get("page", 1))
+    except (ValueError, TypeError):
+        page = 1
+
+    page_size = 5 
+    total_pages = math.ceil(total_users / page_size) if total_users > 0 else 1
+
+    if page < 1:
+        page = 1
+    elif page > total_pages and total_pages > 0:
+        page = total_pages
+
+    # Slice index calculation
+    start_idx = (page - 1) * page_size
+    end_idx = start_idx + page_size
+    paginated_users = raw_users[start_idx:end_idx]
+
+    pagination = {
+        "current_page": page,
+        "page_size": page_size,
+        "total_pages": total_pages,
+        "total_items": total_users,
+        "start_item": start_idx + 1 if total_users > 0 else 0,
+        "end_item": min(end_idx, total_users),
+    }
+
+    return dict(all_users=paginated_users, stats=stats, pagination=pagination)
+
+
+@action("administration/user_manage")
+@view_page("administration/user_manage.html")
+@web_auth_required
+def user_manage():
+    return dict()
+
+
+

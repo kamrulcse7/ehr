@@ -13,7 +13,10 @@
         <div
             class="flex items-center justify-between gap-2 pb-2.5 border-b border-slate-200/60 dark:border-slate-800/60">
             <div class="flex items-center gap-1 text-[11px] font-medium tracking-tight min-w-0">
-                <a href="[[=URL('administration/role_management')]]"
+                <span class="text-slate-400 dark:text-slate-500 truncate">Administration</span>
+                <span
+                    class="material-symbols-outlined text-[12px] text-slate-300 dark:text-slate-600 select-none shrink-0">chevron_right</span>
+                <a href="[[=URL('administration/roles')]]"
                     class="text-slate-400 hover:text-primary dark:text-slate-500 truncate transition-colors">Role
                     Management</a>
                 <span
@@ -105,7 +108,7 @@
 
             <!-- ACTIONS -->
             <div class="flex items-center justify-end gap-3 pt-2">
-                <a href="[[=URL('administration/role_management')]]"
+                <a href="[[=URL('administration/roles')]]"
                     class="px-4 py-2 rounded-xl text-xs font-semibold text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">
                     Cancel
                 </a>
@@ -205,7 +208,7 @@
         alert(`Form submitted successfully!\nRole Mode: ${roleId ? 'Edit' : 'Create'}\nCheck browser console for payload.`);
 
         // Redirect back
-        window.location.href = "[[=URL('administration/role_management')]]";
+        window.location.href = "[[=URL('administration/roles')]]";
     }
 
     document.addEventListener('DOMContentLoaded', () => {

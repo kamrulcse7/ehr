@@ -1,6 +1,5 @@
 from py4web import URL, request, redirect, action
 from ..utils.common import session, flash, db, view_page
-from ..middleware.auth_middleware import web_auth_required
 
 @action("auth/login", method=["GET", "POST"])
 @view_page("auth/login.html")
@@ -95,9 +94,8 @@ def login():
                     
                 session.auth = user
                 session.authorized = True
-                redirect(URL("dashboard"))    
+                redirect(URL("dashboard"))         
 
-            
     return dict(
         error=error, 
         page_title=page_title
