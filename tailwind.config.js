@@ -11,55 +11,36 @@ module.exports = {
         sans: ['Inter', 'Arial', 'sans-serif'],
       },
       colors: {
-        'outline-variant': '#e2e8f0',
-        'on-secondary-container': '#5c647a',
-        'outline': '#94a3b8',
-        'background': '#f8fafc',
-        'surface-dim': '#d9d9e5',
-        'error-container': '#ffdad6',
-        'tertiary-container': '#bc4800',
-        'surface-container-highest': '#f1f5f9',
-        'surface-bright': '#faf8ff',
-        'on-tertiary': '#ffffff',
-        'primary-container': '#2563eb',
-        'surface-variant': '#e1e2ed',
-        'on-primary': '#ffffff',
-        'on-surface-variant': '#64748b',
-        'secondary-fixed': '#dae2fd',
-        'inverse-surface': '#2e3039',
-        'surface-container': '#f8fafc',
-        'tertiary': '#943700',
-        'surface-container-lowest': '#ffffff',
-        'tertiary-fixed': '#ffdbcd',
-        'on-primary-fixed': '#00174b',
+        /* BADC Brand Green Palette */
+        'primary': '#059669',             /* Emerald 600 - Primary Brand */
+        'primary-container': '#10b981',   /* Emerald 500 - Secondary Green */
+        'primary-hover': '#047857',       /* Emerald 700 - Hover State */
+        'primary-fixed': '#d1fae5',       /* Emerald 100 - Light Accent */
+        'primary-fixed-dim': '#a7f3d0',   /* Emerald 200 */
+        'on-primary': '#ffffff',          /* White text on primary */
+        'on-primary-container': '#064e3b',/* Emerald 900 - Dark text on light green */
+
+        /* Neutral Surface & Background Colors */
+        'background': '#f8fafc',          /* Slate 50 */
+        'surface': '#ffffff',             /* Pure White */
+        'surface-container': '#f1f5f9',   /* Slate 100 */
+        'surface-container-high': '#e2e8f0',/* Slate 200 */
+        
+        /* Typography & Borders */
+        'on-surface': '#0f172a',          /* Slate 900 */
+        'on-surface-variant': '#64748b',  /* Slate 500 */
+        'outline': '#94a3b8',             /* Slate 400 */
+        'outline-variant': '#e2e8f0',     /* Slate 200 */
+
+        /* Alerts & System States */
+        'error': '#ef4444',               /* Red 500 */
+        'error-container': '#fef2f2',     /* Red 50 */
         'on-error': '#ffffff',
-        'on-background': '#0f172a',
-        'surface': '#ffffff',
-        'secondary-container': '#dae2fd',
-        'primary-fixed-dim': '#b4c5ff',
-        'on-tertiary-fixed-variant': '#7d2d00',
-        'inverse-on-surface': '#f0f0fb',
-        'on-secondary-fixed-variant': '#3f465c',
-        'primary-fixed': '#dbe1ff',
-        'on-primary-container': '#eeefff',
-        'on-primary-fixed-variant': '#003ea8',
-        'surface-tint': '#2563eb',
-        'on-surface': '#0f172a',
-        'inverse-primary': '#b4c5ff',
-        'on-tertiary-container': '#ffede6',
-        'tertiary-fixed-dim': '#ffb596',
-        'on-secondary': '#ffffff',
-        'on-error-container': '#93000a',
-        'on-secondary-fixed': '#131b2e',
-        'on-tertiary-fixed': '#360f00',
-        'surface-container-high': '#e7e7f3',
-        'secondary': '#475569',
-        'primary': '#2563eb',
-        'surface-container-low': '#f8fafc',
-        'error': '#ef4444',
-        'secondary-fixed-dim': '#bec6e0'
+        'on-error-container': '#991b1b',  /* Red 800 */
       },
-      borderRadius: { card: '16px' }
+      borderRadius: { 
+        card: '16px' 
+      }
     },
   },
   plugins: [],

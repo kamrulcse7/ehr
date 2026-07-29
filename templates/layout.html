@@ -1,147 +1,105 @@
 [[extend 'base.html']]
 <div class="fixed inset-0 w-screen h-screen flex overflow-hidden bg-slate-50 font-sans text-slate-800">
 
-    <!-- Sidebar -->
+    <!-- Sidebar (Compact Width & Compact Styling) -->
     <aside id="main-sidebar"
-        class="w-64 bg-white dark:bg-slate-900 flex flex-col z-40 shadow-xl md:shadow-none border-r border-slate-200 dark:border-slate-800 transition-transform duration-300 fixed md:static inset-y-0 left-0 -translate-x-full md:translate-x-0">
+        class="w-56 bg-white dark:bg-slate-900 flex flex-col z-40 shadow-xl md:shadow-none border-r border-slate-200 dark:border-slate-800 transition-transform duration-300 fixed md:static inset-y-0 left-0 -translate-x-full md:translate-x-0">
 
-        <!-- Logo -->
+        <!-- Logo Section (Compact Height: h-12) -->
         <div
-            class="h-16 flex items-center px-5 border-b border-slate-200 dark:border-slate-800 gap-3 shrink-0 overflow-hidden">
-            <span class="material-symbols-outlined text-primary text-2xl shrink-0 font-semibold">domain</span>
+            class="h-12 flex items-center px-4 border-b border-slate-200 dark:border-slate-800 gap-2.5 shrink-0 overflow-hidden">
+            <span class="material-symbols-outlined text-primary text-xl shrink-0 font-semibold">domain</span>
             <span
-                class="sidebar-text text-slate-800 dark:text-white font-bold text-base tracking-wide uppercase truncate">EMS
+                class="sidebar-text text-slate-800 dark:text-white font-bold text-sm tracking-wide uppercase truncate">EMS
                 Admin</span>
         </div>
 
-        <!-- Menu Search -->
-        <div class="sidebar-text p-3 border-b border-slate-200 dark:border-slate-800 shrink-0">
-            <div class="relative w-full h-9 flex items-center">
+        <!-- Menu Search (Compact Height & Padding) -->
+        <div class="sidebar-text px-2.5 py-2 border-b border-slate-200 dark:border-slate-800 shrink-0">
+            <div class="relative w-full h-8 flex items-center">
                 <span
-                    class="material-symbols-outlined absolute left-3 text-slate-400 dark:text-slate-500 text-lg pointer-events-none">search</span>
+                    class="material-symbols-outlined absolute left-2.5 text-slate-400 dark:text-slate-500 text-base pointer-events-none">search</span>
                 <input type="text" id="menu-search" placeholder="Search menu..."
-                    class="w-full h-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl pl-9 pr-3 text-xs text-slate-800 dark:text-slate-200 placeholder-slate-400 focus:outline-none focus:border-primary transition-colors">
+                    class="w-full h-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-lg pl-8 pr-2 text-[11px] text-slate-800 dark:text-slate-200 placeholder-slate-400 focus:outline-none focus:border-primary transition-colors">
             </div>
         </div>
 
-        <!-- Navigation -->
-        <nav id="sidebar-menu" class="flex-1 px-2.5 py-4 flex flex-col gap-1 overflow-y-auto overflow-x-hidden">
+        <!-- Navigation (Compact List & Lower Heights) -->
+        <nav id="sidebar-menu" class="flex-1 px-2 py-2 flex flex-col gap-0.5 overflow-y-auto overflow-x-hidden">
 
             <!-- Dashboard -->
             <div class="menu-item-wrapper relative group">
                 <a href="[[=URL('dashboard')]]"
-                    class="menu-link flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-semibold text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white transition-all duration-200">
+                    class="menu-link flex items-center gap-2.5 px-3 py-1.5 rounded-lg text-xs font-medium text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white transition-all duration-150">
                     <span
-                        class="material-symbols-outlined text-slate-500 dark:text-slate-400 group-hover:text-primary text-[20px] shrink-0">dashboard</span>
+                        class="material-symbols-outlined text-slate-500 dark:text-slate-400 group-hover:text-primary text-[18px] shrink-0">dashboard</span>
                     <span class="sidebar-text truncate">Dashboard</span>
                 </a>
                 <div
-                    class="hover-flyout absolute left-full top-0 ml-2 w-48 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl shadow-xl py-1.5 hidden z-30">
+                    class="hover-flyout absolute left-full top-0 ml-2 w-48 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg shadow-xl py-1 hidden z-30">
                 </div>
             </div>
 
             <!-- Administration -->
             <div class="menu-item-wrapper relative group">
                 <button
-                    class="submenu-toggle w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-semibold text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white transition-all duration-200 outline-none">
+                    class="submenu-toggle w-full flex items-center gap-2.5 px-3 py-1.5 rounded-lg text-xs font-medium text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white transition-all duration-150 outline-none">
                     <span
-                        class="material-symbols-outlined text-slate-500 dark:text-slate-400 group-hover:text-primary text-[20px] shrink-0">admin_panel_settings</span>
+                        class="material-symbols-outlined text-slate-500 dark:text-slate-400 group-hover:text-primary text-[18px] shrink-0">admin_panel_settings</span>
                     <span class="sidebar-text truncate text-left flex-1">Administration</span>
                     <span
-                        class="material-symbols-outlined sidebar-text text-sm text-slate-400 transition-transform duration-200 arrow-icon">chevron_right</span>
+                        class="material-symbols-outlined sidebar-text text-xs text-slate-400 transition-transform duration-200 arrow-icon">chevron_right</span>
                 </button>
                 <div
-                    class="submenu-container max-h-0 overflow-hidden transition-all duration-300 ease-in-out bg-slate-50/50 dark:bg-slate-950/30 rounded-xl mt-0.5 pl-9 pr-2 flex flex-col gap-0.5">
+                    class="submenu-container max-h-0 overflow-hidden transition-all duration-300 ease-in-out bg-slate-50/50 dark:bg-slate-950/30 rounded-lg mt-0.5 pl-8 pr-1.5 flex flex-col gap-0.5">
                     <a href="[[=URL('administration/users')]]"
-                        class="block py-2 px-3 text-xs font-medium text-slate-600 dark:text-slate-400 hover:text-primary dark:hover:text-white transition-all duration-150">User
+                        class="block py-1 px-2.5 text-[11px] font-medium text-slate-600 dark:text-slate-400 hover:text-primary dark:hover:text-white transition-all duration-150">User
                         Management</a>
                     <a href="[[=URL('administration/roles')]]"
-                        class="block py-2 px-3 text-xs font-medium text-slate-600 dark:text-slate-400 hover:text-primary dark:hover:text-white transition-all duration-150">Role
+                        class="block py-1 px-2.5 text-[11px] font-medium text-slate-600 dark:text-slate-400 hover:text-primary dark:hover:text-white transition-all duration-150">Role
                         Management</a>
                 </div>
                 <div
-                    class="hover-flyout absolute left-full top-0 ml-2 w-48 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl shadow-xl py-1.5 hidden z-30">
+                    class="hover-flyout absolute left-full top-0 ml-2 w-48 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg shadow-xl py-1 hidden z-30">
                 </div>
             </div>
 
             <!-- Employees -->
             <div class="menu-item-wrapper relative group">
                 <button
-                    class="submenu-toggle w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-semibold text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white transition-all duration-200 outline-none">
+                    class="submenu-toggle w-full flex items-center gap-2.5 px-3 py-1.5 rounded-lg text-xs font-medium text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white transition-all duration-150 outline-none">
                     <span
-                        class="material-symbols-outlined text-slate-500 dark:text-slate-400 group-hover:text-primary text-[20px] shrink-0">badge</span>
+                        class="material-symbols-outlined text-slate-500 dark:text-slate-400 group-hover:text-primary text-[18px] shrink-0">badge</span>
                     <span class="sidebar-text truncate text-left flex-1">Employees</span>
                     <span
-                        class="material-symbols-outlined sidebar-text text-sm text-slate-400 transition-transform duration-200 arrow-icon">chevron_right</span>
+                        class="material-symbols-outlined sidebar-text text-xs text-slate-400 transition-transform duration-200 arrow-icon">chevron_right</span>
                 </button>
                 <div
-                    class="submenu-container max-h-0 overflow-hidden transition-all duration-300 ease-in-out bg-slate-50/50 dark:bg-slate-950/30 rounded-xl mt-0.5 pl-9 pr-2 flex flex-col gap-0.5">
+                    class="submenu-container max-h-0 overflow-hidden transition-all duration-300 ease-in-out bg-slate-50/50 dark:bg-slate-950/30 rounded-lg mt-0.5 pl-8 pr-1.5 flex flex-col gap-0.5">
                     <a href="#"
-                        class="block py-2 px-3 text-xs font-medium text-slate-600 dark:text-slate-400 hover:text-primary dark:hover:text-white transition-all duration-150">
+                        class="block py-1 px-2.5 text-[11px] font-medium text-slate-600 dark:text-slate-400 hover:text-primary dark:hover:text-white transition-all duration-150">
                         Employees Management</a>
                     <a href="#"
-                        class="block py-2 px-3 text-xs font-medium text-slate-600 dark:text-slate-400 hover:text-primary dark:hover:text-white transition-all duration-150">Transfer
+                        class="block py-1 px-2.5 text-[11px] font-medium text-slate-600 dark:text-slate-400 hover:text-primary dark:hover:text-white transition-all duration-150">Transfer
                         Management</a>
                 </div>
                 <div
-                    class="hover-flyout absolute left-full top-0 ml-2 w-48 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl shadow-xl py-1.5 hidden z-30">
+                    class="hover-flyout absolute left-full top-0 ml-2 w-48 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg shadow-xl py-1 hidden z-30">
                 </div>
             </div>
 
-            <!-- Organization -->
-            <div class="menu-item-wrapper relative group">
-                <button
-                    class="submenu-toggle w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-semibold text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white transition-all duration-200 outline-none">
-                    <span
-                        class="material-symbols-outlined text-slate-500 dark:text-slate-400 group-hover:text-primary text-[20px] shrink-0">account_tree</span>
-                    <span class="sidebar-text truncate text-left flex-1">Organization</span>
-                    <span
-                        class="material-symbols-outlined sidebar-text text-sm text-slate-400 transition-transform duration-200 arrow-icon">chevron_right</span>
-                </button>
-                <div
-                    class="submenu-container max-h-0 overflow-hidden transition-all duration-300 ease-in-out bg-slate-50/50 dark:bg-slate-950/30 rounded-xl mt-0.5 pl-9 pr-2 flex flex-col gap-0.5">
-                    <a href="#"
-                        class="block py-2 px-3 text-xs font-medium text-slate-600 dark:text-slate-400 hover:text-primary dark:hover:text-white transition-all duration-150">Departments</a>
-                    <a href="#"
-                        class="block py-2 px-3 text-xs font-medium text-slate-600 dark:text-slate-400 hover:text-primary dark:hover:text-white transition-all duration-150">Designations</a>
-                    <a href="#"
-                        class="block py-2 px-3 text-xs font-medium text-slate-600 dark:text-slate-400 hover:text-primary dark:hover:text-white transition-all duration-150">Branches</a>
-                </div>
-                <div
-                    class="hover-flyout absolute left-full top-0 ml-2 w-48 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl shadow-xl py-1.5 hidden z-30">
-                </div>
-            </div>
             <!-- Report -->
             <div class="menu-item-wrapper relative group">
                 <a href="#"
-                    class="menu-link flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-semibold text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white transition-all duration-200">
+                    class="menu-link flex items-center gap-2.5 px-3 py-1.5 rounded-lg text-xs font-medium text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white transition-all duration-150">
                     <span
-                        class="material-symbols-outlined text-slate-500 dark:text-slate-400 group-hover:text-primary text-[20px] shrink-0">bar_chart</span>
+                        class="material-symbols-outlined text-slate-500 dark:text-slate-400 group-hover:text-primary text-[18px] shrink-0">bar_chart</span>
                     <span class="sidebar-text truncate">Reports</span>
                 </a>
             </div>
 
-            <!-- Settings -->
-            <div class="menu-item-wrapper relative group">
-                <a href="#"
-                    class="menu-link flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-semibold text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white transition-all duration-200">
-                    <span
-                        class="material-symbols-outlined text-slate-500 dark:text-slate-400 group-hover:text-primary text-[20px] shrink-0">settings</span>
-                    <span class="sidebar-text truncate">Settings</span>
-                </a>
-            </div>
-
-        </nav>
         </nav>
 
-        <!-- Footer -->
-        <div
-            class="sidebar-text mt-auto py-3 px-5 border-t border-slate-200 dark:border-slate-800 flex items-center justify-between shrink-0 opacity-70 hover:opacity-100 transition-opacity">
-            <span class="text-[11px] font-medium text-slate-500 dark:text-slate-400">Powered by <a href="#"
-                    class="hover:text-primary transition-colors">Eon Systems</a></span>
-            <span
-                class="text-[10px] font-bold px-1.5 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 tracking-wider">v1.0.0</span>
-        </div>
     </aside>
 
     <!-- Mobile Backdrop -->
@@ -151,53 +109,50 @@
     <!-- Main Content Area -->
     <div class="flex-1 flex flex-col min-w-0 overflow-hidden relative">
 
-        <!-- Top Header -->
+        <!-- Top Header (Compact Height: h-12) -->
         <header
-            class="h-16 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between px-3 sm:px-6 z-10 shrink-0 shadow-sm text-slate-700 dark:text-slate-200">
+            class="h-12 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between px-3 md:px-4 z-10 shrink-0 shadow-sm text-slate-700 dark:text-slate-200">
 
             <!-- Sidebar Toggle Button -->
             <div class="flex items-center shrink-0">
                 <button id="sidebar-toggle"
-                    class="text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-white p-1.5 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors flex items-center justify-center">
-                    <span class="material-symbols-outlined text-[22px]">menu</span>
+                    class="text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-white p-1 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors flex items-center justify-center">
+                    <span class="material-symbols-outlined text-[20px]">menu</span>
                 </button>
             </div>
 
-            <!-- Company Title -->
+            <!-- Header Title (Compact Font & Spacing) -->
             <div class="flex-1 flex items-center justify-center min-w-0 px-2 overflow-hidden">
-                <h1 class="text-xs xl:text-sm font-bold text-slate-900 dark:text-white uppercase tracking-wide text-center leading-tight">
-                    
-                    <span class="inline xl:hidden truncate">BADC</span>
-                    <span class="hidden xl:inline-block line-clamp-2">
-                        Bangladesh Agricultural Development Corporation
-                    </span>
-                    
+                <h1
+                    class="text-[11px] sm:text-xs font-semibold text-slate-800 dark:text-slate-100 uppercase tracking-tight text-center truncate">
+                    <span class="inline md:hidden">BADC</span>
+                    <span class="hidden md:inline">Bangladesh Agricultural Development Corporation (BADC)</span>
                 </h1>
             </div>
 
-            <!-- Header Right Controls -->
-            <div class="flex items-center gap-0.5 sm:gap-2 shrink-0">
+            <!-- Header Right Controls (Compact Icon Buttons) -->
+            <div class="flex items-center gap-1 shrink-0">
 
                 <!-- Language Dropdown -->
                 <div class="relative">
                     <button id="lang-dropdown-btn"
-                        class="w-9 h-9 flex items-center justify-center text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-white rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors text-xs font-semibold outline-none">
+                        class="w-7 h-7 flex items-center justify-center text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-white rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors text-[11px] font-semibold outline-none">
                         EN
                     </button>
                     <div id="lang-dropdown"
-                        class="absolute right-0 mt-2 w-48 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-2xl p-2 hidden z-30">
-                        <div class="relative w-full h-8 flex items-center mb-1.5">
+                        class="absolute right-0 mt-1 w-40 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl shadow-xl p-1.5 hidden z-30">
+                        <div class="relative w-full h-7 flex items-center mb-1">
                             <span
-                                class="material-symbols-outlined absolute left-2.5 text-slate-400 text-xs pointer-events-none">search</span>
-                            <input type="text" id="lang-search" placeholder="Search language..."
-                                class="w-full h-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-lg pl-8 pr-2 text-[11px] text-slate-700 dark:text-slate-200 placeholder-slate-400 focus:outline-none focus:border-primary">
+                                class="material-symbols-outlined absolute left-2 text-slate-400 text-xs pointer-events-none">search</span>
+                            <input type="text" id="lang-search" placeholder="Search..."
+                                class="w-full h-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-md pl-7 pr-1.5 text-[10px] text-slate-700 dark:text-slate-200 placeholder-slate-400 focus:outline-none focus:border-primary">
                         </div>
-                        <div id="lang-list" class="max-h-48 overflow-y-auto pr-1 flex flex-col gap-0.5">
+                        <div id="lang-list" class="max-h-40 overflow-y-auto pr-0.5 flex flex-col gap-0.5">
                             <button data-lang="en"
-                                class="lang-item notranslate w-full text-left px-2.5 py-1.5 text-xs rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800 text-primary font-semibold"
+                                class="lang-item notranslate w-full text-left px-2 py-1 text-[11px] rounded hover:bg-slate-50 dark:hover:bg-slate-800 text-primary font-semibold"
                                 translate="no">English</button>
                             <button data-lang="bn"
-                                class="lang-item notranslate w-full text-left px-2.5 py-1.5 text-xs rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300"
+                                class="lang-item notranslate w-full text-left px-2 py-1 text-[11px] rounded hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300"
                                 translate="no">বাংলা</button>
                         </div>
                     </div>
@@ -205,72 +160,90 @@
 
                 <!-- Fullscreen Toggle -->
                 <button id="fullscreen-toggle-btn"
-                    class="w-9 h-9 flex items-center justify-center text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-white rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+                    class="w-7 h-7 flex items-center justify-center text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-white rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
                     title="Toggle Fullscreen">
-                    <span class="material-symbols-outlined text-[20px]" id="fs-icon">fullscreen</span>
+                    <span class="material-symbols-outlined text-[18px]" id="fs-icon">fullscreen</span>
                 </button>
 
-                <!-- FIXED Theme Toggle Button (Single Span Icon) -->
+                <!-- Theme Toggle Button -->
                 <button id="theme-toggle-btn"
-                    class="w-9 h-9 flex items-center justify-center text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-white rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+                    class="w-7 h-7 flex items-center justify-center text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-white rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
                     title="Toggle Theme">
-                    <span id="theme-toggle-icon" class="material-symbols-outlined text-[20px]">dark_mode</span>
+                    <span id="theme-toggle-icon" class="material-symbols-outlined text-[18px]">dark_mode</span>
                 </button>
 
-                <!-- Notifications -->
-                <button
-                    class="w-9 h-9 flex items-center justify-center text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-white rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 relative transition-colors">
-                    <span class="material-symbols-outlined text-[21px]">notifications</span>
-                    <span
-                        class="absolute top-2 right-2 w-2 h-2 bg-rose-500 rounded-full ring-2 ring-white dark:ring-slate-900"></span>
-                </button>
 
-                <div class="h-5 w-px bg-slate-200 dark:bg-slate-800 mx-1"></div>
 
-                <!-- User Profile Dropdown -->
+                <div class="h-4 w-px bg-slate-200 dark:bg-slate-800 mx-0.5"></div>
+
+                <!-- User Profile Dropdown (Compact Size) -->
                 <div class="relative">
+                    <!-- Python Helper: Extract First Name Safely -->
+                    [[
+                    full_name = session.user.get('user_name', 'User').strip()
+                    first_name = full_name.split(' ')[0] if full_name else 'User'
+                    avatar_char = first_name[0].upper() if first_name else 'U'
+                    ]]
+
                     <button id="profile-dropdown-btn"
-                        class="flex items-center gap-2 p-1 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 transition-all text-left outline-none group">
+                        class="flex items-center gap-1.5 p-1 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition-all text-left outline-none group">
+
+                        <!-- Dynamic Avatar Initials (First letter of first name) -->
                         <div
-                            class="w-8 h-8 rounded-full bg-primary flex items-center justify-center text-white font-bold text-xs shadow-sm">
-                            KH
+                            class="w-6 h-6 rounded-full bg-emerald-600 flex items-center justify-center text-white font-bold text-[10px] shadow-xs">
+                            [[= avatar_char ]]
                         </div>
+
                         <div class="flex flex-col min-w-0 hidden md:flex">
+                            <!-- Display Only First Name -->
                             <span
-                                class="text-xs font-semibold text-slate-700 dark:text-slate-200 leading-tight truncate">Kamrul
-                                Hasan</span>
+                                class="text-xs font-semibold text-slate-700 dark:text-slate-200 leading-tight truncate">
+                                [[= first_name ]]
+                            </span>
+
+                            <!-- User Role -->
                             <span
-                                class="text-[10px] text-slate-400 dark:text-slate-500 font-medium leading-none truncate">Programmer</span>
+                                class="text-[10px] text-slate-400 dark:text-slate-500 font-medium leading-none truncate">
+                                [[= session.user.get('user_role', '') ]]
+                            </span>
                         </div>
+
                         <span
-                            class="material-symbols-outlined text-slate-400 text-[16px] hidden sm:block group-hover:text-slate-600 dark:group-hover:text-slate-300">keyboard_arrow_down</span>
+                            class="material-symbols-outlined text-slate-400 text-[14px] hidden sm:block group-hover:text-slate-600 dark:group-hover:text-slate-300">
+                            keyboard_arrow_down
+                        </span>
                     </button>
 
                     <div id="profile-dropdown"
-                        class="absolute right-0 mt-2 w-52 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-2xl py-1.5 hidden z-30 overflow-hidden">
+                        class="absolute right-0 mt-1 w-48 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl shadow-xl py-1 hidden z-30 overflow-hidden">
 
-                        <div class="px-4 py-2 border-b border-slate-100 dark:border-slate-800 sm:hidden">
-                            <p class="text-xs font-semibold text-slate-800 dark:text-white truncate">Kamrul Hasan</p>
-                            <p class="text-[10px] text-slate-400 truncate">Programmer</p>
+                        <!-- Mobile Header View (Only First Name Displayed Here Too) -->
+                        <div class="px-3 py-1.5 border-b border-slate-100 dark:border-slate-800 sm:hidden">
+                            <p class="text-xs font-semibold text-slate-800 dark:text-white truncate">
+                                [[= first_name ]]
+                            </p>
+                            <p class="text-[10px] text-slate-400 truncate">
+                                [[= session.user.get('user_role', '') ]]
+                            </p>
                         </div>
 
                         <a href="#"
-                            class="flex items-center gap-2.5 px-4 py-2 text-xs font-medium text-slate-700 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white transition-colors">
-                            <span class="material-symbols-outlined text-[18px] text-slate-400">account_circle</span> My
+                            class="flex items-center gap-2 px-3 py-1.5 text-xs font-medium text-slate-700 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white transition-colors">
+                            <span class="material-symbols-outlined text-[16px] text-slate-400">account_circle</span> My
                             Profile
                         </a>
 
                         <a href="#"
-                            class="flex items-center gap-2.5 px-4 py-2 text-xs font-medium text-slate-700 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white transition-colors">
-                            <span class="material-symbols-outlined text-[18px] text-slate-400">settings</span> Account
+                            class="flex items-center gap-2 px-3 py-1.5 text-xs font-medium text-slate-700 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white transition-colors">
+                            <span class="material-symbols-outlined text-[16px] text-slate-400">settings</span> Account
                             Settings
                         </a>
 
                         <div class="border-t border-slate-100 dark:border-slate-800 my-1"></div>
 
                         <a href="[[=URL('auth/logout')]]"
-                            class="flex items-center gap-2.5 px-4 py-2 text-xs font-semibold text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/30 transition-colors">
-                            <span class="material-symbols-outlined text-[18px]">logout</span> Sign Out
+                            class="flex items-center gap-2 px-3 py-1.5 text-xs font-semibold text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/30 transition-colors">
+                            <span class="material-symbols-outlined text-[16px]">logout</span> Sign Out
                         </a>
                     </div>
                 </div>
@@ -278,9 +251,8 @@
             </div>
         </header>
 
-        <!-- Main Content Included Area -->
-        <main
-            class="flex-1 overflow-y-auto p-3 sm:p-4 md:p-6 bg-slate-50 dark:bg-slate-950 transition-colors duration-200">
+        <!-- Main Content Included Area (Tight Padding) -->
+        <main class="flex-1 overflow-y-auto p-3 sm:p-4 bg-slate-100 dark:bg-slate-950 transition-colors duration-200">
             [[include]]
         </main>
 
@@ -306,21 +278,18 @@
             }
         }
 
-        // Initialize Theme Icon on Load
         updateThemeIcon();
 
         // Sidebar Toggle Logic
         function handleSidebarToggle() {
             if (window.innerWidth >= 768) {
-                sidebar.classList.toggle("w-64");
-                sidebar.classList.toggle("w-20");
+                sidebar.classList.toggle("w-56");
+                sidebar.classList.toggle("w-16");
                 sidebar.classList.toggle("sidebar-mini");
 
-                // Reset submenus on collapse
                 document.querySelectorAll(".submenu-container").forEach(el => el.style.maxHeight = null);
                 document.querySelectorAll(".arrow-icon").forEach(el => el.classList.remove("rotate-90"));
 
-                // Toggle visibility for all text elements & arrow icons
                 sidebarTexts.forEach(txt => txt.classList.toggle("hidden"));
             } else {
                 sidebar.classList.toggle("-translate-x-full");
@@ -420,7 +389,7 @@
 
                         const mainTitle = targetBtnOrLink.innerText.replace('chevron_right', '').trim();
                         const headerDiv = document.createElement("div");
-                        headerDiv.className = "px-4 py-1.5 text-xs font-bold text-slate-400 dark:text-slate-500 border-b border-slate-100 dark:border-slate-800 mb-1 uppercase tracking-wider";
+                        headerDiv.className = "px-3 py-1 text-[10px] font-bold text-slate-400 dark:text-slate-500 border-b border-slate-100 dark:border-slate-800 mb-1 uppercase tracking-wider";
                         headerDiv.innerText = mainTitle;
                         flyout.appendChild(headerDiv);
 
@@ -428,14 +397,14 @@
                         if (subLinks.length > 0) {
                             subLinks.forEach(sub => {
                                 const newLink = sub.cloneNode(true);
-                                newLink.className = "block px-4 py-2 text-xs font-medium text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 hover:text-primary transition-colors";
+                                newLink.className = "block px-3 py-1.5 text-xs font-medium text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 hover:text-primary transition-colors";
                                 flyout.appendChild(newLink);
                             });
                         } else {
                             const mainLink = this.querySelector("a");
                             if (mainLink && mainLink.getAttribute("href") !== "#") {
                                 const newLink = mainLink.cloneNode(true);
-                                newLink.className = "block px-4 py-2 text-xs font-medium text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 hover:text-primary transition-colors";
+                                newLink.className = "block px-3 py-1.5 text-xs font-medium text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 hover:text-primary transition-colors";
                                 newLink.innerHTML = `Go to ${mainTitle}`;
                                 flyout.appendChild(newLink);
                             }
@@ -497,7 +466,7 @@
             themeToggleBtn.addEventListener("click", function () {
                 const isDark = document.documentElement.classList.toggle("dark");
                 localStorage.setItem("theme", isDark ? "dark" : "light");
-                updateThemeIcon(); // Update icon text dynamically
+                updateThemeIcon();
             });
         }
 
@@ -542,7 +511,7 @@
                         }
                     }
 
-                    link.classList.add("text-primary", "dark:text-white", "font-bold", "bg-primary/10", "dark:bg-primary/20", "pl-4", "rounded-r-lg", "border-l-4", "border-primary");
+                    link.classList.add("text-primary", "dark:text-white", "font-bold", "bg-primary/10", "dark:bg-primary/20", "pl-3", "rounded-r-md", "border-l-2", "border-primary");
                     link.classList.remove("text-slate-600", "dark:text-slate-400");
                 } else {
                     link.classList.add("bg-slate-200", "dark:bg-slate-800", "text-slate-900", "dark:text-white", "font-bold");

@@ -1,92 +1,74 @@
-from py4web import URL, action, redirect, request
+from py4web import URL, action, redirect, request, response
+from datetime import datetime
 from ..middleware.auth_middleware import web_auth_required
-from ..utils.common import db, flash, session, view_page
+from ..utils.common import flash, session, view_page
+from ..core.db import db, db_datetime
 
 
 @action("dashboard/index")
-@view_page("dashboard/index.html")
+@view_page("dashboard/index.html", title="Dashboard | EMS")
 @web_auth_required
 def dashboard():
-    page_title = "Dashboard | Enterprise HRMS"
+    recent_employee_records_sql = """
+    SELECT emp_id, emp_name, card_number, emp_type, emp_department, 
+            emp_designation, emp_grade, current_posting_place, 
+            current_posting_join_date, current_grade_join_date, mobile, 
+            email, gender, dob, blood_group, join_date, retirement_date, 
+            edu_qualification, home_district, present_address, permanent_address, 
+            nid_number, photo_url, note 
+    FROM employees 
+    WHERE status_type = 'ACTIVE' 
+    ORDER BY id DESC LIMIT 10;
+    """
+    recent_employees = db.executesql(recent_employee_records_sql, as_dict=True)
+    for emp in recent_employees:
+        raw_d = emp.get('join_date')
+        if not raw_d:
+            emp['join_date'] = 'N/A'
+            continue
+            
+        d_obj = datetime.strptime(str(raw_d), '%Y-%m-%d').date() if isinstance(raw_d, str) else raw_d
+        diff = (db_datetime.date() - d_obj).days
 
-    # Enhanced Key Performance Indicators
-    stats = {
-        "total_employees": "12,482",
-        "employee_growth": "+2.4%",
-        "active_transfers": "1,840",
-        "pending_transfers": "127",
-        "total_divisions": "8 Divisions",
-    }
+        if diff == 0:
+            emp['join_date'] = 'Today'
+        elif diff == 1:
+            emp['join_date'] = 'Yesterday'
+        elif 2 <= diff <= 30:
+            emp['join_date'] = f"{diff} days ago"
+        else:
+            emp['join_date'] = d_obj.strftime('%Y-%m-%d')
 
-    # Division distribution for visual progress bars
-    division_stats = [
-        {"name": "Dhaka HQ", "count": 4200, "percentage": 34, "color": "bg-indigo-600"},
-        {"name": "Chittagong", "count": 2800, "percentage": 22, "color": "bg-blue-500"},
-        {"name": "Rajshahi", "count": 1900, "percentage": 15, "color": "bg-emerald-500"},
-        {"name": "Sylhet", "count": 1500, "percentage": 12, "color": "bg-amber-500"},
-        {"name": "Others", "count": 2082, "percentage": 17, "color": "bg-slate-400"},
-    ]
 
-    recent_employees = [
-        {"name": "Arif Hasan", "role": "Software Engineer", "division": "Dhaka Div", "joined": "Today", "avatar_bg": "bg-indigo-100 text-indigo-700 dark:bg-indigo-950/70 dark:text-indigo-300"},
-        {"name": "Nusrat Jahan", "role": "HR Executive", "division": "Chittagong Div", "joined": "Yesterday", "avatar_bg": "bg-emerald-100 text-emerald-700 dark:bg-emerald-950/70 dark:text-emerald-300"},
-        {"name": "Tanvir Ahmed", "role": "Accounts Officer", "division": "Rajshahi Div", "joined": "2 days ago", "avatar_bg": "bg-amber-100 text-amber-700 dark:bg-amber-950/70 dark:text-amber-300"},
-        {"name": "Sultana Razia", "role": "Assistant Director", "division": "Sylhet Div", "joined": "3 days ago", "avatar_bg": "bg-purple-100 text-purple-700 dark:bg-purple-950/70 dark:text-purple-300"},
-    ]
+    recent_transfers_sql = """
+    SELECT 
+        t.id,
+        t.transfer_order_no,
+        t.emp_id,
+        e.emp_name,
+        COALESCE(t.to_designation, e.emp_designation) AS designation,
+        t.from_posting_place,
+        t.to_posting_place,
+        t.order_date,
+        t.joining_status,
+        t.status_type
+    FROM employee_transfers t
+    LEFT JOIN employees e ON t.emp_id = e.emp_id
+    ORDER BY t.id DESC 
+    LIMIT 10;
+    """
+    recent_transfers = db.executesql(recent_transfers_sql, as_dict=True)
 
-    recent_transfers = [
-        {
-            "id": "TR-45821",
-            "name": "S.M. Rahman",
-            "designation": "Assistant Director",
-            "from_loc": "Dhaka HQ",
-            "to_loc": "Chittagong Div",
-            "date": "24 Oct, 2026",
-            "status": "Completed",
-        },
-        {
-            "id": "TR-45822",
-            "name": "Anisul Islam",
-            "designation": "Senior Officer",
-            "from_loc": "Rajshahi Div",
-            "to_loc": "Sylhet Div",
-            "date": "25 Oct, 2026",
-            "status": "Processing",
-        },
-        {
-            "id": "TR-45823",
-            "name": "Fatima Begum",
-            "designation": "Executive Officer",
-            "from_loc": "Khulna Div",
-            "to_loc": "Dhaka HQ",
-            "date": "25 Oct, 2026",
-            "status": "Pending",
-        },
-        {
-            "id": "TR-45824",
-            "name": "Zakir Hossain",
-            "designation": "Administrative Officer",
-            "from_loc": "Barisal Div",
-            "to_loc": "Dhaka HQ",
-            "date": "26 Oct, 2026",
-            "status": "Completed",
-        },
-        {
-            "id": "TR-45825",
-            "name": "Farhana Yeasmin",
-            "designation": "Senior Officer",
-            "from_loc": "Dhaka HQ",
-            "to_loc": "Mymensingh Div",
-            "date": "26 Oct, 2026",
-            "status": "Completed",
-        },
-    ]
+    # Date format formatting (e.g., 24 Oct, 2026)
+    for tr in recent_transfers:
+        raw_order_date = tr.get('order_date')
+        if raw_order_date:
+            d_obj = datetime.strptime(str(raw_order_date), '%Y-%m-%d').date() if isinstance(raw_order_date, str) else raw_order_date
+            tr['formatted_order_date'] = d_obj.strftime('%d %b, %Y')
+        else:
+            tr['formatted_order_date'] = 'N/A'
 
     return dict(
-        page_title=page_title,
-        session=session,
-        stats=stats,
-        division_stats=division_stats,
         recent_employees=recent_employees,
         recent_transfers=recent_transfers,
     )

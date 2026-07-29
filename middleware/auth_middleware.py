@@ -9,7 +9,7 @@ def web_auth_required(handler):
     def wrapper(*args, **kwargs):
         is_authenticated = True
         
-        if not session.authorized or not session.auth:
+        if not session.userorized or not session.user:
             is_authenticated = False
             
         last_activity_str = session.get("last_activity")

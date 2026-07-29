@@ -68,6 +68,7 @@ class AppSettings(BaseSettings):
     ### Basic app info
     APP_NAME: str = "HRMS"
     APP_VERSION: str = "1.0.0"
+    SYSTEM_COMPANY_NAME: str = "Eon Systems"
     ENV: str = "production"  # development / production
     
     ## Database
@@ -75,14 +76,14 @@ class AppSettings(BaseSettings):
     MYSQL_PASS: str = ""
     MYSQL_HOST: str = "localhost"
     MYSQL_PORT: str = "3306"
-    MYSQL_DB_NAME: str = "aibl"
+    MYSQL_DB_NAME: str = "badc"
     
     ## Database
     MYSQL_REPLICA_USER: str = "root"
     MYSQL_REPLICA_PASS: str = ""
     MYSQL_REPLICA_HOST: str = "localhost"
     MYSQL_REPLICA_PORT: str = "3306"
-    MYSQL_REPLICA_DB_NAME: str = "aibl"
+    MYSQL_REPLICA_DB_NAME: str = "badc"
 
     ## Timezone / Time offset
     TIMEZONE: str = "Asia/Dhaka"
@@ -102,6 +103,9 @@ class AppSettings(BaseSettings):
     ALGORITHM: str = "HS256"
     SAME_SITE: str = "Lax"
     WEB_SESSION_EXPIRE_MINUTES: int = 60
+
+    MAX_FAILED_LOGIN_ATTEMPTS: int = 3
+    ACCOUNT_LOCKOUT_MINUTES: int = 1
 
     ## Email / SMTP
     SMTP_HOST: Optional[str] = None
