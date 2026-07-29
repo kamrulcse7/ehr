@@ -1,0 +1,411 @@
+[[ extend 'layout.html' ]]
+
+<div class="w-full space-y-4 text-slate-700 dark:text-slate-200">
+    <div class="max-w-[1800px] mx-auto space-y-4">
+        <!-- HEADER SECTION (Breadcrumb) -->
+        <div class="pb-2.5 border-b border-slate-200/60 dark:border-slate-800/60">
+            <div class="flex items-center gap-1 text-[11px] font-medium tracking-tight">
+                <span class="text-slate-400 dark:text-slate-500">HRMS</span>
+                <span
+                    class="material-symbols-outlined text-[12px] text-slate-300 dark:text-slate-600 select-none">chevron_right</span>
+                <span class="text-primary font-bold">Employee Directory</span>
+            </div>
+        </div>
+
+        <!-- SUMMARY STATS CARDS -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5">
+            <!-- Total Employees -->
+            <div
+                class="bg-white dark:bg-slate-900 rounded-xl border border-slate-200/80 dark:border-slate-800/80 p-3.5 flex items-center gap-3 shadow-sm">
+                <div class="w-10 h-10 rounded-lg bg-primary/10 text-primary flex items-center justify-center shrink-0">
+                    <span class="material-symbols-outlined text-[20px]">badge</span>
+                </div>
+                <div>
+                    <div class="text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500">Total
+                        Employees</div>
+                    <div class="text-lg font-bold text-slate-900 dark:text-white mt-0.5">[[= stats.get('total', 0) ]]
+                    </div>
+                </div>
+            </div>
+
+            <!-- Active Employees -->
+            <div
+                class="bg-white dark:bg-slate-900 rounded-xl border border-slate-200/80 dark:border-slate-800/80 p-3.5 flex items-center gap-3 shadow-sm">
+                <div
+                    class="w-10 h-10 rounded-lg bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shrink-0">
+                    <span class="material-symbols-outlined text-[20px]">check_circle</span>
+                </div>
+                <div>
+                    <div class="text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500">
+                        Active</div>
+                    <div class="text-lg font-bold text-slate-900 dark:text-white mt-0.5">[[= stats.get('active', 0) ]]
+                    </div>
+                </div>
+            </div>
+
+            <!-- Probationary -->
+            <div
+                class="bg-white dark:bg-slate-900 rounded-xl border border-slate-200/80 dark:border-slate-800/80 p-3.5 flex items-center gap-3 shadow-sm">
+                <div
+                    class="w-10 h-10 rounded-lg bg-amber-50 dark:bg-amber-950/40 text-amber-600 dark:text-amber-400 flex items-center justify-center shrink-0">
+                    <span class="material-symbols-outlined text-[20px]">hourglass_top</span>
+                </div>
+                <div>
+                    <div class="text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500">
+                        Probationary</div>
+                    <div class="text-lg font-bold text-slate-900 dark:text-white mt-0.5">[[= stats.get('probationary', 0) ]]</div>
+                </div>
+            </div>
+
+            <!-- Inactive -->
+            <div
+                class="bg-white dark:bg-slate-900 rounded-xl border border-slate-200/80 dark:border-slate-800/80 p-3.5 flex items-center gap-3 shadow-sm">
+                <div
+                    class="w-10 h-10 rounded-lg bg-rose-50 dark:bg-rose-950/40 text-rose-500 dark:text-rose-400 flex items-center justify-center shrink-0">
+                    <span class="material-symbols-outlined text-[20px]">block</span>
+                </div>
+                <div>
+                    <div class="text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500">
+                        Inactive</div>
+                    <div class="text-lg font-bold text-slate-900 dark:text-white mt-0.5">[[= stats.get('inactive', 0) ]]
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- MAIN TABLE CONTAINER -->
+        <div
+            class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-800/80 shadow-sm overflow-hidden p-4 space-y-3.5">
+
+            <!-- ACTION & FILTER ROW -->
+            <div
+                class="flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-2.5 bg-slate-50/70 dark:bg-slate-800/40 p-2 rounded-xl border border-slate-200/60 dark:border-slate-800/60">
+
+                <!-- LEFT SIDE: FILTER FORM -->
+                <form action="[[=URL('employees/index')]]" method="GET" class="flex flex-wrap items-center gap-2 grow">
+                    <input type="hidden" name="limit" value="[[= pagination['limit'] ]]">
+
+                    <!-- Search Input (Simple Manual Search) -->
+                    <div class="relative flex items-center w-full sm:w-60">
+                        <span
+                            class="material-symbols-outlined absolute left-2 text-slate-400 text-[15px] pointer-events-none z-10">search</span>
+                        <input type="text" name="keywords" value="[[= request.query.get('keywords', '') ]]"
+                            placeholder="Search Name, ID or Mobile..." autocomplete="off"
+                            class="w-full h-[28px] pl-7 pr-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-md text-[11px] font-medium text-slate-800 dark:text-slate-200 placeholder:text-slate-400 focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary transition-all">
+                    </div>
+
+                    <!-- Department Filter -->
+                    <div class="relative flex items-center w-36">
+                        <select name="department"
+                            class="w-full h-[28px] pl-2.5 pr-6 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-md text-[11px] font-medium text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary transition-all cursor-pointer">
+                            <option value="">All Departments</option>
+                            <option value="Irrigation" [[='selected' if request.query.get('department')=='Irrigation' else '' ]]>Irrigation</option>
+                            <option value="Seed" [[='selected' if request.query.get('department')=='Seed' else '' ]]>
+                                Seed & Horticulture</option>
+                            <option value="Finance" [[='selected' if request.query.get('department')=='Finance' else ''
+                                ]]>Finance</option>
+                            <option value="Admin" [[='selected' if request.query.get('department')=='Admin' else '' ]]>
+                                Administration</option>
+                        </select>
+                    </div>
+
+                    <!-- Status Filter -->
+                    <div class="relative flex items-center w-32">
+                        <select name="status"
+                            class="w-full h-[28px] pl-2.5 pr-6 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-md text-[11px] font-medium text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary transition-all cursor-pointer">
+                            <option value="">All Status</option>
+                            <option value="ACTIVE" [[='selected' if request.query.get('status')=='ACTIVE' else '' ]]>
+                                Active</option>
+                            <option value="PROBATIONARY" [[='selected' if request.query.get('status')=='PROBATIONARY' else '' ]]>Probationary</option>
+                            <option value="INACTIVE" [[='selected' if request.query.get('status')=='INACTIVE' else ''
+                                ]]>Inactive</option>
+                        </select>
+                    </div>
+
+                    <!-- Filter Action Button -->
+                    <button type="submit"
+                        class="h-[28px] px-3 bg-slate-800 hover:bg-slate-900 dark:bg-slate-700 dark:hover:bg-slate-600 text-white rounded-md text-[11px] font-semibold shadow-xs transition-all inline-flex items-center justify-center gap-1 shrink-0">
+                        <span class="material-symbols-outlined text-[14px]">filter_list</span>
+                        <span>Filter</span>
+                    </button>
+
+                    <!-- Reset Filter Button -->
+                    [[ if request.query.get('keywords') or request.query.get('department') or request.query.get('status'): ]]
+                    <a href="[[=URL('employees/index')]]" title="Clear Filters"
+                        class="h-[28px] px-2 bg-rose-50 hover:bg-rose-100 dark:bg-rose-950/40 dark:hover:bg-rose-900/50 text-rose-600 dark:text-rose-400 border border-rose-200/60 dark:border-rose-800/60 rounded-md transition-all inline-flex items-center justify-center shrink-0">
+                        <span class="material-symbols-outlined text-[14px]">filter_list_off</span>
+                    </a>
+                    [[ pass ]]
+                </form>
+
+                <!-- RIGHT SIDE: EXPORT, IMPORT & ADD ACTIONS -->
+                <div
+                    class="flex items-center gap-1.5 border-t lg:border-t-0 pt-2 lg:pt-0 border-slate-200/60 dark:border-slate-700/60 shrink-0">
+                    <!-- EXPORT DROPDOWN CONTAINER -->
+                    <div class="relative inline-block shrink-0">
+                        <!-- Trigger Button -->
+                        <button type="button"
+                                id="exportDropdownBtn"
+                                onclick="toggleExportDropdown(event)"
+                                title="Export Records"
+                                class="h-[28px] px-2.5 bg-white hover:bg-slate-100 dark:bg-slate-900 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700 rounded-md text-[11px] font-semibold transition-all inline-flex items-center justify-center gap-1 shadow-2xs">
+                            <span class="material-symbols-outlined text-[15px] text-emerald-600 dark:text-emerald-400">download</span>
+                            <span class="hidden sm:inline">Export</span>
+                            <span class="material-symbols-outlined text-[12px]">expand_more</span>
+                        </button>
+
+                        <!-- Dropdown Menu -->
+                        <div id="exportDropdownMenu" 
+                            class="hidden absolute right-0 top-full mt-1 w-36 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg shadow-lg z-50 py-1 text-xs">
+                            
+                            <!-- Excel Export -->
+                            <a href="[[=URL('employees/index', vars=request.query | {'export': 'xlsx'})]]" 
+                            class="flex items-center gap-2 px-3 py-1.5 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200">
+                                <span class="material-symbols-outlined text-[16px] text-emerald-600">table_view</span>
+                                <span>Excel (.xls)</span>
+                            </a>
+
+                            <!-- CSV Export -->
+                            <a href="[[=URL('employees/index', vars=request.query | {'export': 'csv'})]]" 
+                            class="flex items-center gap-2 px-3 py-1.5 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200">
+                                <span class="material-symbols-outlined text-[16px] text-amber-600">csv</span>
+                                <span>CSV File</span>
+                            </a>
+                        </div>
+                    </div>
+
+                    <a href="[[=URL('employees/import')]]" title="Import employees via Excel/CSV"
+                        class="h-[28px] px-2.5 bg-white hover:bg-slate-100 dark:bg-slate-900 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700 rounded-md text-[11px] font-semibold transition-all inline-flex items-center justify-center gap-1 shadow-2xs">
+                        <span class="material-symbols-outlined text-[15px] text-sky-600 dark:text-sky-400">upload</span>
+                        <span class="hidden sm:inline">Import</span>
+                    </a>
+
+                    <a href="[[=URL('employees/create')]]"
+                        class="h-[28px] px-3 bg-primary hover:opacity-90 active:scale-[0.98] text-white rounded-md font-semibold text-[11px] shadow-xs transition-all inline-flex items-center justify-center gap-1 shrink-0">
+                        <span class="material-symbols-outlined text-[15px]">person_add</span>
+                        <span>Add New</span>
+                    </a>
+                </div>
+
+            </div>
+
+            <!-- TABLE SECTION -->
+            <div class="overflow-x-auto rounded-xl border border-slate-100 dark:border-slate-800">
+                <table class="w-full text-left border-collapse">
+                    <thead>
+                        <tr
+                            class="bg-slate-100/70 dark:bg-slate-800/60 text-[10px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 border-b border-slate-200/80 dark:border-slate-800">
+                            <th class="py-2.5 px-4 whitespace-nowrap">Employee Info</th>
+                            <th class="py-2.5 px-4 whitespace-nowrap">Designation & Dept</th>
+                            <th class="py-2.5 px-4 whitespace-nowrap">Posting Place</th>
+                            <th class="py-2.5 px-4 whitespace-nowrap">Contact & District</th>
+                            <th class="py-2.5 px-4 whitespace-nowrap">Status</th>
+                            <th class="py-2 px-2 text-center w-px whitespace-nowrap font-medium text-slate-600 dark:text-slate-300">
+                                Action
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-100 dark:divide-slate-800/60 text-xs">
+                        [[ if not employees: ]]
+                        <tr>
+                            <td colspan="6" class="text-center py-6 text-slate-400">No employees found matching your
+                                criteria.</td>
+                        </tr>
+                        [[ else: ]]
+                        [[ for emp in employees: ]]
+                        <tr class="hover:bg-slate-50/60 dark:hover:bg-slate-800/40 transition-colors">
+                            <td class="py-2.5 px-4">
+                                <div class="flex items-center gap-3">
+                                    [[ name = emp.get('emp_name', 'E').strip() ]]
+                                    [[ initial = name[0].upper() if name else 'E' ]]
+                                    <div
+                                        class="w-8 h-8 rounded-full bg-primary/10 text-primary font-bold text-xs flex items-center justify-center shrink-0 border border-primary/20 select-none">
+                                        [[= initial ]]
+                                    </div>
+
+                                    <div class="flex flex-col min-w-0">
+                                        <span class="font-bold text-slate-900 dark:text-white text-xs truncate">
+                                            [[= emp.get('emp_name', '--') ]]
+                                        </span>
+                                        <span class="font-mono text-[10px] text-slate-400 dark:text-slate-500">
+                                            #[[= emp.get('emp_id') ]] [[ if emp.get('blood_group'): ]]<span
+                                                class="text-rose-500 font-semibold">• [[= emp.get('blood_group')
+                                                ]]</span>[[ pass ]]
+                                        </span>
+                                    </div>
+                                </div>
+                            </td>
+
+                            
+
+                            <td class="py-2.5 px-4">
+                                <div class="font-bold text-slate-800 dark:text-slate-200">[[= emp.get('emp_designation', '--') ]]</div>
+                                <div class="text-[10px] text-slate-400 dark:text-slate-500">[[= emp.get('emp_department', '--') ]]</div>
+                            </td>
+
+                            <td class="py-2.5 px-4 text-slate-600 dark:text-slate-300">
+                                <span class="bg-slate-100 dark:bg-slate-800 px-2 py-0.5 rounded text-[11px]">
+                                    [[= emp.get('current_posting_place', 'Head Office') ]]
+                                </span>
+                            </td>
+
+                            <td class="py-2.5 px-4">
+                                <div class="font-mono text-slate-700 dark:text-slate-300">[[= emp.get('mobile', '--') ]]
+                                </div>
+                                <div class="text-[10px] text-slate-400 dark:text-slate-500">[[= emp.get('home_district', '--') ]]</div>
+                            </td>
+
+                            <td class="py-2.5 px-4">
+                                [[ status = emp.get('status_type', 'ACTIVE') ]]
+                                [[ if status == 'ACTIVE': ]]
+                                <span
+                                    class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-700 dark:bg-emerald-950/50 dark:text-emerald-400">
+                                    <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> Active
+                                </span>
+                                [[ elif status == 'PROBATIONARY': ]]
+                                <span
+                                    class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-50 text-amber-700 dark:bg-amber-950/50 dark:text-amber-400">
+                                    <span class="w-1.5 h-1.5 rounded-full bg-amber-500"></span> Probationary
+                                </span>
+                                [[ else: ]]
+                                <span
+                                    class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-rose-50 text-rose-600 dark:bg-rose-950/50 dark:text-rose-400">
+                                    <span class="w-1.5 h-1.5 rounded-full bg-rose-500"></span> Inactive
+                                </span>
+                                [[ pass ]]
+                            </td>
+
+                            <td class="py-2 px-2 text-center w-px whitespace-nowrap">
+                                <div class="inline-flex items-center justify-center gap-0.5">
+                                    <!-- View Button -->
+                                    <a href="[[=URL('employees/show', emp.get('id'))]]" title="View Details"
+                                        class="p-1 rounded text-slate-400 hover:text-sky-600 hover:bg-sky-50 dark:hover:bg-sky-950/40 transition-colors">
+                                        <span class="material-symbols-outlined text-[16px] block">visibility</span>
+                                    </a>
+
+                                    <!-- Edit Button -->
+                                    <a href="[[=URL('employees/edit', emp.get('id'))]]" title="Edit Employee"
+                                        class="p-1 rounded text-slate-400 hover:text-amber-600 hover:bg-amber-50 dark:hover:bg-amber-950/40 transition-colors">
+                                        <span class="material-symbols-outlined text-[16px] block">edit</span>
+                                    </a>
+
+                                    <!-- Delete Button -->
+                                    <a href="[[=URL('employees/delete', emp.get('id'))]]" 
+                                    title="Delete Employee"
+                                    onclick=""
+                                    class="p-1 rounded text-slate-400 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/40 transition-colors">
+                                        <span class="material-symbols-outlined text-[16px] block">delete</span>
+                                    </a>
+                                </div>
+                            </td>
+                        </tr>
+                        [[ pass ]]
+                        [[ pass ]]
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- PAGINATION FOOTER -->
+            <div
+                class="flex flex-col sm:flex-row items-center justify-between gap-3 pt-2 border-t border-slate-100 dark:border-slate-800/80 text-xs text-slate-500 dark:text-slate-400">
+
+                <!-- LEFT: Per Page Limits & Count Info -->
+                <div class="flex items-center gap-3">
+                    <div class="flex items-center gap-1.5">
+                        <span>Show</span>
+                        <select onchange="location = this.value;"
+                            class="h-7 pl-2 pr-6 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-md text-xs font-semibold text-slate-700 dark:text-slate-200 focus:outline-none focus:ring-1 focus:ring-primary cursor-pointer">
+                            [[ current_limit = pagination['limit'] ]]
+                            [[ for l in [10, 25, 50, 100]: ]]
+                            <option value="[[= URL('employees/index', vars=request.query | {'limit': l, 'page': 1}) ]]"
+                                [[='selected' if l==current_limit else '' ]]>
+                                [[= l ]]
+                            </option>
+                            [[ pass ]]
+                        </select>
+                        <span>per page</span>
+                    </div>
+
+                    <span class="text-slate-300 dark:text-slate-700">|</span>
+
+                    <div>
+                        Showing <span class="font-bold text-slate-700 dark:text-slate-200">[[= pagination['start_item']]]</span>
+                        - <span class="font-bold text-slate-700 dark:text-slate-200">[[= pagination['end_item']]]</span>
+                        of <span class="font-bold text-slate-700 dark:text-slate-200">[[= pagination['total_items']]]</span> employees
+                    </div>
+                </div>
+
+                <!-- RIGHT: Dynamic Page Numbers -->
+                <div class="flex items-center gap-1 select-none">
+                    [[ if pagination['current_page'] > 1: ]]
+                    <a href="[[= URL('employees/index', vars=request.query | {'page': pagination['current_page'] - 1}) ]]"
+                        class="w-7 h-7 rounded-lg border border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 flex items-center justify-center transition-colors text-slate-600 dark:text-slate-300">
+                        <span class="material-symbols-outlined text-[14px]">chevron_left</span>
+                    </a>
+                    [[ else: ]]
+                    <button
+                        class="w-7 h-7 rounded-lg border border-slate-200/50 dark:border-slate-800/50 flex items-center justify-center text-slate-300 dark:text-slate-700 cursor-not-allowed"
+                        disabled>
+                        <span class="material-symbols-outlined text-[14px]">chevron_left</span>
+                    </button>
+                    [[ pass ]]
+
+                    [[
+                    current = pagination['current_page']
+                    total = pagination['total_pages']
+                    window = 1
+                    left_side = current - window
+                    right_side = current + window
+                    ]]
+
+                    [[ for p in range(1, total + 1): ]]
+                    [[ if p == 1 or p == total or (p >= left_side and p <= right_side): ]] [[ if p==current: ]] <span
+                        class="w-7 h-7 rounded-lg bg-primary text-white font-bold flex items-center justify-center shadow-2xs">
+                        [[= p ]]</span>
+                        [[ else: ]]
+                        <a href="[[= URL('employees/index', vars=request.query | {'page': p}) ]]"
+                            class="w-7 h-7 rounded-lg border border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 font-medium flex items-center justify-center text-slate-600 dark:text-slate-300 transition-colors">
+                            [[= p ]]
+                        </a>
+                        [[ pass ]]
+                        [[ elif p == left_side - 1 or p == right_side + 1: ]]
+                        <span class="w-7 h-7 flex items-center justify-center text-slate-400 font-bold">...</span>
+                        [[ pass ]]
+                        [[ pass ]]
+
+                        [[ if pagination['current_page'] < pagination['total_pages']: ]] <a
+                            href="[[= URL('employees/index', vars=request.query | {'page': pagination['current_page'] + 1}) ]]"
+                            class="w-7 h-7 rounded-lg border border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 flex items-center justify-center transition-colors text-slate-600 dark:text-slate-300">
+                            <span class="material-symbols-outlined text-[14px]">chevron_right</span>
+                            </a>
+                            [[ else: ]]
+                            <button
+                                class="w-7 h-7 rounded-lg border border-slate-200/50 dark:border-slate-800/50 flex items-center justify-center text-slate-300 dark:text-slate-700 cursor-not-allowed"
+                                disabled>
+                                <span class="material-symbols-outlined text-[14px]">chevron_right</span>
+                            </button>
+                            [[ pass ]]
+                </div>
+            </div>
+
+        </div>
+
+    </div>
+</div>
+<script>
+    function toggleExportDropdown(event) {
+        event.stopPropagation();
+        const menu = document.getElementById('exportDropdownMenu');
+        menu.classList.toggle('hidden');
+    }
+
+    document.addEventListener('click', function(event) {
+        const menu = document.getElementById('exportDropdownMenu');
+        const btn = document.getElementById('exportDropdownBtn');
+        if (menu && !menu.classList.contains('hidden')) {
+            if (!menu.contains(event.target) && !btn.contains(event.target)) {
+                menu.classList.add('hidden');
+            }
+        }
+    });
+</script>
