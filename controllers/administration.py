@@ -202,18 +202,18 @@ all_roles = [
 ]
     
 
-@action("administration/roles")
-@view_page("administration/roles.html")
+@action("administration/roles_permisions")
+@view_page("administration/roles_permisions.html")
 @web_auth_required
-def roles():
+def roles_permisions():
     return dict(all_roles=all_roles)
 
 
 
-@action("administration/role_manage")
-@view_page("administration/role_manage.html")
+@action("administration/roles_permisions_manage")
+@view_page("administration/roles_permisions_manage.html")
 @web_auth_required
-def role_manage():
+def roles_permisions_manage():
     role_id = request.params.get("role_id")
 
     module_groups = [

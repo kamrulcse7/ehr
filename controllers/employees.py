@@ -7,10 +7,10 @@ import math
 import io
 import csv
 
-@action("employees/index")
-@view_page("employees/index.html", title="Employees | EMS")
+@action("employees/personnel_directory")
+@view_page("employees/personnel_directory.html", title="Employees | EMS")
 @web_auth_required
-def employees():
+def personnel_directory():
     keywords = request.query.get("keywords", "").strip()
     department = request.query.get("department", "").strip()
     status = request.query.get("status", "").strip()

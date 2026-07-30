@@ -18,7 +18,7 @@
             </div>
             
             <!-- Right side: Create Role Button -->
-            <a href="[[=URL('administration/role_manage')]]" class="inline-flex items-center justify-center gap-1 px-3 py-1.5 bg-primary hover:opacity-90 active:scale-[0.98] text-white rounded-md font-semibold text-[10px] shadow-sm transition-all shrink-0 whitespace-nowrap">
+            <a href="[[=URL('administration/roles_permisions_manage')]]" class="inline-flex items-center justify-center gap-1 px-3 py-1.5 bg-primary hover:opacity-90 active:scale-[0.98] text-white rounded-md font-semibold text-[10px] shadow-sm transition-all shrink-0 whitespace-nowrap">
                 <span class="material-symbols-outlined text-[14px]">add</span>
                 <span>Create Role</span>
             </a>
@@ -102,7 +102,7 @@
 
 <!-- INSTANT CLIENT-SIDE SWITCHING SCRIPT -->
 <script>
-    const EDIT_URL_BASE = "[[=URL('administration/role_manage')]]";
+    const EDIT_URL_BASE = "[[=URL('administration/roles_permisions_manage')]]";
 
     function renderPermissions(role) {
         const tbody = document.getElementById('permission-table-body');
