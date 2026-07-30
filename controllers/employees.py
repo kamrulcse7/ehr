@@ -8,7 +8,7 @@ import io
 import csv
 
 @action("employees/personnel_directory")
-@view_page("employees/personnel_directory.html", title="Employees | EMS")
+@view_page("employees/personnel_directory.html", title="Personnel Directory | EMS")
 @web_auth_required
 def personnel_directory():
     keywords = request.query.get("keywords", "").strip()
@@ -160,3 +160,40 @@ def personnel_directory():
     }
 
     return dict(employees=employees_list, pagination=pagination, stats=stats_res)
+
+
+from py4web import action, request, redirect, URL
+
+@action('employees/add_directory', method=['GET', 'POST'])
+@view_page("employees/add_directory.html", title="Add Directory | EMS")
+@web_auth_required
+def add_directory():
+    if request.method == 'POST':
+        # Form Data Fetching
+        employee_id = request.forms.get('employee_id')
+        full_name = request.forms.get('full_name')
+        mobile = request.forms.get('mobile')
+        email = request.forms.get('email')
+        nid = request.forms.get('nid')
+        joining_date = request.forms.get('joining_date')
+        department = request.forms.get('department')
+        designation = request.forms.get('designation')
+        status = request.forms.get('status')
+
+        # Database Insertion Logic
+        db.employees.insert(
+            employee_id=employee_id,
+            full_name=full_name,
+            mobile=mobile,
+            email=email,
+            nid=nid,
+            joining_date=joining_date,
+            department=department,
+            designation=designation,
+            status=status
+        )
+
+        # Redirect back to directory after saving
+        redirect(URL('employees/personnel_directory'))
+
+    return dict()

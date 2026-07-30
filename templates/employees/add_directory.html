@@ -1,0 +1,298 @@
+[[extend 'layout.html']]
+
+<div class="w-full text-slate-700 dark:text-slate-200 py-2">
+    <div class="max-w-[1600px] mx-auto space-y-3">
+        
+        <!-- BREADCRUMB & HEADER -->
+        <div class="pb-2 border-b border-slate-200/80 dark:border-slate-800/80 flex items-center justify-between">
+            <div class="flex items-center gap-1.5 text-xs font-medium">
+                <span class="text-slate-400 dark:text-slate-500">Officers & Staff</span>
+                <span class="material-symbols-outlined text-[14px] text-slate-400 select-none">chevron_right</span>
+                <span class="text-slate-400 dark:text-slate-500">Personnel Directory</span>
+                <span class="material-symbols-outlined text-[14px] text-slate-400 select-none">chevron_right</span>
+                <span class="text-primary font-semibold">Add Directory</span>
+            </div>
+            <a href="[[=URL('employees/personnel_directory')]]"
+                class="h-7 px-2.5 bg-slate-200 hover:bg-slate-300 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 rounded-md text-xs font-semibold transition-all inline-flex items-center gap-1 shrink-0">
+                <span class="material-symbols-outlined text-[15px]">arrow_back</span>
+                Back
+            </a>
+        </div>
+
+        <!-- FORM START -->
+        <form action="[[=URL('employees/create')]]" method="POST" enctype="multipart/form-data" id="employeeForm" class="bg-white dark:bg-slate-900 rounded-lg border border-slate-200 dark:border-slate-800 shadow-xs overflow-hidden">
+        
+            <div class="p-4 space-y-4">
+
+                <!-- SECTION 1: PERSONAL DETAILS -->
+                <div class="p-3.5 bg-slate-50/50 dark:bg-slate-950/40 rounded-lg border border-slate-200/60 dark:border-slate-800/60">
+                    <h3 class="text-[11px] font-bold uppercase tracking-wider text-primary pb-2 mb-3 border-b border-slate-200 dark:border-slate-800 flex items-center gap-1.5">
+                        <span class="material-symbols-outlined text-[16px]">badge</span> Personal Details
+                    </h3>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
+                        
+                        <div>
+                            <label class="block text-[11px] font-semibold text-slate-700 dark:text-slate-300 mb-1">Full Name <span class="text-rose-500">*</span></label>
+                            <input type="text" name="emp_name" required placeholder="Enter full name"
+                                class="w-full h-8 px-2.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-md text-xs text-slate-800 dark:text-slate-200 focus:outline-none focus:border-primary transition-all">
+                        </div>
+
+                        <div>
+                            <label class="block text-[11px] font-semibold text-slate-700 dark:text-slate-300 mb-1">Mobile Number <span class="text-rose-500">*</span></label>
+                            <input type="tel" name="mobile" required placeholder="01711000000"
+                                class="w-full h-8 px-2.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-md text-xs text-slate-800 dark:text-slate-200 focus:outline-none focus:border-primary transition-all">
+                        </div>
+
+                        <div>
+                            <label class="block text-[11px] font-semibold text-slate-700 dark:text-slate-300 mb-1">Email Address</label>
+                            <input type="email" name="email" placeholder="example@domain.com"
+                                class="w-full h-8 px-2.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-md text-xs text-slate-800 dark:text-slate-200 focus:outline-none focus:border-primary transition-all">
+                        </div>
+
+                        <div>
+                            <label class="block text-[11px] font-semibold text-slate-700 dark:text-slate-300 mb-1">NID Number</label>
+                            <input type="text" name="nid_number" placeholder="NID Number"
+                                class="w-full h-8 px-2.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-md text-xs text-slate-800 dark:text-slate-200 focus:outline-none focus:border-primary transition-all">
+                        </div>
+
+                        <div>
+                            <label class="block text-[11px] font-semibold text-slate-700 dark:text-slate-300 mb-1">Date of Birth (DOB)</label>
+                            <input type="date" name="dob"
+                                class="w-full h-8 px-2.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-md text-xs text-slate-800 dark:text-slate-200 focus:outline-none focus:border-primary transition-all">
+                        </div>
+
+                        <div>
+                            <label class="block text-[11px] font-semibold text-slate-700 dark:text-slate-300 mb-1">Gender</label>
+                            <select name="gender"
+                                class="w-full h-8 px-2.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-md text-xs text-slate-800 dark:text-slate-200 focus:outline-none focus:border-primary transition-all cursor-pointer">
+                                <option value="">Select Gender</option>
+                                <option value="MALE">Male</option>
+                                <option value="FEMALE">Female</option>
+                                <option value="OTHER">Other</option>
+                            </select>
+                        </div>
+
+                        <div>
+                            <label class="block text-[11px] font-semibold text-slate-700 dark:text-slate-300 mb-1">Blood Group</label>
+                            <select name="blood_group"
+                                class="w-full h-8 px-2.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-md text-xs text-slate-800 dark:text-slate-200 focus:outline-none focus:border-primary transition-all cursor-pointer">
+                                <option value="">Select Group</option>
+                                <option value="A+">A+</option>
+                                <option value="A-">A-</option>
+                                <option value="B+">B+</option>
+                                <option value="B-">B-</option>
+                                <option value="O+">O+</option>
+                                <option value="O-">O-</option>
+                                <option value="AB+">AB+</option>
+                                <option value="AB-">AB-</option>
+                            </select>
+                        </div>
+
+                        <div>
+                            <label class="block text-[11px] font-semibold text-slate-700 dark:text-slate-300 mb-1">Education Qualification</label>
+                            <input type="text" name="edu_qualification" placeholder="e.g. B.Sc. in Computer Science & Engineering"
+                                class="w-full h-8 px-2.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-md text-xs text-slate-800 dark:text-slate-200 focus:outline-none focus:border-primary transition-all">
+                        </div>
+
+                    </div>
+                </div>
+
+                <!-- SECTION 2: OFFICIAL DETAILS -->
+                <div class="p-3.5 bg-slate-50/50 dark:bg-slate-950/40 rounded-lg border border-slate-200/60 dark:border-slate-800/60">
+                    <h3 class="text-[11px] font-bold uppercase tracking-wider text-primary pb-2 mb-3 border-b border-slate-200 dark:border-slate-800 flex items-center gap-1.5">
+                        <span class="material-symbols-outlined text-[16px]">domain</span> Official Details
+                    </h3>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
+                        
+                        <div>
+                            <label class="block text-[11px] font-semibold text-slate-700 dark:text-slate-300 mb-1">Identity No <span class="text-rose-500">*</span></label>
+                            <input type="text" name="emp_id" required placeholder="EMP-00101"
+                                class="w-full h-8 px-2.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-md text-xs text-slate-800 dark:text-slate-200 focus:outline-none focus:border-primary transition-all">
+                        </div>
+
+                        <div>
+                            <label class="block text-[11px] font-semibold text-slate-700 dark:text-slate-300 mb-1">Service Type <span class="text-rose-500">*</span></label>
+                            <select name="emp_type" required
+                                class="w-full h-8 px-2.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-md text-xs text-slate-800 dark:text-slate-200 focus:outline-none focus:border-primary transition-all cursor-pointer">
+                                <option value="PERMANENT">PERMANENT</option>
+                                <option value="PROBATIONARY">PROBATIONARY</option>
+                                <option value="TEMPORARY">TEMPORARY</option>
+                                <option value="CONTRACTUAL">CONTRACTUAL</option>
+                            </select>
+                        </div>
+
+                        <div>
+                            <label class="block text-[11px] font-semibold text-slate-700 dark:text-slate-300 mb-1">Department <span class="text-rose-500">*</span></label>
+                            <input type="text" name="emp_department" required placeholder="e.g. Software Development"
+                                class="w-full h-8 px-2.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-md text-xs text-slate-800 dark:text-slate-200 focus:outline-none focus:border-primary transition-all">
+                        </div>
+
+                        <div>
+                            <label class="block text-[11px] font-semibold text-slate-700 dark:text-slate-300 mb-1">Designation <span class="text-rose-500">*</span></label>
+                            <input type="text" name="emp_designation" required placeholder="e.g. Software Engineer"
+                                class="w-full h-8 px-2.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-md text-xs text-slate-800 dark:text-slate-200 focus:outline-none focus:border-primary transition-all">
+                        </div>
+
+                        <div>
+                            <label class="block text-[11px] font-semibold text-slate-700 dark:text-slate-300 mb-1">Grade</label>
+                            <input type="text" name="emp_grade" placeholder="e.g. Grade-2"
+                                class="w-full h-8 px-2.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-md text-xs text-slate-800 dark:text-slate-200 focus:outline-none focus:border-primary transition-all">
+                        </div>
+
+                        <div>
+                            <label class="block text-[11px] font-semibold text-slate-700 dark:text-slate-300 mb-1">Join Date <span class="text-rose-500">*</span></label>
+                            <input type="date" name="join_date" required
+                                class="w-full h-8 px-2.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-md text-xs text-slate-800 dark:text-slate-200 focus:outline-none focus:border-primary transition-all">
+                        </div>
+
+                        <!-- নতুন যোগ করা হয়েছে: বর্তমান গ্রেডে যোগদান -->
+                        <div>
+                            <label class="block text-[11px] font-semibold text-slate-700 dark:text-slate-300 mb-1">Current Grade Join Date</label>
+                            <input type="date" name="current_grade_join_date"
+                                class="w-full h-8 px-2.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-md text-xs text-slate-800 dark:text-slate-200 focus:outline-none focus:border-primary transition-all">
+                        </div>
+
+                        <div>
+                            <label class="block text-[11px] font-semibold text-slate-700 dark:text-slate-300 mb-1">Current Posting Place</label>
+                            <input type="text" name="current_posting_place" placeholder="Head Office, Dhaka"
+                                class="w-full h-8 px-2.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-md text-xs text-slate-800 dark:text-slate-200 focus:outline-none focus:border-primary transition-all">
+                        </div>
+
+                        <!-- নতুন যোগ করা হয়েছে: বর্তমান কর্মস্থলে যোগদান -->
+                        <div>
+                            <label class="block text-[11px] font-semibold text-slate-700 dark:text-slate-300 mb-1">Current Posting Join Date</label>
+                            <input type="date" name="current_posting_join_date"
+                                class="w-full h-8 px-2.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-md text-xs text-slate-800 dark:text-slate-200 focus:outline-none focus:border-primary transition-all">
+                        </div>
+
+                        <div>
+                            <label class="block text-[11px] font-semibold text-slate-700 dark:text-slate-300 mb-1">Retirement Date</label>
+                            <input type="date" name="retirement_date"
+                                class="w-full h-8 px-2.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-md text-xs text-slate-800 dark:text-slate-200 focus:outline-none focus:border-primary transition-all">
+                        </div>
+
+                    </div>
+                </div>
+
+
+                <!-- SECTION 3: ADDRESS & ATTACHMENTS -->
+                <div class="p-3.5 bg-slate-50/50 dark:bg-slate-950/40 rounded-lg border border-slate-200/60 dark:border-slate-800/60">
+                    <h3 class="text-[11px] font-bold uppercase tracking-wider text-primary pb-2 mb-3 border-b border-slate-200 dark:border-slate-800 flex items-center gap-1.5">
+                        <span class="material-symbols-outlined text-[16px]">home_pin</span> Address & Photo Attachment
+                    </h3>
+                    
+                    <div class="grid grid-cols-1 lg:grid-cols-12 gap-3">
+                        
+                        <!-- Left Sub-Grid for Inputs -->
+                        <div class="lg:col-span-8 grid grid-cols-1 sm:grid-cols-2 gap-3">
+                            <div>
+                                <label class="block text-[11px] font-semibold text-slate-700 dark:text-slate-300 mb-1">Home District</label>
+                                <input type="text" name="home_district" placeholder="e.g. Dhaka"
+                                    class="w-full h-8 px-2.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-md text-xs text-slate-800 dark:text-slate-200 focus:outline-none focus:border-primary transition-all">
+                            </div>
+
+                            <div>
+                                <label class="block text-[11px] font-semibold text-slate-700 dark:text-slate-300 mb-1">Present Address</label>
+                                <input type="text" name="present_address" placeholder="Present Address"
+                                    class="w-full h-8 px-2.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-md text-xs text-slate-800 dark:text-slate-200 focus:outline-none focus:border-primary transition-all">
+                            </div>
+
+                            <div class="sm:col-span-2">
+                                <label class="block text-[11px] font-semibold text-slate-700 dark:text-slate-300 mb-1">Permanent Address</label>
+                                <input type="text" name="permanent_address" placeholder="Permanent Address"
+                                    class="w-full h-8 px-2.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-md text-xs text-slate-800 dark:text-slate-200 focus:outline-none focus:border-primary transition-all">
+                            </div>
+
+                            <div class="sm:col-span-2">
+                                <label class="block text-[11px] font-semibold text-slate-700 dark:text-slate-300 mb-1">Note / Comments</label>
+                                <input type="text" name="note" placeholder="Additional notes..."
+                                    class="w-full h-8 px-2.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-md text-xs text-slate-800 dark:text-slate-200 focus:outline-none focus:border-primary transition-all">
+                            </div>
+                        </div>
+
+                        <!-- Right Section for Photo Upload Dropzone (Max 120KB) -->
+                        <div class="lg:col-span-4 flex flex-col">
+                            <label class="block text-[11px] font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                                Photo Upload <span class="text-slate-400 font-normal">(Max 120KB)</span>
+                            </label>
+                            <div class="relative flex-1 min-h-[100px] border-2 border-dashed border-slate-200 dark:border-slate-800 hover:border-primary/50 dark:hover:border-primary/50 rounded-md p-2 flex flex-col items-center justify-center bg-white dark:bg-slate-900 transition-all group cursor-pointer">
+                                <input type="file" name="emp_photo" id="empPhotoInput" accept="image/*"
+                                    class="absolute inset-0 opacity-0 cursor-pointer w-full h-full z-10" onchange="validateAndPreviewImage(this)">
+                                
+                                <div id="uploadPlaceholder" class="text-center space-y-1">
+                                    <span class="material-symbols-outlined text-[24px] text-slate-400 group-hover:text-primary transition-colors">cloud_upload</span>
+                                    <p class="text-[11px] font-medium text-slate-600 dark:text-slate-300">Click or Drag Image</p>
+                                    <p class="text-[10px] text-slate-400">JPG, PNG (Max 120KB)</p>
+                                </div>
+
+                                <div id="imagePreviewContainer" class="hidden flex-col items-center gap-1.5 z-20">
+                                    <img id="imagePreview" src="#" alt="Preview" class="h-16 w-16 object-cover rounded-full border border-slate-300 dark:border-slate-700 shadow-xs">
+                                    <span id="fileName" class="text-[10px] font-medium text-slate-600 dark:text-slate-300 truncate max-w-[150px]"></span>
+                                </div>
+                            </div>
+                            <p id="photoError" class="text-[10px] text-rose-500 font-medium mt-1 hidden"></p>
+                        </div>
+
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- FORM FOOTER BUTTONS -->
+            <div class="px-4 py-2.5 bg-slate-50 dark:bg-slate-950 border-t border-slate-200 dark:border-slate-800 flex items-center justify-end gap-2">
+                <a href="[[=URL('employees/personnel_directory')]]"
+                    class="h-7 px-3 bg-white dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700 rounded-md text-xs font-semibold transition-all flex items-center justify-center">
+                    Cancel
+                </a>
+                <button type="submit" id="submitBtn"
+                    class="h-7 px-3.5 bg-primary hover:opacity-90 text-white rounded-md text-xs font-semibold shadow-xs transition-all flex items-center gap-1 justify-center">
+                    <span class="material-symbols-outlined text-[15px]">save</span>
+                    Save
+                </button>
+            </div>
+
+        </form>
+
+    </div>
+</div>
+
+<script>
+function validateAndPreviewImage(input) {
+    const file = input.files[0];
+    const errorEl = document.getElementById('photoError');
+    const placeholder = document.getElementById('uploadPlaceholder');
+    const previewContainer = document.getElementById('imagePreviewContainer');
+    const previewImg = document.getElementById('imagePreview');
+    const fileName = document.getElementById('fileName');
+    const submitBtn = document.getElementById('submitBtn');
+
+    errorEl.classList.add('hidden');
+    errorEl.textContent = '';
+
+    if (file) {
+        // Max size validation (120KB = 120 * 1024 bytes)
+        const maxSize = 120 * 1024;
+        if (file.size > maxSize) {
+            errorEl.textContent = `File size (${(file.size / 1024).toFixed(1)}KB) exceeds 120KB Limit!`;
+            errorEl.classList.remove('hidden');
+            input.value = ''; // Reset input
+            placeholder.classList.remove('hidden');
+            previewContainer.classList.add('hidden');
+            return;
+        }
+
+        // Preview File
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            previewImg.src = e.target.result;
+            fileName.textContent = file.name;
+            placeholder.classList.add('hidden');
+            previewContainer.classList.remove('hidden');
+        }
+        reader.readAsDataURL(file);
+    } else {
+        placeholder.classList.remove('hidden');
+        previewContainer.classList.add('hidden');
+    }
+}
+</script>

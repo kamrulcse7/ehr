@@ -82,7 +82,7 @@
                 class="flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-2.5 bg-slate-50/70 dark:bg-slate-800/40 p-2 rounded-xl border border-slate-200/60 dark:border-slate-800/60">
 
                 <!-- LEFT SIDE: FILTER FORM -->
-                <form action="[[=URL('employees/index')]]" method="GET" class="flex flex-wrap items-center gap-2 grow">
+                <form action="[[=URL('employees/personnel_directory')]]" method="GET" class="flex flex-wrap items-center gap-2 grow">
                     <input type="hidden" name="limit" value="[[= pagination['limit'] ]]">
 
                     <!-- Search Input (Simple Manual Search) -->
@@ -131,7 +131,7 @@
 
                     <!-- Reset Filter Button -->
                     [[ if request.query.get('keywords') or request.query.get('department') or request.query.get('status'): ]]
-                    <a href="[[=URL('employees/index')]]" title="Clear Filters"
+                    <a href="[[=URL('employees/personnel_directory')]]" title="Clear Filters"
                         class="h-[28px] px-2 bg-rose-50 hover:bg-rose-100 dark:bg-rose-950/40 dark:hover:bg-rose-900/50 text-rose-600 dark:text-rose-400 border border-rose-200/60 dark:border-rose-800/60 rounded-md transition-all inline-flex items-center justify-center shrink-0">
                         <span class="material-symbols-outlined text-[14px]">filter_list_off</span>
                     </a>
@@ -159,14 +159,14 @@
                             class="hidden absolute right-0 top-full mt-1 w-36 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg shadow-lg z-50 py-1 text-xs">
                             
                             <!-- Excel Export -->
-                            <a href="[[=URL('employees/index', vars=request.query | {'export': 'xlsx'})]]" 
+                            <a href="[[=URL('employees/personnel_directory', vars=request.query | {'export': 'xlsx'})]]" 
                             class="flex items-center gap-2 px-3 py-1.5 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200">
                                 <span class="material-symbols-outlined text-[16px] text-emerald-600">table_view</span>
                                 <span>Excel (.xls)</span>
                             </a>
 
                             <!-- CSV Export -->
-                            <a href="[[=URL('employees/index', vars=request.query | {'export': 'csv'})]]" 
+                            <a href="[[=URL('employees/personnel_directory', vars=request.query | {'export': 'csv'})]]" 
                             class="flex items-center gap-2 px-3 py-1.5 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200">
                                 <span class="material-symbols-outlined text-[16px] text-amber-600">csv</span>
                                 <span>CSV File</span>
@@ -180,7 +180,7 @@
                         <span class="hidden sm:inline">Import</span>
                     </a>
 
-                    <a href="[[=URL('employees/create')]]"
+                    <a href="[[=URL('employees/add_directory')]]"
                         class="h-[28px] px-3 bg-primary hover:opacity-90 active:scale-[0.98] text-white rounded-md font-semibold text-[11px] shadow-xs transition-all inline-flex items-center justify-center gap-1 shrink-0">
                         <span class="material-symbols-outlined text-[15px]">person_add</span>
                         <span>Add New</span>
@@ -317,7 +317,7 @@
                             class="h-7 pl-2 pr-6 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-md text-xs font-semibold text-slate-700 dark:text-slate-200 focus:outline-none focus:ring-1 focus:ring-primary cursor-pointer">
                             [[ current_limit = pagination['limit'] ]]
                             [[ for l in [10, 25, 50, 100]: ]]
-                            <option value="[[= URL('employees/index', vars=request.query | {'limit': l, 'page': 1}) ]]"
+                            <option value="[[= URL('employees/personnel_directory', vars=request.query | {'limit': l, 'page': 1}) ]]"
                                 [[='selected' if l==current_limit else '' ]]>
                                 [[= l ]]
                             </option>
@@ -338,7 +338,7 @@
                 <!-- RIGHT: Dynamic Page Numbers -->
                 <div class="flex items-center gap-1 select-none">
                     [[ if pagination['current_page'] > 1: ]]
-                    <a href="[[= URL('employees/index', vars=request.query | {'page': pagination['current_page'] - 1}) ]]"
+                    <a href="[[= URL('employees/personnel_directory', vars=request.query | {'page': pagination['current_page'] - 1}) ]]"
                         class="w-7 h-7 rounded-lg border border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 flex items-center justify-center transition-colors text-slate-600 dark:text-slate-300">
                         <span class="material-symbols-outlined text-[14px]">chevron_left</span>
                     </a>
@@ -363,7 +363,7 @@
                         class="w-7 h-7 rounded-lg bg-primary text-white font-bold flex items-center justify-center shadow-2xs">
                         [[= p ]]</span>
                         [[ else: ]]
-                        <a href="[[= URL('employees/index', vars=request.query | {'page': p}) ]]"
+                        <a href="[[= URL('employees/personnel_directory', vars=request.query | {'page': p}) ]]"
                             class="w-7 h-7 rounded-lg border border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 font-medium flex items-center justify-center text-slate-600 dark:text-slate-300 transition-colors">
                             [[= p ]]
                         </a>
@@ -374,7 +374,7 @@
                         [[ pass ]]
 
                         [[ if pagination['current_page'] < pagination['total_pages']: ]] <a
-                            href="[[= URL('employees/index', vars=request.query | {'page': pagination['current_page'] + 1}) ]]"
+                            href="[[= URL('employees/personnel_directory', vars=request.query | {'page': pagination['current_page'] + 1}) ]]"
                             class="w-7 h-7 rounded-lg border border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 flex items-center justify-center transition-colors text-slate-600 dark:text-slate-300">
                             <span class="material-symbols-outlined text-[14px]">chevron_right</span>
                             </a>
