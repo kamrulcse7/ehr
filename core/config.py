@@ -87,9 +87,9 @@ class AppSettings(BaseSettings):
 
     ## Timezone / Time offset
     TIMEZONE: str = "Asia/Dhaka"
-    TIME_OFFSET_HOURS: int = 0
-    TIME_OFFSET_MINUTES: int = 0
-    TIME_OFFSET_SECONDS: int = 0
+    TIMEZONE_OFFSET_HOURS: int = 0
+    TIMEZONE_OFFSET_MINUTES: int = 0
+    TIMEZONE_OFFSET_SECONDS: int = 0
 
     # CORS / Cross-Origin Resource Sharing
     BACKEND_CORS_ORIGINS: List[str] = ["*"]

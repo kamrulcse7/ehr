@@ -6,6 +6,8 @@ import xml.sax.saxutils as xml_escape
 import math
 import io
 import csv
+import os
+import time
 
 @action("employees/personnel_directory")
 @view_page("employees/personnel_directory.html", title="Personnel Directory | EMS")
@@ -162,38 +164,87 @@ def personnel_directory():
     return dict(employees=employees_list, pagination=pagination, stats=stats_res)
 
 
-from py4web import action, request, redirect, URL
 
-@action('employees/add_directory', method=['GET', 'POST'])
+@action("employees/add_directory", method=["GET", "POST"])
 @view_page("employees/add_directory.html", title="Add Directory | EMS")
 @web_auth_required
 def add_directory():
-    if request.method == 'POST':
-        # Form Data Fetching
-        employee_id = request.forms.get('employee_id')
-        full_name = request.forms.get('full_name')
-        mobile = request.forms.get('mobile')
-        email = request.forms.get('email')
-        nid = request.forms.get('nid')
-        joining_date = request.forms.get('joining_date')
-        department = request.forms.get('department')
-        designation = request.forms.get('designation')
-        status = request.forms.get('status')
+    msg = None
+    msg_type = None
 
-        # Database Insertion Logic
-        db.employees.insert(
-            employee_id=employee_id,
-            full_name=full_name,
-            mobile=mobile,
-            email=email,
-            nid=nid,
-            joining_date=joining_date,
-            department=department,
-            designation=designation,
-            status=status
-        )
+    if request.method == "POST":
+        try:
+            def clean_val(val):
+                val = str(val).strip() if val else None
+                return val if val != "" else None
 
-        # Redirect back to directory after saving
-        redirect(URL('employees/personnel_directory'))
+            emp_name = clean_val(request.forms.get("emp_name"))
+            mobile = clean_val(request.forms.get("mobile"))
+            email = clean_val(request.forms.get("email"))
+            nid_number = clean_val(request.forms.get("nid_number"))
+            dob = clean_val(request.forms.get("dob"))
+            gender = clean_val(request.forms.get("gender"))
+            blood_group = clean_val(request.forms.get("blood_group"))
+            edu_qualification = clean_val(request.forms.get("edu_qualification"))
+
+            emp_id = clean_val(request.forms.get("emp_id"))
+            card_number = clean_val(request.forms.get("card_number"))
+            emp_type = clean_val(request.forms.get("emp_type"))
+            emp_department = clean_val(request.forms.get("emp_department"))
+            emp_designation = clean_val(request.forms.get("emp_designation"))
+            emp_grade = clean_val(request.forms.get("emp_grade"))
+            join_date = clean_val(request.forms.get("join_date"))
+            confirmation_date = clean_val(request.forms.get("confirmation_date"))
+            current_grade_join_date = clean_val(request.forms.get("current_grade_join_date"))
+            
+            current_posting_place = clean_val(request.forms.get("current_posting_place"))
+            current_posting_join_date = clean_val(request.forms.get("current_posting_join_date"))
+            retirement_date = clean_val(request.forms.get("retirement_date"))
+
+            home_district = clean_val(request.forms.get("home_district"))
+            present_address = clean_val(request.forms.get("present_address"))
+            permanent_address = clean_val(request.forms.get("permanent_address"))
+            note = clean_val(request.forms.get("note"))
+            
+            photo = request.files.get("emp_photo")
+            saved_filename = None
+
+            if photo and photo.filename:
+                UPLOAD_DIR = os.path.join(os.path.dirname(__file__), "..", "static", "uploads", "profile_images")
+                os.makedirs(UPLOAD_DIR, exist_ok=True)
+                ext = os.path.splitext(photo.filename)[1]
+                saved_filename = f"{emp_id}_{int(time.time())}{ext}"
+                file_path = os.path.join(UPLOAD_DIR, saved_filename)
+                with open(file_path, "wb") as f:
+                    f.write(photo.file.read())
+
+            insert_sql = """
+            INSERT INTO employees (
+                emp_id, emp_name, card_number, emp_type, emp_department, 
+                emp_designation, emp_grade, current_posting_place, current_posting_join_date, 
+                current_grade_join_date, mobile, email, gender, dob, 
+                blood_group, join_date, confirmation_date, retirement_date, 
+                edu_qualification, home_district, present_address, permanent_address, 
+                nid_number, photo_url, note, status_type, created_on, created_by
+            ) VALUES (
+                %s, %s, %s, %s, %s, 
+                %s, %s, %s, %s, 
+                %s, %s, %s, %s, %s, 
+                %s, %s, %s, %s, 
+                %s, %s, %s, %s, 
+                %s, %s, %s, %s, %s, %s
+                )
+            """
+            values = (
+                emp_id, emp_name, card_number, emp_type, emp_department,
+                emp_designation, emp_grade, current_posting_place, current_posting_join_date,
+                current_grade_join_date, mobile, email, gender, dob,
+                blood_group, join_date, confirmation_date, retirement_date,
+                edu_qualification, home_district, present_address, permanent_address,
+                nid_number, saved_filename, note, 'Active', db_datetime, session.user.get('user_id', '')
+            )
+            db.executesql(insert_sql, values)
+        except Exception as e:
+            print(f"Error during employee insert: {e}")
 
     return dict()

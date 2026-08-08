@@ -1,7 +1,7 @@
 from functools import wraps
 from datetime import datetime, timedelta
 from py4web import request, response, redirect, URL
-from ..utils.common import session
+from ..utils.common import session, flash
 from ..core.config import settings
 
 def web_auth_required(handler):
@@ -41,6 +41,8 @@ def web_auth_required(handler):
         if isinstance(response_dict, dict):
             if "session" not in response_dict:
                 response_dict["session"] = session
+            if "flash" not in response_dict:
+                response_dict["flash"] = flash
                 
         return response_dict
 
