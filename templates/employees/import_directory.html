@@ -1,0 +1,489 @@
+[[extend 'layout.html']]
+
+<div class="w-full text-slate-700 dark:text-slate-200 py-2">
+    <div class="max-w-[1600px] mx-auto space-y-4">
+
+        <!-- BREADCRUMB & HEADER -->
+        <div class="pb-2.5 border-b border-slate-200/80 dark:border-slate-800/80 flex items-center justify-between">
+            <div class="flex items-center gap-1.5 text-xs font-medium">
+                <span class="text-slate-400 dark:text-slate-500">Officers & Staff</span>
+                <span class="material-symbols-outlined text-[14px] text-slate-400 select-none">chevron_right</span>
+                <a href="[[=URL('employees/personnel_directory')]]" class="text-slate-400 dark:text-slate-500 hover:text-primary">Personnel Directory</a>
+                <span class="material-symbols-outlined text-[14px] text-slate-400 select-none">chevron_right</span>
+                <span class="text-primary font-semibold">Import</span>
+            </div>
+            <a href="[[=URL('employees/personnel_directory')]]"
+                class="h-7 px-2.5 bg-slate-200 hover:bg-slate-300 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 rounded-md text-xs font-semibold transition-all inline-flex items-center gap-1 shrink-0">
+                <span class="material-symbols-outlined text-[15px]">arrow_back</span>
+                Back
+            </a>
+        </div>
+
+        <!-- STATS DASHBOARD (IF IMPORTED) -->
+        [[ if stats: ]]
+        <div class="space-y-3.5">
+            <h3 class="text-xs font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500">Import Results</h3>
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5">
+                <!-- Total Rows -->
+                <div class="bg-white dark:bg-slate-900 rounded-xl border border-slate-200/80 dark:border-slate-800/80 p-3.5 flex items-center gap-3 shadow-2xs">
+                    <div class="w-9 h-9 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 flex items-center justify-center shrink-0">
+                        <span class="material-symbols-outlined text-[20px]">reorder</span>
+                    </div>
+                    <div>
+                        <div class="text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500">Total Rows</div>
+                        <div class="text-lg font-bold text-slate-900 dark:text-white mt-0.5">[[= stats["total"] ]]</div>
+                    </div>
+                </div>
+
+                <!-- Successfully Created -->
+                <div class="bg-white dark:bg-slate-900 rounded-xl border border-slate-200/80 dark:border-slate-800/80 p-3.5 flex items-center gap-3 shadow-2xs">
+                    <div class="w-9 h-9 rounded-lg bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shrink-0">
+                        <span class="material-symbols-outlined text-[20px]">person_add</span>
+                    </div>
+                    <div>
+                        <div class="text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500">New Personnel</div>
+                        <div class="text-lg font-bold text-emerald-600 dark:text-emerald-400 mt-0.5">[[= stats["created"] ]]</div>
+                    </div>
+                </div>
+
+                <!-- Successfully Updated -->
+                <div class="bg-white dark:bg-slate-900 rounded-xl border border-slate-200/80 dark:border-slate-800/80 p-3.5 flex items-center gap-3 shadow-2xs">
+                    <div class="w-9 h-9 rounded-lg bg-sky-50 dark:bg-sky-950/40 text-sky-600 dark:text-sky-400 flex items-center justify-center shrink-0">
+                        <span class="material-symbols-outlined text-[20px]">edit</span>
+                    </div>
+                    <div>
+                        <div class="text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500">Updated Records</div>
+                        <div class="text-lg font-bold text-sky-600 dark:text-sky-400 mt-0.5">[[= stats["updated"] ]]</div>
+                    </div>
+                </div>
+
+                <!-- Failed Rows -->
+                <div class="bg-white dark:bg-slate-900 rounded-xl border border-slate-200/80 dark:border-slate-800/80 p-3.5 flex items-center gap-3 shadow-2xs">
+                    <div class="w-9 h-9 rounded-lg bg-rose-50 dark:bg-rose-950/40 text-rose-500 dark:text-rose-400 flex items-center justify-center shrink-0">
+                        <span class="material-symbols-outlined text-[20px]">error</span>
+                    </div>
+                    <div>
+                        <div class="text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500">Failed Rows</div>
+                        <div class="text-lg font-bold text-rose-500 dark:text-rose-400 mt-0.5">[[= stats["failed"] ]]</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Error Details List -->
+            [[ if stats["failed"] > 0: ]]
+            <div class="bg-white dark:bg-slate-900 rounded-xl border border-rose-200 dark:border-rose-900/60 overflow-hidden shadow-2xs">
+                <div class="bg-rose-50/50 dark:bg-rose-950/20 px-4 py-3 border-b border-rose-100 dark:border-rose-900/50 flex items-center gap-2">
+                    <span class="material-symbols-outlined text-rose-500 text-lg">warning</span>
+                    <h4 class="text-xs font-bold text-rose-800 dark:text-rose-400 uppercase tracking-wider">Detailed Errors ([[= stats["failed"] ]] failed rows)</h4>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left border-collapse text-xs">
+                        <thead>
+                            <tr class="bg-slate-50 dark:bg-slate-800/50 text-[10px] font-bold uppercase text-slate-500 dark:text-slate-400 border-b border-slate-100 dark:border-slate-800">
+                                <th class="py-2 px-4 w-20">Row No</th>
+                                <th class="py-2 px-4 w-40">Official ID</th>
+                                <th class="py-2 px-4">Error Details</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-100 dark:divide-slate-800/60 font-mono text-slate-600 dark:text-slate-400">
+                            [[ for err in stats["errors"]: ]]
+                            <tr class="hover:bg-slate-50/50 dark:hover:bg-slate-800/20">
+                                <td class="py-2 px-4 font-semibold text-slate-800 dark:text-slate-200">[[= err["row"] ]]</td>
+                                <td class="py-2 px-4">[[= err["emp_id"] ]]</td>
+                                <td class="py-2 px-4 text-rose-600 dark:text-rose-400">[[= err["error"] ]]</td>
+                            </tr>
+                            [[ pass ]]
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            [[ pass ]]
+        </div>
+        [[ pass ]]
+
+        <!-- IMPORT MAIN FORM & INSTRUCTIONS GRID -->
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-4">
+            
+            <!-- Left Panel: Instructions -->
+            <div class="lg:col-span-5 space-y-4">
+                <div class="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 p-4 shadow-2xs space-y-4">
+                    <div>
+                        <h3 class="text-sm font-bold text-slate-950 dark:text-white flex items-center gap-1.5">
+                            <span class="material-symbols-outlined text-primary text-[20px]">info</span>
+                            CSV Import Instructions
+                        </h3>
+                        <p class="text-xs text-slate-500 mt-1">Please read carefully before preparing your CSV file for import.</p>
+                    </div>
+
+                    <div class="border-t border-slate-100 dark:border-slate-800 pt-3.5 space-y-3 text-xs leading-relaxed">
+                        <div class="flex items-start gap-2">
+                            <span class="w-5 h-5 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center font-bold text-[10px] text-slate-600 dark:text-slate-400 shrink-0 mt-0.5">1</span>
+                            <div>
+                                <span class="font-semibold text-slate-800 dark:text-slate-200">Required Fields:</span>
+                                <p class="text-slate-500 mt-0.5">Your CSV file <span class="font-bold text-rose-500">MUST</span> contain <code class="bg-slate-100 dark:bg-slate-850 px-1 py-0.5 rounded text-[10px]">Official ID</code> and <code class="bg-slate-100 dark:bg-slate-850 px-1 py-0.5 rounded text-[10px]">Full Name</code>. Other columns are optional.</p>
+                            </div>
+                        </div>
+
+                        <div class="flex items-start gap-2">
+                            <span class="w-5 h-5 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center font-bold text-[10px] text-slate-600 dark:text-slate-400 shrink-0 mt-0.5">2</span>
+                            <div>
+                                <span class="font-semibold text-slate-800 dark:text-slate-200">Automatic Mapping:</span>
+                                <p class="text-slate-500 mt-0.5">Headers are matched case-insensitively. Feel free to use headers like "Official ID", "Full Name", "Mobile", "Email", "Status", or their SQL column counterparts.</p>
+                            </div>
+                        </div>
+
+                        <div class="flex items-start gap-2">
+                            <span class="w-5 h-5 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center font-bold text-[10px] text-slate-600 dark:text-slate-400 shrink-0 mt-0.5">3</span>
+                            <div>
+                                <span class="font-semibold text-slate-800 dark:text-slate-200">Upsert Logic:</span>
+                                <p class="text-slate-500 mt-0.5">If the Official ID already exists, the record will be updated. If it does not exist, a new record will be created.</p>
+                            </div>
+                        </div>
+
+                        <div class="flex items-start gap-2">
+                            <span class="w-5 h-5 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center font-bold text-[10px] text-slate-600 dark:text-slate-400 shrink-0 mt-0.5">4</span>
+                            <div>
+                                <span class="font-semibold text-slate-800 dark:text-slate-200">Date Formats:</span>
+                                <p class="text-slate-500 mt-0.5">Dates should be formatted as <code class="bg-slate-100 dark:bg-slate-850 px-1 py-0.5 rounded text-[10px]">YYYY-MM-DD</code>. However, common formats like DD-MM-YYYY, DD/MM/YYYY, or MM/DD/YYYY are parsed automatically.</p>
+                            </div>
+                        </div>
+
+                        <div class="flex items-start gap-2">
+                            <span class="w-5 h-5 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center font-bold text-[10px] text-slate-600 dark:text-slate-400 shrink-0 mt-0.5">5</span>
+                            <div>
+                                <span class="font-semibold text-slate-800 dark:text-slate-200">Status Values:</span>
+                                <p class="text-slate-500 mt-0.5">Set the status as <code class="bg-slate-100 dark:bg-slate-850 px-1 py-0.5 rounded text-[10px]">ACTIVE</code>, <code class="bg-slate-100 dark:bg-slate-850 px-1 py-0.5 rounded text-[10px]">PROBATIONARY</code>, or <code class="bg-slate-100 dark:bg-slate-850 px-1 py-0.5 rounded text-[10px]">INACTIVE</code>.</p>
+                            </div>
+                        </div>
+
+                        <div class="flex items-start gap-2">
+                            <span class="w-5 h-5 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center font-bold text-[10px] text-slate-600 dark:text-slate-400 shrink-0 mt-0.5">6</span>
+                            <div>
+                                <span class="font-semibold text-slate-800 dark:text-slate-200">Import Limits:</span>
+                                <p class="text-slate-500 mt-0.5">CSV files must be under <span class="font-bold">2MB</span> in size and contain a maximum of <span class="font-bold">1,000 rows</span>.</p>
+                            </div>
+                        </div>
+
+                        <div class="flex items-start gap-2">
+                            <span class="w-5 h-5 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center font-bold text-[10px] text-slate-600 dark:text-slate-400 shrink-0 mt-0.5">7</span>
+                            <div>
+                                <span class="font-semibold text-slate-800 dark:text-slate-200">Excel Direct Copy-Paste:</span>
+                                <p class="text-slate-500 mt-0.5">Switch to the "Paste Raw Data" tab, copy the cells from Excel/Google Sheets (with headers), and paste them directly into the text box.</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="border-t border-slate-100 dark:border-slate-800 pt-3.5">
+                        <a href="[[=URL('employees/import_directory', vars={'template': 'csv'})]]" 
+                           class="w-full h-8.5 px-3 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 rounded-lg text-xs font-bold transition-all inline-flex items-center justify-center gap-1.5 border border-slate-200 dark:border-slate-700">
+                            <span class="material-symbols-outlined text-[16px] text-emerald-600 dark:text-emerald-400">download</span>
+                            Download Sample CSV Template
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Panel: Import Interface (Tabs) -->
+            <div class="lg:col-span-7 flex flex-col space-y-4">
+                
+                <!-- Tab Headers -->
+                <div class="flex border-b border-slate-200 dark:border-slate-800 gap-1 select-none">
+                    <button type="button" id="tabBtnFile" class="px-4 py-2 text-xs font-bold text-primary border-b-2 border-primary focus:outline-none transition-all flex items-center gap-1.5 cursor-pointer">
+                        <span class="material-symbols-outlined text-[16px]">upload_file</span>
+                        Upload File
+                    </button>
+                    <button type="button" id="tabBtnText" class="px-4 py-2 text-xs font-bold text-slate-400 dark:text-slate-500 border-b-2 border-transparent hover:text-slate-700 dark:hover:text-slate-300 focus:outline-none transition-all flex items-center gap-1.5 cursor-pointer">
+                        <span class="material-symbols-outlined text-[16px]">content_paste</span>
+                        Paste Raw Data
+                    </button>
+                </div>
+
+                <!-- Tab Content 1: File Upload Form -->
+                <form action="[[=URL('employees/import_directory')]]" method="POST" enctype="multipart/form-data" id="importFileForm"
+                      class="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-2xs overflow-hidden flex flex-col justify-between flex-1">
+                    
+                    <div class="p-4 space-y-4 flex-1 flex flex-col">
+                        <div>
+                            <h3 class="text-sm font-bold text-slate-950 dark:text-white flex items-center gap-1.5">
+                                <span class="material-symbols-outlined text-primary text-[20px]">upload_file</span>
+                                Upload CSV File
+                            </h3>
+                            <p class="text-xs text-slate-500 mt-1">Select your completed employee record CSV sheet to begin the batch upload.</p>
+                        </div>
+
+                        <div class="border-t border-slate-100 dark:border-slate-800 pt-3.5 space-y-4 flex-1 flex flex-col">
+                            <!-- Drag and Drop Area -->
+                            <div id="dropZone" 
+                                 class="border-2 border-dashed border-slate-200 dark:border-slate-800 hover:border-primary dark:hover:border-primary rounded-xl p-8 flex flex-col items-center justify-center gap-2 cursor-pointer transition-all bg-slate-50/50 dark:bg-slate-950/20 flex-1">
+                                <span class="material-symbols-outlined text-[36px] text-slate-400 dark:text-slate-600 drop-icon">cloud_upload</span>
+                                <div class="text-center">
+                                    <span class="text-xs font-semibold text-slate-700 dark:text-slate-300">Click to upload or drag & drop</span>
+                                    <p class="text-[10px] text-slate-400 dark:text-slate-500 mt-0.5">Only .csv files are supported (Max 2MB, 1,000 rows)</p>
+                                </div>
+                                <input type="file" name="csv_file" id="fileInput" accept=".csv" required class="hidden">
+                            </div>
+
+                            <!-- Selected File Banner (Hidden by default) -->
+                            <div id="fileBanner" class="hidden flex items-center justify-between p-2.5 bg-emerald-50/50 dark:bg-emerald-950/25 border border-emerald-100 dark:border-emerald-900/60 rounded-lg text-xs">
+                                <div class="flex items-center gap-2 text-emerald-800 dark:text-emerald-400">
+                                    <span class="material-symbols-outlined text-base">check_circle</span>
+                                    <span id="fileNameDisplay" class="font-semibold truncate max-w-[250px]">filename.csv</span>
+                                    <span id="fileSizeDisplay" class="text-[10px] opacity-75">0 KB</span>
+                                </div>
+                                <button type="button" id="removeFileBtn" class="text-slate-400 hover:text-rose-500 p-1 rounded-md hover:bg-slate-100 dark:hover:bg-slate-800 transition-all flex items-center justify-center cursor-pointer">
+                                    <span class="material-symbols-outlined text-base">close</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Footer Action -->
+                    <div class="px-4 py-3 bg-slate-50/80 dark:bg-slate-950/40 border-t border-slate-100 dark:border-slate-800 flex items-center justify-end">
+                        <button type="submit" id="submitFileBtn" disabled
+                                class="h-8.5 px-4 bg-primary text-white font-bold rounded-lg text-xs shadow-xs transition-all inline-flex items-center justify-center gap-1.5 opacity-50 cursor-not-allowed">
+                            <span class="material-symbols-outlined text-[16px]">publish</span>
+                            <span>Upload & Import</span>
+                        </button>
+                    </div>
+                </form>
+
+                <!-- Tab Content 2: Copy-Paste Text Area (Hidden by default) -->
+                <form action="[[=URL('employees/import_directory')]]" method="POST" id="importTextForm"
+                      class="hidden bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-2xs overflow-hidden flex flex-col justify-between flex-1">
+                    
+                    <div class="p-4 space-y-4 flex-1 flex flex-col">
+                        <div>
+                            <h3 class="text-sm font-bold text-slate-950 dark:text-white flex items-center gap-1.5">
+                                <span class="material-symbols-outlined text-primary text-[20px]">content_paste_go</span>
+                                Paste Raw Data (CSV / TSV)
+                            </h3>
+                            <p class="text-xs text-slate-500 mt-1">Copy columns directly from Excel/Google Sheets (with headers) and paste them here.</p>
+                        </div>
+
+                        <div class="border-t border-slate-100 dark:border-slate-800 pt-3.5 space-y-2 flex flex-col flex-1">
+                            <label class="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider">Paste Data Below:</label>
+                            <textarea name="csv_text" id="pasteTextArea" placeholder="Official ID&#9;Full Name&#9;Department&#9;Designation&#10;OFF1001&#9;Abul Kalam&#9;Administration&#9;Senior Officer"
+                                      class="w-full px-3 py-2 text-xs font-mono bg-slate-50 dark:bg-slate-950/60 border border-slate-200 dark:border-slate-800 rounded-lg focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary transition-all resize-y placeholder:opacity-50 text-slate-700 dark:text-slate-250 flex-1"></textarea>
+                            <div class="flex items-center justify-between text-[10px] text-slate-400 dark:text-slate-500 mt-1">
+                                <span>Tip: Delimiters like tabs (Excel format), commas, or semicolons are parsed automatically.</span>
+                                <span id="pasteStats" class="font-semibold text-right shrink-0">0 chars (0.0 KB) / 0 lines</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Footer Action -->
+                    <div class="px-4 py-3 bg-slate-50/80 dark:bg-slate-950/40 border-t border-slate-100 dark:border-slate-800 flex items-center justify-end">
+                        <button type="submit" id="submitTextBtn" disabled
+                                class="h-8.5 px-4 bg-primary text-white font-bold rounded-lg text-xs shadow-xs transition-all inline-flex items-center justify-center gap-1.5 opacity-50 cursor-not-allowed">
+                            <span class="material-symbols-outlined text-[16px]">publish</span>
+                            <span>Parse & Import Paste Data</span>
+                        </button>
+                    </div>
+                </form>
+
+            </div>
+            
+        </div>
+
+    </div>
+</div>
+
+<script>
+    if (window.history.replaceState) {
+        window.history.replaceState(null, null, window.location.href);
+    }
+    document.addEventListener("DOMContentLoaded", function() {
+        // Tab switching logic
+        const tabBtnFile = document.getElementById("tabBtnFile");
+        const tabBtnText = document.getElementById("tabBtnText");
+        const importFileForm = document.getElementById("importFileForm");
+        const importTextForm = document.getElementById("importTextForm");
+
+        tabBtnFile.addEventListener("click", () => {
+            tabBtnFile.classList.add("text-primary", "border-primary");
+            tabBtnFile.classList.remove("text-slate-400", "dark:text-slate-500", "border-transparent");
+            tabBtnText.classList.remove("text-primary", "border-primary");
+            tabBtnText.classList.add("text-slate-400", "dark:text-slate-500", "border-transparent");
+
+            importFileForm.classList.remove("hidden");
+            importTextForm.classList.add("hidden");
+        });
+
+        tabBtnText.addEventListener("click", () => {
+            tabBtnText.classList.add("text-primary", "border-primary");
+            tabBtnText.classList.remove("text-slate-400", "dark:text-slate-500", "border-transparent");
+            tabBtnFile.classList.remove("text-primary", "border-primary");
+            tabBtnFile.classList.add("text-slate-400", "dark:text-slate-500", "border-transparent");
+
+            importTextForm.classList.remove("hidden");
+            importFileForm.classList.add("hidden");
+        });
+
+        // File Form elements
+        const dropZone = document.getElementById("dropZone");
+        const fileInput = document.getElementById("fileInput");
+        const fileBanner = document.getElementById("fileBanner");
+        const fileNameDisplay = document.getElementById("fileNameDisplay");
+        const fileSizeDisplay = document.getElementById("fileSizeDisplay");
+        const removeFileBtn = document.getElementById("removeFileBtn");
+        const submitFileBtn = document.getElementById("submitFileBtn");
+        const dropIcon = document.querySelector(".drop-icon");
+
+        // Click to trigger file dialog
+        dropZone.addEventListener("click", () => {
+            fileInput.click();
+        });
+
+        // File selection handler
+        fileInput.addEventListener("change", handleFileSelect);
+
+        // Drag and drop events
+        ['dragenter', 'dragover'].forEach(eventName => {
+            dropZone.addEventListener(eventName, (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                dropZone.classList.add("border-primary", "bg-primary/5");
+                dropIcon.classList.add("text-primary");
+            }, false);
+        });
+
+        ['dragleave', 'drop'].forEach(eventName => {
+            dropZone.addEventListener(eventName, (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                dropZone.classList.remove("border-primary", "bg-primary/5");
+                dropIcon.classList.remove("text-primary");
+            }, false);
+        });
+
+        dropZone.addEventListener("drop", (e) => {
+            const dt = e.dataTransfer;
+            const files = dt.files;
+            if (files.length) {
+                fileInput.files = files;
+                handleFileSelect();
+            }
+        });
+
+        function handleFileSelect() {
+            const file = fileInput.files[0];
+            if (file) {
+                if (!file.name.toLowerCase().endsWith('.csv')) {
+                    alert("Please select a valid CSV (.csv) file.");
+                    fileInput.value = "";
+                    resetFileState();
+                    return;
+                }
+
+                // Front-end File Size check (2MB limit)
+                const maxSizeBytes = 2 * 1024 * 1024;
+                if (file.size > maxSizeBytes) {
+                    alert("File size exceeds the maximum limit of 2MB.");
+                    fileInput.value = "";
+                    resetFileState();
+                    return;
+                }
+                
+                // Update file display info
+                fileNameDisplay.textContent = file.name;
+                const sizeKb = (file.size / 1024).toFixed(1);
+                fileSizeDisplay.textContent = `(${sizeKb} KB)`;
+                
+                // Show banner, hide dropzone, enable button
+                fileBanner.classList.remove("hidden");
+                dropZone.classList.add("opacity-50", "pointer-events-none");
+                submitFileBtn.removeAttribute("disabled");
+                submitFileBtn.classList.remove("opacity-50", "cursor-not-allowed");
+                submitFileBtn.classList.add("hover:opacity-90", "active:scale-[0.98]");
+            } else {
+                resetFileState();
+            }
+        }
+
+        removeFileBtn.addEventListener("click", (e) => {
+            e.stopPropagation();
+            fileInput.value = "";
+            resetFileState();
+        });
+
+        function resetFileState() {
+            fileBanner.classList.add("hidden");
+            dropZone.classList.remove("opacity-50", "pointer-events-none");
+            submitFileBtn.setAttribute("disabled", "true");
+            submitFileBtn.classList.add("opacity-50", "cursor-not-allowed");
+            submitFileBtn.classList.remove("hover:opacity-90", "active:scale-[0.98]");
+        }
+
+        // Textarea validation and stats update
+        const pasteTextArea = document.getElementById("pasteTextArea");
+        const pasteStats = document.getElementById("pasteStats");
+        const submitTextBtn = document.getElementById("submitTextBtn");
+
+        pasteTextArea.addEventListener("input", () => {
+            const text = pasteTextArea.value;
+            const charCount = text.length;
+            const byteSize = new Blob([text]).size;
+            
+            // Calculate line count (non-empty lines)
+            const lines = text.split('\n').map(l => l.trim()).filter(l => l.length > 0);
+            const lineCount = lines.length;
+
+            pasteStats.textContent = `${charCount} chars (${(byteSize / 1024).toFixed(1)} KB) / ${lineCount} lines`;
+
+            // Enforce constraints (2MB file size, 1 header + 1000 rows limit)
+            const maxBytes = 2 * 1024 * 1024; // 2MB
+            if (charCount > 0 && byteSize <= maxBytes && lineCount <= 1001) {
+                submitTextBtn.removeAttribute("disabled");
+                submitTextBtn.classList.remove("opacity-50", "cursor-not-allowed");
+                submitTextBtn.classList.add("hover:opacity-90", "active:scale-[0.98]");
+                
+                pasteStats.classList.remove("text-rose-500");
+                pasteStats.classList.add("text-slate-400", "dark:text-slate-500");
+            } else {
+                submitTextBtn.setAttribute("disabled", "true");
+                submitTextBtn.classList.add("opacity-50", "cursor-not-allowed");
+                submitTextBtn.classList.remove("hover:opacity-90", "active:scale-[0.98]");
+
+                if (byteSize > maxBytes || lineCount > 1001) {
+                    pasteStats.classList.add("text-rose-500");
+                    pasteStats.classList.remove("text-slate-400", "dark:text-slate-500");
+                    if (lineCount > 1001) {
+                        pasteStats.textContent = `Exceeds row limit! ${lineCount - 1} data rows / Max 1000`;
+                    } else {
+                        pasteStats.textContent = `Exceeds size limit! ${(byteSize / 1024).toFixed(1)} KB / Max 2MB`;
+                    }
+                }
+            }
+        });
+
+        // Loading animation on submit for File Form
+        importFileForm.addEventListener("submit", () => {
+            submitFileBtn.innerHTML = `
+                <svg class="animate-spin -ml-1 mr-2 h-4 w-4 text-white inline-block" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                <span>Importing records, please wait...</span>
+            `;
+            setTimeout(() => {
+                submitFileBtn.setAttribute("disabled", "true");
+                submitFileBtn.classList.add("opacity-50", "cursor-not-allowed");
+            }, 50);
+        });
+
+        // Loading animation on submit for Text Form
+        importTextForm.addEventListener("submit", () => {
+            submitTextBtn.innerHTML = `
+                <svg class="animate-spin -ml-1 mr-2 h-4 w-4 text-white inline-block" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                <span>Importing records, please wait...</span>
+            `;
+            setTimeout(() => {
+                submitTextBtn.setAttribute("disabled", "true");
+                submitTextBtn.classList.add("opacity-50", "cursor-not-allowed");
+            }, 50);
+        });
+    });
+</script>

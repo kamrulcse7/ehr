@@ -22,7 +22,7 @@
                 </div>
                 <div>
                     <div class="text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500">Total
-                        Employees</div>
+                        </div>
                     <div class="text-lg font-bold text-slate-900 dark:text-white mt-0.5">[[= stats.get('total', 0) ]]
                     </div>
                 </div>
@@ -95,7 +95,7 @@
                     </div>
 
                     <!-- Department Filter -->
-                    <div class="relative flex items-center w-36">
+                    <!-- <div class="relative flex items-center w-36">
                         <select name="department"
                             class="w-full h-[28px] pl-2.5 pr-6 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-md text-[11px] font-medium text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary transition-all cursor-pointer">
                             <option value="">All Departments</option>
@@ -107,7 +107,7 @@
                             <option value="Admin" [[='selected' if request.query.get('department')=='Admin' else '' ]]>
                                 Administration</option>
                         </select>
-                    </div>
+                    </div> -->
 
                     <!-- Status Filter -->
                     <div class="relative flex items-center w-32">
@@ -174,7 +174,7 @@
                         </div>
                     </div>
 
-                    <a href="[[=URL('employees/import')]]" title="Import employees via Excel/CSV"
+                    <a href="[[=URL('employees/import_directory')]]" title="Import personnel via Excel/CSV"
                         class="h-[28px] px-2.5 bg-white hover:bg-slate-100 dark:bg-slate-900 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700 rounded-md text-[11px] font-semibold transition-all inline-flex items-center justify-center gap-1 shadow-2xs">
                         <span class="material-symbols-outlined text-[15px] text-sky-600 dark:text-sky-400">upload</span>
                         <span class="hidden sm:inline">Import</span>
@@ -195,7 +195,7 @@
                     <thead>
                         <tr
                             class="bg-slate-100/70 dark:bg-slate-800/60 text-[10px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 border-b border-slate-200/80 dark:border-slate-800">
-                            <th class="py-2.5 px-4 whitespace-nowrap">Employee Info</th>
+                            <th class="py-2.5 px-4 whitespace-nowrap">Info</th>
                             <th class="py-2.5 px-4 whitespace-nowrap">Designation & Dept</th>
                             <th class="py-2.5 px-4 whitespace-nowrap">Posting Place</th>
                             <th class="py-2.5 px-4 whitespace-nowrap">Contact & District</th>
@@ -208,7 +208,7 @@
                     <tbody class="divide-y divide-slate-100 dark:divide-slate-800/60 text-xs">
                         [[ if not employees: ]]
                         <tr>
-                            <td colspan="6" class="text-center py-6 text-slate-400">No employees found matching your
+                            <td colspan="6" class="text-center py-6 text-slate-400">No records found matching your
                                 criteria.</td>
                         </tr>
                         [[ else: ]]
@@ -284,14 +284,14 @@
                                     </a>
 
                                     <!-- Edit Button -->
-                                    <a href="[[=URL('employees/edit', emp.get('id'))]]" title="Edit Employee"
+                                    <a href="[[=URL('employees/edit', emp.get('id'))]]" title="Edit Record"
                                         class="p-1 rounded text-slate-400 hover:text-amber-600 hover:bg-amber-50 dark:hover:bg-amber-950/40 transition-colors">
                                         <span class="material-symbols-outlined text-[16px] block">edit</span>
                                     </a>
 
                                     <!-- Delete Button -->
                                     <a href="[[=URL('employees/delete', emp.get('id'))]]" 
-                                    title="Delete Employee"
+                                    title="Delete Record"
                                     onclick=""
                                     class="p-1 rounded text-slate-400 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/40 transition-colors">
                                         <span class="material-symbols-outlined text-[16px] block">delete</span>
@@ -331,7 +331,7 @@
                     <div>
                         Showing <span class="font-bold text-slate-700 dark:text-slate-200">[[= pagination['start_item']]]</span>
                         - <span class="font-bold text-slate-700 dark:text-slate-200">[[= pagination['end_item']]]</span>
-                        of <span class="font-bold text-slate-700 dark:text-slate-200">[[= pagination['total_items']]]</span> employees
+                        of <span class="font-bold text-slate-700 dark:text-slate-200">[[= pagination['total_items']]]</span> records
                     </div>
                 </div>
 

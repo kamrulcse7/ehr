@@ -2,12 +2,60 @@ from py4web import URL, action, redirect, request, response
 from ..middleware.auth_middleware import web_auth_required
 from ..utils.common import flash, session, view_page
 from ..core.db import db, db_datetime
+from datetime import datetime
 import xml.sax.saxutils as xml_escape
 import math
 import io
 import csv
 import os
 import time
+
+HEADER_MAP = {
+    'emp_id': ['official id', 'official_id', 'officialid', 'employee id', 'id', 'empid', 'emp_id', 'employee_id'],
+    'emp_name': ['full name', 'name', 'emp_name', 'employee_name', 'employee name'],
+    'card_number': ['card number', 'card_number', 'card no', 'cardno', 'rfid'],
+    'emp_type': ['employment type', 'emp_type', 'type', 'employment_type'],
+    'emp_department': ['department', 'emp_department', 'dept', 'department name'],
+    'emp_designation': ['designation', 'emp_designation', 'designation name'],
+    'emp_grade': ['grade', 'emp_grade', 'scale'],
+    'current_posting_place': ['posting place', 'posting_place', 'current_posting_place', 'posting location', 'posting station'],
+    'current_posting_join_date': ['posting join date', 'posting_join_date', 'current_posting_join_date'],
+    'current_grade_join_date': ['grade join date', 'grade_join_date', 'current_grade_join_date'],
+    'mobile': ['mobile', 'phone', 'contact', 'mobile number', 'mobile_number'],
+    'email': ['email', 'email address', 'email_address'],
+    'gender': ['gender', 'sex'],
+    'dob': ['dob', 'date of birth', 'birth date', 'date_of_birth'],
+    'blood_group': ['blood group', 'blood_group', 'blood'],
+    'join_date': ['join date', 'join_date', 'joining date', 'joining_date'],
+    'confirmation_date': ['confirmation date', 'confirmation_date'],
+    'retirement_date': ['retirement_date', 'retirement date'],
+    'edu_qualification': ['education', 'educational qualification', 'qualification', 'edu_qualification'],
+    'home_district': ['home district', 'home_district', 'district'],
+    'present_address': ['present address', 'present_address'],
+    'permanent_address': ['permanent address', 'permanent_address'],
+    'nid_number': ['nid number', 'nid_number', 'nid'],
+    'note': ['note', 'remarks', 'remark'],
+    'status_type': ['status', 'status_type', 'status type']
+}
+
+ALIAS_MAP = {}
+for field, aliases in HEADER_MAP.items():
+    for alias in aliases:
+        ALIAS_MAP[alias] = field
+
+def parse_date(date_str):
+    if not date_str:
+        return None
+    date_str = str(date_str).strip()
+    if date_str.lower() in ('none', 'null', '', 'nat', 'nan'):
+        return None
+    for fmt in ('%Y-%m-%d', '%d-%m-%Y', '%d/%m/%Y', '%Y/%m/%d', '%m/%d/%Y', '%d.%m.%Y'):
+        try:
+            return datetime.strptime(date_str, fmt).strftime('%Y-%m-%d')
+        except ValueError:
+            continue
+    return None
+
 
 @action("employees/personnel_directory")
 @view_page("employees/personnel_directory.html", title="Personnel Directory | EMS")
@@ -248,3 +296,266 @@ def add_directory():
             print(f"Error during employee insert: {e}")
 
     return dict()
+
+
+@action("employees/import_directory", method=["GET", "POST"])
+@view_page("employees/import_directory.html", title="Import Directory | EMS")
+@web_auth_required
+def import_directory():
+    # Check if downloading template
+    if request.query.get("template") == "csv":
+        headers = [
+            "Official ID", "Full Name", "Card Number", "Employment Type", "Department",
+            "Designation", "Grade", "Posting Place", "Posting Join Date", "Grade Join Date",
+            "Mobile", "Email", "Gender", "DOB", "Blood Group", "Join Date",
+            "Confirmation Date", "Retirement Date", "Education", "Home District",
+            "Present Address", "Permanent Address", "NID Number", "Note", "Status"
+        ]
+        example = [
+            "OFF1001", "Abul Kalam", "100200300", "PERMANENT", "Administration",
+            "Senior Officer", "Grade-9", "Head Office", "2024-01-01", "2024-01-01",
+            "01711000000", "abul.kalam@example.com", "MALE", "1990-05-15", "O+", "2020-02-15",
+            "2021-02-15", "2050-05-15", "MBA", "Dhaka", "Dhaka, Bangladesh", "Dhaka, Bangladesh",
+            "1234567890123", "Demo note", "ACTIVE"
+        ]
+        
+        output = io.StringIO()
+        writer = csv.writer(output)
+        writer.writerow(headers)
+        writer.writerow(example)
+        
+        response.headers['Content-Type'] = 'text/csv; charset=utf-8'
+        response.headers['Content-Disposition'] = 'attachment; filename="Personnel_Import_Template.csv"'
+        return output.getvalue()
+
+    stats = None
+    if request.method == "POST":
+        csv_file = request.files.get("csv_file")
+        csv_text = request.forms.get("csv_text")
+        
+        content = None
+        delimiter = ','
+        
+        if csv_file and csv_file.filename:
+            if not csv_file.filename.lower().endswith('.csv'):
+                flash.set("Only CSV files are allowed.", "danger")
+                return dict(stats=None)
+                
+            try:
+                # Check file size (2MB limit)
+                csv_file.file.seek(0, 2)
+                file_size = csv_file.file.tell()
+                csv_file.file.seek(0)
+                if file_size > 2 * 1024 * 1024:
+                    flash.set("File size exceeds the maximum limit of 2MB.", "danger")
+                    return dict(stats=None)
+                
+                content = csv_file.file.read().decode('utf-8-sig')
+            except Exception as e:
+                flash.set(f"Failed to read CSV file: {str(e)}", "danger")
+                return dict(stats=None)
+                
+        elif csv_text and csv_text.strip():
+            # Check pasted text length (2MB limit)
+            if len(csv_text.encode('utf-8')) > 2 * 1024 * 1024:
+                flash.set("Pasted content size exceeds the maximum limit of 2MB.", "danger")
+                return dict(stats=None)
+                
+            content = csv_text.strip()
+            # Detect delimiter: if '\t' is found in the first line, use it
+            first_line = content.splitlines()[0] if content else ""
+            if '\t' in first_line:
+                delimiter = '\t'
+            elif ';' in first_line and ',' not in first_line:
+                delimiter = ';'
+                
+        else:
+            flash.set("Please select a valid CSV file or paste valid data.", "danger")
+            return dict(stats=None)
+
+        try:
+            f = io.StringIO(content)
+            reader = csv.DictReader(f, delimiter=delimiter)
+            
+            headers = reader.fieldnames or []
+            mapped_headers = {}
+            for h in headers:
+                h_clean = h.strip().lower()
+                field = ALIAS_MAP.get(h_clean)
+                if field:
+                    mapped_headers[field] = h
+            
+            if 'emp_id' not in mapped_headers or 'emp_name' not in mapped_headers:
+                flash.set("Invalid format. Missing required columns: 'Official ID' and 'Full Name'.", "danger")
+                return dict(stats=None)
+
+            # Check row count limit (1000 rows max)
+            rows = list(reader)
+            if len(rows) > 1000:
+                flash.set("The data contains too many rows. Maximum allowed is 1,000 rows.", "danger")
+                return dict(stats=None)
+
+            stats = {
+                "total": 0,
+                "created": 0,
+                "updated": 0,
+                "failed": 0,
+                "errors": []
+            }
+
+            row_num = 1
+            
+            for row in rows:
+                row_num += 1
+                stats["total"] += 1
+                
+                def get_val(field):
+                    csv_col = mapped_headers.get(field)
+                    if csv_col and csv_col in row:
+                        val = row[csv_col]
+                        return val.strip() if val else None
+                    return None
+
+                emp_id = get_val('emp_id')
+                emp_name = get_val('emp_name')
+                
+                if not emp_id or not emp_name:
+                    stats["failed"] += 1
+                    stats["errors"].append({
+                        "row": row_num,
+                        "emp_id": emp_id or "N/A",
+                        "error": "Official ID and Full Name are required."
+                    })
+                    continue
+
+                mobile = get_val('mobile') or ""
+                email = get_val('email') or ""
+                
+                join_date_str = get_val('join_date')
+                join_date = parse_date(join_date_str)
+                if not join_date:
+                    if join_date_str:
+                        stats["failed"] += 1
+                        stats["errors"].append({
+                            "row": row_num,
+                            "emp_id": emp_id,
+                            "error": f"Invalid Join Date format: '{join_date_str}'"
+                        })
+                        continue
+                    else:
+                        join_date = db_datetime.strftime('%Y-%m-%d')
+
+                dob = parse_date(get_val('dob'))
+                current_posting_join_date = parse_date(get_val('current_posting_join_date'))
+                current_grade_join_date = parse_date(get_val('current_grade_join_date'))
+                confirmation_date = parse_date(get_val('confirmation_date'))
+                retirement_date = parse_date(get_val('retirement_date'))
+
+                card_number = get_val('card_number')
+                emp_type = get_val('emp_type') or "PERMANENT"
+                emp_department = get_val('emp_department')
+                emp_designation = get_val('emp_designation')
+                emp_grade = get_val('emp_grade')
+                current_posting_place = get_val('current_posting_place')
+                gender = get_val('gender')
+                if gender:
+                    gender = gender.upper()
+                blood_group = get_val('blood_group')
+                edu_qualification = get_val('edu_qualification')
+                home_district = get_val('home_district')
+                present_address = get_val('present_address')
+                permanent_address = get_val('permanent_address')
+                nid_number = get_val('nid_number')
+                note = get_val('note')
+                status_type = get_val('status_type') or "ACTIVE"
+                if status_type:
+                    status_type = status_type.upper()
+                
+                try:
+                    existing = db.executesql("SELECT id FROM employees WHERE emp_id = %s LIMIT 1", [emp_id])
+                    
+                    if existing:
+                        update_sql = """
+                        UPDATE employees SET
+                            emp_name = %s,
+                            card_number = %s,
+                            emp_type = %s,
+                            emp_department = %s,
+                            emp_designation = %s,
+                            emp_grade = %s,
+                            current_posting_place = %s,
+                            current_posting_join_date = %s,
+                            current_grade_join_date = %s,
+                            mobile = %s,
+                            email = %s,
+                            gender = %s,
+                            dob = %s,
+                            blood_group = %s,
+                            join_date = %s,
+                            confirmation_date = %s,
+                            retirement_date = %s,
+                            edu_qualification = %s,
+                            home_district = %s,
+                            present_address = %s,
+                            permanent_address = %s,
+                            nid_number = %s,
+                            note = %s,
+                            status_type = %s,
+                            updated_on = %s,
+                            updated_by = %s
+                        WHERE emp_id = %s
+                        """
+                        values = (
+                            emp_name, card_number, emp_type, emp_department, emp_designation, emp_grade,
+                            current_posting_place, current_posting_join_date, current_grade_join_date,
+                            mobile, email, gender, dob, blood_group, join_date, confirmation_date, retirement_date,
+                            edu_qualification, home_district, present_address, permanent_address, nid_number,
+                            note, status_type, db_datetime, session.user.get('user_id', ''), emp_id
+                        )
+                        db.executesql(update_sql, values)
+                        stats["updated"] += 1
+                    else:
+                        insert_sql = """
+                        INSERT INTO employees (
+                            emp_id, emp_name, card_number, emp_type, emp_department, 
+                            emp_designation, emp_grade, current_posting_place, current_posting_join_date, 
+                            current_grade_join_date, mobile, email, gender, dob, 
+                            blood_group, join_date, confirmation_date, retirement_date, 
+                            edu_qualification, home_district, present_address, permanent_address, 
+                            nid_number, note, status_type, created_on, created_by
+                        ) VALUES (
+                            %s, %s, %s, %s, %s, 
+                            %s, %s, %s, %s, 
+                            %s, %s, %s, %s, %s, 
+                            %s, %s, %s, %s, 
+                            %s, %s, %s, %s, 
+                            %s, %s, %s, %s, %s
+                        )
+                        """
+                        values = (
+                            emp_id, emp_name, card_number, emp_type, emp_department, emp_designation, emp_grade,
+                            current_posting_place, current_posting_join_date, current_grade_join_date,
+                            mobile, email, gender, dob, blood_group, join_date, confirmation_date, retirement_date,
+                            edu_qualification, home_district, present_address, permanent_address, nid_number,
+                            note, status_type, db_datetime, session.user.get('user_id', '')
+                        )
+                        db.executesql(insert_sql, values)
+                        stats["created"] += 1
+                        
+                except Exception as ex:
+                    stats["failed"] += 1
+                    stats["errors"].append({
+                        "row": row_num,
+                        "emp_id": emp_id,
+                        "error": str(ex)
+                    })
+
+            if stats["failed"] > 0:
+                flash.set(f"Import completed with some errors. Succeeded: {stats['created'] + stats['updated']} (Created: {stats['created']}, Updated: {stats['updated']}), Failed: {stats['failed']}", "warning")
+            else:
+                flash.set(f"Successfully imported {stats['created'] + stats['updated']} records! (Created: {stats['created']}, Updated: {stats['updated']})", "success")
+
+        except Exception as e:
+            flash.set(f"Failed to process CSV file: {str(e)}", "danger")
+
+    return dict(stats=stats)
