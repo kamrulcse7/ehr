@@ -200,9 +200,9 @@
 
                 <!-- Tab Content 1: File Upload Form -->
                 <form action="[[=URL('employees/import_directory')]]" method="POST" enctype="multipart/form-data" id="importFileForm"
-                      class="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-2xs overflow-hidden flex flex-col justify-between flex-1">
+                      class="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-2xs overflow-hidden flex flex-col justify-between">
                     
-                    <div class="p-4 space-y-4 flex-1 flex flex-col">
+                    <div class="p-4 space-y-4 flex flex-col">
                         <div>
                             <h3 class="text-sm font-bold text-slate-950 dark:text-white flex items-center gap-1.5">
                                 <span class="material-symbols-outlined text-primary text-[20px]">upload_file</span>
@@ -211,10 +211,10 @@
                             <p class="text-xs text-slate-500 mt-1">Select your completed employee record CSV sheet to begin the batch upload.</p>
                         </div>
 
-                        <div class="border-t border-slate-100 dark:border-slate-800 pt-3.5 space-y-4 flex-1 flex flex-col">
+                        <div class="border-t border-slate-100 dark:border-slate-800 pt-3.5 space-y-4 flex flex-col">
                             <!-- Drag and Drop Area -->
                             <div id="dropZone" 
-                                 class="border-2 border-dashed border-slate-200 dark:border-slate-800 hover:border-primary dark:hover:border-primary rounded-xl p-8 flex flex-col items-center justify-center gap-2 cursor-pointer transition-all bg-slate-50/50 dark:bg-slate-950/20 flex-1">
+                                 class="border-2 border-dashed border-slate-200 dark:border-slate-800 hover:border-primary dark:hover:border-primary rounded-xl h-56 flex flex-col items-center justify-center gap-2 cursor-pointer transition-all bg-slate-50/50 dark:bg-slate-950/20">
                                 <span class="material-symbols-outlined text-[36px] text-slate-400 dark:text-slate-600 drop-icon">cloud_upload</span>
                                 <div class="text-center">
                                     <span class="text-xs font-semibold text-slate-700 dark:text-slate-300">Click to upload or drag & drop</span>
@@ -318,6 +318,14 @@
             importTextForm.classList.remove("hidden");
             importFileForm.classList.add("hidden");
         });
+
+        // Initialize active tab from controller context
+        const activeTab = "[[= active_tab ]]";
+        if (activeTab === "text") {
+            tabBtnText.click();
+        } else {
+            tabBtnFile.click();
+        }
 
         // File Form elements
         const dropZone = document.getElementById("dropZone");

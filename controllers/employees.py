@@ -329,6 +329,7 @@ def import_directory():
         return output.getvalue()
 
     stats = None
+    active_tab = "file"
     if request.method == "POST":
         csv_file = request.files.get("csv_file")
         csv_text = request.forms.get("csv_text")
@@ -337,9 +338,10 @@ def import_directory():
         delimiter = ','
         
         if csv_file and csv_file.filename:
+            active_tab = "file"
             if not csv_file.filename.lower().endswith('.csv'):
                 flash.set("Only CSV files are allowed.", "danger")
-                return dict(stats=None)
+                return dict(stats=None, active_tab=active_tab)
                 
             try:
                 # Check file size (2MB limit)
@@ -348,18 +350,19 @@ def import_directory():
                 csv_file.file.seek(0)
                 if file_size > 2 * 1024 * 1024:
                     flash.set("File size exceeds the maximum limit of 2MB.", "danger")
-                    return dict(stats=None)
+                    return dict(stats=None, active_tab=active_tab)
                 
                 content = csv_file.file.read().decode('utf-8-sig')
             except Exception as e:
                 flash.set(f"Failed to read CSV file: {str(e)}", "danger")
-                return dict(stats=None)
+                return dict(stats=None, active_tab=active_tab)
                 
         elif csv_text and csv_text.strip():
+            active_tab = "text"
             # Check pasted text length (2MB limit)
             if len(csv_text.encode('utf-8')) > 2 * 1024 * 1024:
                 flash.set("Pasted content size exceeds the maximum limit of 2MB.", "danger")
-                return dict(stats=None)
+                return dict(stats=None, active_tab=active_tab)
                 
             content = csv_text.strip()
             # Detect delimiter: if '\t' is found in the first line, use it
@@ -371,7 +374,7 @@ def import_directory():
                 
         else:
             flash.set("Please select a valid CSV file or paste valid data.", "danger")
-            return dict(stats=None)
+            return dict(stats=None, active_tab=active_tab)
 
         try:
             f = io.StringIO(content)
@@ -387,13 +390,13 @@ def import_directory():
             
             if 'emp_id' not in mapped_headers or 'emp_name' not in mapped_headers:
                 flash.set("Invalid format. Missing required columns: 'Official ID' and 'Full Name'.", "danger")
-                return dict(stats=None)
+                return dict(stats=None, active_tab=active_tab)
 
             # Check row count limit (1000 rows max)
             rows = list(reader)
             if len(rows) > 1000:
                 flash.set("The data contains too many rows. Maximum allowed is 1,000 rows.", "danger")
-                return dict(stats=None)
+                return dict(stats=None, active_tab=active_tab)
 
             stats = {
                 "total": 0,
@@ -558,4 +561,4 @@ def import_directory():
         except Exception as e:
             flash.set(f"Failed to process CSV file: {str(e)}", "danger")
 
-    return dict(stats=stats)
+    return dict(stats=stats, active_tab=active_tab)
