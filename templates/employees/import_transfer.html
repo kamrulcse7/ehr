@@ -1,16 +1,16 @@
 [[extend 'layout.html']]
 
-<div class="w-full text-slate-700 dark:text-slate-200 py-2">
-    <div class="max-w-[1600px] mx-auto space-y-4">
+<div class="w-full space-y-4 text-slate-700 dark:text-slate-200">
+    <div class="max-w-[1800px] mx-auto space-y-4">
 
-        <!-- BREADCRUMB & HEADER -->
-        <div class="pb-2.5 border-b border-slate-200/80 dark:border-slate-800/80 flex items-center justify-between">
-            <div class="flex items-center gap-1.5 text-xs font-medium">
-                <span class="text-slate-400 dark:text-slate-500">Officers & Staff</span>
-                <span class="material-symbols-outlined text-[14px] text-slate-400 select-none">chevron_right</span>
-                <a href="[[=URL('employees/postings_transfers')]]" class="text-slate-400 dark:text-slate-500 hover:text-primary">Postings & Transfers</a>
-                <span class="material-symbols-outlined text-[14px] text-slate-400 select-none">chevron_right</span>
-                <span class="text-primary font-semibold">Import</span>
+        <!-- HEADER SECTION (Breadcrumb) -->
+        <div class="pb-2 border-b border-slate-200/80 dark:border-slate-800/80 flex items-center justify-between h-7">
+            <div class="flex items-center gap-0.5 text-xs font-medium">
+                <a href="[[=URL('employees/postings_transfers')]]" class="text-slate-400 dark:text-slate-500 hover:text-primary transition-colors">Officers & Staff</a>
+                <span class="material-symbols-outlined text-[12px] text-slate-400 dark:text-slate-600 select-none -mx-0.5">chevron_right</span>
+                <a href="[[=URL('employees/postings_transfers')]]" class="text-slate-400 dark:text-slate-500 hover:text-primary transition-colors">Postings & Transfers</a>
+                <span class="material-symbols-outlined text-[12px] text-slate-400 dark:text-slate-600 select-none -mx-0.5">chevron_right</span>
+                <span class="text-primary font-bold">Import</span>
             </div>
             <a href="[[=URL('employees/postings_transfers')]]"
                 class="h-7 px-2.5 bg-slate-200 hover:bg-slate-300 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 rounded-md text-xs font-semibold transition-all inline-flex items-center gap-1 shrink-0">
