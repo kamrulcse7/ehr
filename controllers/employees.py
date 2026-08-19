@@ -562,3 +562,378 @@ def import_directory():
             flash.set(f"Failed to process CSV file: {str(e)}", "danger")
 
     return dict(stats=stats, active_tab=active_tab)
+
+
+@action("employees/postings_transfers")
+@view_page("employees/postings_transfers.html", title="Postings & Transfers | EMS")
+@web_auth_required
+def postings_transfers():
+    keywords = request.query.get("keywords", "").strip()
+    status_type = request.query.get("status_type", "").strip()
+    transfer_type = request.query.get("transfer_type", "").strip()
+    export_format = request.query.get("export", "").strip().lower()
+
+    where_clauses = ["1=1"]
+    params = []
+
+    if keywords:
+        where_clauses.append("(t.emp_id LIKE %s OR e.emp_name LIKE %s OR t.transfer_order_no LIKE %s OR t.to_posting_place LIKE %s)")
+        search_term = f"%{keywords}%"
+        params.extend([search_term, search_term, search_term, search_term])
+
+    if status_type:
+        where_clauses.append("t.joining_status = %s")
+        params.append(status_type)
+
+    if transfer_type:
+        where_clauses.append("t.transfer_type = %s")
+        params.append(transfer_type)
+
+    where_str = " AND ".join(where_clauses)
+
+    # Export Excel / CSV Handling
+    if export_format in ["xlsx", "xls", "csv"]:
+        export_sql = f"""
+            SELECT t.id, t.emp_id, e.emp_name, t.transfer_order_no, t.transfer_type,
+                   t.from_posting_place, t.to_posting_place, t.from_department, t.to_department,
+                   t.from_designation, t.to_designation, t.order_date, t.expected_joining_date,
+                   t.joining_status, t.approved_by, t.transfer_reason
+            FROM employee_transfers t
+            LEFT JOIN employees e ON t.emp_id = e.emp_id
+            WHERE {where_str} 
+            ORDER BY t.id DESC
+        """
+        export_records = db.executesql(export_sql, params, as_dict=True)
+        filename = f"Transfer_Orders_List_{db_datetime.strftime('%Y%m%d_%H%M%S')}"
+
+        if export_format == "csv":
+            output = io.StringIO()
+            writer = csv.writer(output)
+            writer.writerow([
+                "ID", "Official ID", "Employee Name", "Order No", "Transfer Type",
+                "From Posting", "To Posting", "From Department", "To Department",
+                "From Designation", "To Designation", "Order Date", "Expected Joining Date",
+                "Status", "Approved By", "Remarks"
+            ])
+            for rec in export_records:
+                writer.writerow([
+                    rec.get('id'), rec.get('emp_id'), rec.get('emp_name'), rec.get('transfer_order_no'), rec.get('transfer_type'),
+                    rec.get('from_posting_place'), rec.get('to_posting_place'), rec.get('from_department'), rec.get('to_department'),
+                    rec.get('from_designation'), rec.get('to_designation'), rec.get('order_date'), rec.get('expected_joining_date'),
+                    rec.get('joining_status'), rec.get('approved_by'), rec.get('transfer_reason')
+                ])
+            response.headers['Content-Type'] = 'text/csv; charset=utf-8'
+            response.headers['Content-Disposition'] = f'attachment; filename="{filename}.csv"'
+            return output.getvalue()
+
+        elif export_format in ["xlsx", "xls"]:
+            headers_list = [
+                "ID", "Official ID", "Employee Name", "Order No", "Transfer Type",
+                "From Posting", "To Posting", "From Department", "To Department",
+                "Order Date", "Expected Joining Date", "Status", "Remarks"
+            ]
+            xml_data = [
+                '<?xml version="1.0" encoding="UTF-8"?>',
+                '<?mso-application progid="Excel.Sheet"?>',
+                '<Workbook xmlns="urn:schemas-microsoft-com:office:spreadsheet"',
+                ' xmlns:o="urn:schemas-microsoft-com:office:office"',
+                ' xmlns:x="urn:schemas-microsoft-com:office:excel"',
+                ' xmlns:ss="urn:schemas-microsoft-com:office:spreadsheet">',
+                '<Styles>',
+                '<Style ss:ID="HeaderStyle"><Font ss:Bold="1" ss:Color="#FFFFFF"/><Interior ss:Color="#1E293B" ss:Pattern="Solid"/><Alignment ss:Horizontal="Center"/></Style>',
+                '<Style ss:ID="DataCenter"><Alignment ss:Horizontal="Center"/></Style>',
+                '<Style ss:ID="DataLeft"><Alignment ss:Horizontal="Left"/></Style>',
+                '</Styles>',
+                '<Worksheet ss:Name="Transfer Orders">',
+                '<Table>',
+                '<Row>'
+            ]
+            for h in headers_list:
+                xml_data.append(f'<Cell ss:StyleID="HeaderStyle"><Data ss:Type="String">{xml_escape.escape(h)}</Data></Cell>')
+            xml_data.append('</Row>')
+
+            for rec in export_records:
+                xml_data.append('<Row>')
+                row_fields = [
+                    (rec.get('id') or '', 'DataCenter'), (rec.get('emp_id') or '', 'DataCenter'),
+                    (rec.get('emp_name') or '', 'DataLeft'), (rec.get('transfer_order_no') or '', 'DataCenter'),
+                    (rec.get('transfer_type') or '', 'DataCenter'), (rec.get('from_posting_place') or '', 'DataLeft'),
+                    (rec.get('to_posting_place') or '', 'DataLeft'), (rec.get('from_department') or '', 'DataLeft'),
+                    (rec.get('to_department') or '', 'DataLeft'), (rec.get('order_date') or '', 'DataCenter'),
+                    (rec.get('expected_joining_date') or '', 'DataCenter'), (rec.get('joining_status') or '', 'DataCenter'),
+                    (rec.get('transfer_reason') or '', 'DataLeft')
+                ]
+                for val, style in row_fields:
+                    xml_data.append(f'<Cell ss:StyleID="{style}"><Data ss:Type="String">{xml_escape.escape(str(val))}</Data></Cell>')
+                xml_data.append('</Row>')
+
+            xml_data.append('</Table></Worksheet></Workbook>')
+            response.headers['Content-Type'] = 'application/vnd.ms-excel; charset=utf-8'
+            response.headers['Content-Disposition'] = f'attachment; filename="{filename}.xls"'
+            return "\n".join(xml_data)
+
+    allowed_limits = [10, 25, 50, 100]
+    try:
+        limit = int(request.query.get("limit", 10))
+        if limit not in allowed_limits: limit = 10
+    except ValueError: limit = 10
+
+    try: page = max(1, int(request.query.get("page", 1)))
+    except ValueError: page = 1
+
+    offset = (page - 1) * limit
+
+    count_sql = f"""
+        SELECT COUNT(t.id) as total 
+        FROM employee_transfers t
+        LEFT JOIN employees e ON t.emp_id = e.emp_id
+        WHERE {where_str}
+    """
+    total_items = db.executesql(count_sql, params, as_dict=True)[0]['total']
+
+    transfers_sql = f"""
+        SELECT t.*, e.emp_name, e.photo_url, e.emp_designation as current_emp_designation, e.emp_department as current_emp_dept
+        FROM employee_transfers t
+        LEFT JOIN employees e ON t.emp_id = e.emp_id
+        WHERE {where_str}
+        ORDER BY t.id DESC LIMIT %s OFFSET %s
+    """
+    transfers_list = db.executesql(transfers_sql, params + [limit, offset], as_dict=True)
+
+    stats_sql = """
+        SELECT COUNT(id) as total,
+            COUNT(CASE WHEN joining_status IN ('JOINED', 'COMPLETED') THEN 1 END) as joined,
+            COUNT(CASE WHEN joining_status IN ('PENDING', 'RELEASED') THEN 1 END) as pending,
+            COUNT(CASE WHEN transfer_type = 'PROMOTION' THEN 1 END) as promotions
+        FROM employee_transfers
+    """
+    stats_res = db.executesql(stats_sql, as_dict=True)[0]
+
+    total_pages = math.ceil(total_items / limit) if total_items > 0 else 1
+    start_item = offset + 1 if total_items > 0 else 0
+    end_item = min(offset + limit, total_items)
+
+    pagination = {
+        "current_page": page, "total_pages": total_pages,
+        "total_items": total_items, "start_item": start_item,
+        "end_item": end_item, "limit": limit
+    }
+
+    return dict(transfers=transfers_list, pagination=pagination, stats=stats_res)
+
+
+@action("employees/add_transfer", method=["GET", "POST"])
+@view_page("employees/add_transfer.html", title="Issue Transfer Order | EMS")
+@web_auth_required
+def add_transfer():
+    lookup_id = request.query.get("lookup_id", "").strip()
+    emp = None
+    if lookup_id:
+        emp_res = db.executesql(
+            "SELECT emp_id, emp_name, emp_designation, emp_department, current_posting_place, emp_grade FROM employees WHERE emp_id = %s AND status_type = 'Active' LIMIT 1",
+            [lookup_id],
+            as_dict=True
+        )
+        emp = emp_res[0] if emp_res else None
+
+    if request.method == "POST":
+        try:
+            def clean_val(val):
+                val = str(val).strip() if val else None
+                return val if val != "" else None
+
+            emp_id = clean_val(request.forms.get("emp_id"))
+            transfer_order_no = clean_val(request.forms.get("transfer_order_no"))
+            transfer_type = clean_val(request.forms.get("transfer_type")) or "ADMINISTRATIVE"
+            from_posting_place = clean_val(request.forms.get("from_posting_place")) or "Head Office"
+            to_posting_place = clean_val(request.forms.get("to_posting_place"))
+            from_department = clean_val(request.forms.get("from_department"))
+            to_department = clean_val(request.forms.get("to_department"))
+            from_designation = clean_val(request.forms.get("from_designation"))
+            to_designation = clean_val(request.forms.get("to_designation"))
+            from_grade = clean_val(request.forms.get("from_grade"))
+            to_grade = clean_val(request.forms.get("to_grade"))
+            order_date = clean_val(request.forms.get("order_date")) or db_datetime.strftime('%Y-%m-%d')
+            release_date = clean_val(request.forms.get("release_date"))
+            expected_joining_date = clean_val(request.forms.get("expected_joining_date"))
+            actual_joining_date = clean_val(request.forms.get("actual_joining_date"))
+            transfer_reason = clean_val(request.forms.get("transfer_reason"))
+            note = clean_val(request.forms.get("note"))
+            joining_status = clean_val(request.forms.get("joining_status")) or "PENDING"
+
+            status_type = "COMPLETED" if joining_status in ["JOINED", "COMPLETED"] else joining_status
+
+            if emp_id and transfer_order_no and to_posting_place:
+                insert_sql = """
+                INSERT INTO employee_transfers (
+                    emp_id, transfer_order_no, transfer_type, transfer_reason,
+                    from_posting_place, to_posting_place, from_department, to_department,
+                    from_designation, to_designation, from_grade, to_grade, order_date, release_date,
+                    expected_joining_date, actual_joining_date, joining_status,
+                    note, status_type, created_on, created_by
+                ) VALUES (
+                    %s, %s, %s, %s,
+                    %s, %s, %s, %s,
+                    %s, %s, %s, %s, %s, %s,
+                    %s, %s, %s, %s, %s,
+                    %s, %s, %s, %s, %s, %s
+                )
+                """
+                values = (
+                    emp_id, transfer_order_no, transfer_type, transfer_reason,
+                    from_posting_place, to_posting_place, from_department, to_department,
+                    from_designation, to_designation, from_grade, to_grade, order_date, release_date,
+                    expected_joining_date, actual_joining_date, joining_status,
+                    note, status_type, db_datetime, session.user.get('user_id', '')
+                )
+                db.executesql(insert_sql, values)
+
+                if joining_status in ['JOINED', 'COMPLETED']:
+                    update_emp_sql = """
+                    UPDATE employees SET
+                        current_posting_place = %s,
+                        emp_department = COALESCE(%s, emp_department),
+                        emp_designation = COALESCE(%s, emp_designation),
+                        current_posting_join_date = COALESCE(%s, current_posting_join_date)
+                    WHERE emp_id = %s
+                    """
+                    db.executesql(update_emp_sql, (to_posting_place, to_department, to_designation, actual_joining_date or expected_joining_date or order_date, emp_id))
+
+                flash.set("Transfer Order issued successfully!", "success")
+                redirect(URL('employees/postings_transfers'))
+            else:
+                flash.set("Please fill in all required fields marked with *.", "danger")
+        except Exception as e:
+            print(f"Error creating transfer order: {e}")
+            flash.set(f"Failed to issue transfer order: {str(e)}", "danger")
+
+    return dict(emp=emp)
+
+
+@action("employees/import_transfer", method=["GET", "POST"])
+@view_page("employees/import_transfer.html", title="Import Postings & Transfers | EMS")
+@web_auth_required
+def import_transfer():
+
+    if request.query.get("template") == "csv":
+        headers = [
+            "Official ID", "Transfer Order No", "Transfer Type", "From Posting", "To Posting",
+            "From Department", "To Department", "Order Date", "Expected Joining Date", "Status", "Remarks"
+        ]
+        example = [
+            "EMP-00101", "BADC/TR-2026/001", "ADMINISTRATIVE", "Head Office", "Bogura Regional Office",
+            "Administration", "Irrigation Wing", "2026-08-01", "2026-08-15", "PENDING", "Routine rotation transfer"
+        ]
+        output = io.StringIO()
+        writer = csv.writer(output)
+        writer.writerow(headers)
+        writer.writerow(example)
+        response.headers['Content-Type'] = 'text/csv; charset=utf-8'
+        response.headers['Content-Disposition'] = 'attachment; filename="Posting_Transfer_Import_Template.csv"'
+        return output.getvalue()
+
+    stats = None
+    active_tab = "file"
+    if request.method == "POST":
+        csv_file = request.files.get("csv_file")
+        csv_text = request.forms.get("csv_text")
+        content = None
+        delimiter = ','
+
+        if csv_file and csv_file.filename:
+            active_tab = "file"
+            if not csv_file.filename.lower().endswith('.csv'):
+                flash.set("Only CSV files are allowed.", "danger")
+                return dict(stats=None, active_tab=active_tab)
+            try:
+                content = csv_file.file.read().decode('utf-8-sig')
+            except Exception as e:
+                flash.set(f"Failed to read CSV file: {str(e)}", "danger")
+                return dict(stats=None, active_tab=active_tab)
+        elif csv_text and csv_text.strip():
+            active_tab = "text"
+            content = csv_text.strip()
+            first_line = content.splitlines()[0] if content else ""
+            if '\t' in first_line: delimiter = '\t'
+            elif ';' in first_line and ',' not in first_line: delimiter = ';'
+        else:
+            flash.set("Please select a valid CSV file or paste valid data.", "danger")
+            return dict(stats=None, active_tab=active_tab)
+
+        try:
+            f = io.StringIO(content)
+            reader = csv.DictReader(f, delimiter=delimiter)
+            rows = list(reader)
+
+            stats = {"total": 0, "created": 0, "updated": 0, "failed": 0, "errors": []}
+            row_num = 1
+
+            for row in rows:
+                row_num += 1
+                stats["total"] += 1
+                
+                # Extract fields
+                emp_id = row.get("Official ID") or row.get("emp_id") or row.get("Employee ID")
+                order_no = row.get("Transfer Order No") or row.get("order_no") or row.get("Order No")
+                to_posting = row.get("To Posting") or row.get("to_posting_place")
+
+                if not emp_id or not order_no or not to_posting:
+                    stats["failed"] += 1
+                    stats["errors"].append({"row": row_num, "emp_id": emp_id or "N/A", "error": "Official ID, Order No, and To Posting are required."})
+                    continue
+
+                transfer_type = row.get("Transfer Type") or "ADMINISTRATIVE"
+                from_posting = row.get("From Posting") or "Head Office"
+                from_dept = row.get("From Department") or ""
+                to_dept = row.get("To Department") or ""
+                order_date = parse_date(row.get("Order Date")) or db_datetime.strftime('%Y-%m-%d')
+                expected_joining_date = parse_date(row.get("Expected Joining Date"))
+                status = (row.get("Status") or "PENDING").upper()
+                remarks = row.get("Remarks") or ""
+
+                try:
+                    insert_sql = """
+                    INSERT INTO employee_transfers (
+                        emp_id, transfer_order_no, transfer_type, transfer_reason,
+                        from_posting_place, to_posting_place, from_department, to_department,
+                        order_date, expected_joining_date, joining_status, approved_by, approved_on, status_type, created_on, created_by
+                    ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                    """
+                    db.executesql(insert_sql, (
+                        emp_id, order_no, transfer_type, remarks,
+                        from_posting, to_posting, from_dept, to_dept,
+                        order_date, expected_joining_date, status, "Admin Authority", db_datetime, status, db_datetime, session.user.get('user_id', '')
+                    ))
+                    stats["created"] += 1
+
+                    if status in ['JOINED', 'COMPLETED']:
+                        update_emp = "UPDATE employees SET current_posting_place = %s WHERE emp_id = %s"
+                        db.executesql(update_emp, (to_posting, emp_id))
+                except Exception as ex:
+                    stats["failed"] += 1
+                    stats["errors"].append({"row": row_num, "emp_id": emp_id, "error": str(ex)})
+
+            if stats["failed"] > 0:
+                flash.set(f"Import completed with warnings. Created: {stats['created']}, Failed: {stats['failed']}", "warning")
+            else:
+                flash.set(f"Successfully imported {stats['created']} transfer orders!", "success")
+
+        except Exception as e:
+            flash.set(f"Failed to process CSV file: {str(e)}", "danger")
+
+    return dict(stats=stats, active_tab=active_tab)
+
+
+@action("employees/delete_transfer/<id:int>")
+@action("employees/delete_transfer/<id:int>/")
+@web_auth_required
+def delete_transfer(id):
+    try:
+        db.executesql("DELETE FROM employee_transfers WHERE id = %s", [id])
+        flash.set("Transfer record deleted successfully.", "success")
+    except Exception as e:
+        flash.set(f"Failed to delete record: {str(e)}", "danger")
+    redirect(URL('employees/postings_transfers'))
+
+
+

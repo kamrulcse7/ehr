@@ -1,0 +1,219 @@
+[[extend 'layout.html']]
+
+<div class="w-full text-slate-700 dark:text-slate-200 py-2">
+    <div class="max-w-[1600px] mx-auto space-y-3">
+
+        <!-- BREADCRUMB & HEADER -->
+        <div class="pb-2 border-b border-slate-200/80 dark:border-slate-800/80 flex items-center justify-between">
+            <div class="flex items-center gap-1.5 text-xs font-medium">
+                <span class="text-slate-400 dark:text-slate-500">Officers & Staff</span>
+                <span class="material-symbols-outlined text-[14px] text-slate-400 select-none">chevron_right</span>
+                <a href="[[=URL('employees/postings_transfers')]]" class="text-slate-400 dark:text-slate-500 hover:text-primary">Postings & Transfers</a>
+                <span class="material-symbols-outlined text-[14px] text-slate-400 select-none">chevron_right</span>
+                <span class="text-primary font-semibold">Issue Transfer Order</span>
+            </div>
+            <a href="[[=URL('employees/postings_transfers')]]"
+                class="h-7 px-2.5 bg-slate-200 hover:bg-slate-300 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 rounded-md text-xs font-semibold transition-all inline-flex items-center gap-1 shrink-0">
+                <span class="material-symbols-outlined text-[15px]">arrow_back</span>
+                Back
+            </a>
+        </div>
+
+        <!-- FORM START -->
+        <form action="[[=URL('employees/add_transfer')]]" method="POST" enctype="multipart/form-data" autocomplete="off"
+            class="bg-white dark:bg-slate-900 rounded-lg border border-slate-200 dark:border-slate-800 shadow-xs overflow-hidden">
+
+            <div class="p-4 space-y-4">
+
+                <!-- SECTION 1: ORDER & DETAILS -->
+                <div class="p-3.5 bg-slate-50/50 dark:bg-slate-950/40 rounded-lg border border-slate-200/60 dark:border-slate-800/60 space-y-3">
+                    <h3 class="text-[11px] font-bold uppercase tracking-wider text-primary pb-2 mb-1 border-b border-slate-200 dark:border-slate-800 flex items-center gap-1.5">
+                        <span class="material-symbols-outlined text-[16px]">badge</span> Order & Details
+                    </h3>
+
+                    <!-- ROW 1: ID, FULL NAME, ORDER NO, TYPE -->
+                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+                        <div>
+                            <label class="block text-[11px] font-semibold text-slate-700 dark:text-slate-300 mb-1">Official ID <span class="text-[10px] font-normal text-slate-400 dark:text-slate-500">(Type ID & search)</span> <span class="text-rose-500">*</span></label>
+                            <div class="flex items-center gap-1.5">
+                                <input type="text" name="emp_id" id="emp_id_input" required placeholder="e.g. BADC-00101"
+                                    value="[[= emp.get('emp_id', '') if emp else (request.query.get('lookup_id') or '') ]]"
+                                    onkeydown="if(event.key==='Enter'){event.preventDefault();fetchEmployeeDetails();}"
+                                    class="w-full h-8 px-2.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-md text-xs text-slate-800 dark:text-slate-200 placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:border-primary transition-all">
+                                <button type="button" id="btn_fetch_emp" onclick="fetchEmployeeDetails()" title="Fetch employee info"
+                                    class="h-8 w-8 bg-slate-800 hover:bg-slate-900 dark:bg-slate-700 dark:hover:bg-slate-600 text-white rounded-md shrink-0 flex items-center justify-center transition-all cursor-pointer">
+                                    <span class="material-symbols-outlined text-[15px]">search</span>
+                                </button>
+                            </div>
+                            [[ if request.query.get('lookup_id') and not emp: ]]
+                            <div class="text-[10px] mt-1 text-rose-500 font-semibold truncate">ID "[[= request.query.get('lookup_id') ]]" not found</div>
+                            [[ pass ]]
+                        </div>
+
+                        <div>
+                            <label class="block text-[11px] font-semibold text-slate-700 dark:text-slate-300 mb-1">Full Name</label>
+                            <input type="text" id="full_name_input" readonly placeholder="Auto-loaded Name"
+                                value="[[= emp.get('emp_name', '') if emp else '' ]]"
+                                class="w-full h-8 px-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-md text-xs font-semibold text-slate-800 dark:text-slate-200 placeholder:text-slate-400 dark:placeholder:text-slate-500" readonly>
+                        </div>
+
+                        <div>
+                            <label class="block text-[11px] font-semibold text-slate-700 dark:text-slate-300 mb-1">Transfer Order No <span class="text-rose-500">*</span></label>
+                            <input type="text" name="transfer_order_no" required placeholder="e.g. TR-45801"
+                                class="w-full h-8 px-2.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-md text-xs text-slate-800 dark:text-slate-200 placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:border-primary transition-all">
+                        </div>
+
+                        <div>
+                            <label class="block text-[11px] font-semibold text-slate-700 dark:text-slate-300 mb-1">Transfer Type <span class="text-rose-500">*</span></label>
+                            <select name="transfer_type" required
+                                class="w-full h-8 px-2.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-md text-xs text-slate-800 dark:text-slate-200 focus:outline-none focus:border-primary transition-all cursor-pointer">
+                                <option value="ADMINISTRATIVE">ADMINISTRATIVE</option>
+                                <option value="ON_REQUEST">ON_REQUEST</option>
+                                <option value="PROMOTION">PROMOTION</option>
+                                <option value="DEPUTATION">DEPUTATION</option>
+                                <option value="MUTUAL">MUTUAL</option>
+                            </select>
+                        </div>
+
+                        <!-- ROW 2: DATES & JOINING STATUS -->
+                        <div>
+                            <label class="block text-[11px] font-semibold text-slate-700 dark:text-slate-300 mb-1">Order Date <span class="text-rose-500">*</span></label>
+                            <input type="date" name="order_date" required
+                                class="w-full h-8 px-2.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-md text-xs text-slate-800 dark:text-slate-200 focus:outline-none focus:border-primary transition-all">
+                        </div>
+
+                        <div>
+                            <label class="block text-[11px] font-semibold text-slate-700 dark:text-slate-300 mb-1">Release Date</label>
+                            <input type="date" name="release_date"
+                                class="w-full h-8 px-2.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-md text-xs text-slate-800 dark:text-slate-200 focus:outline-none focus:border-primary transition-all">
+                        </div>
+
+                        <div>
+                            <label class="block text-[11px] font-semibold text-slate-700 dark:text-slate-300 mb-1">Expected Joining Date</label>
+                            <input type="date" name="expected_joining_date"
+                                class="w-full h-8 px-2.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-md text-xs text-slate-800 dark:text-slate-200 focus:outline-none focus:border-primary transition-all">
+                        </div>
+
+                        <div>
+                            <label class="block text-[11px] font-semibold text-slate-700 dark:text-slate-300 mb-1">Joining Status</label>
+                            <select name="joining_status"
+                                class="w-full h-8 px-2.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-md text-xs text-slate-800 dark:text-slate-200 focus:outline-none focus:border-primary transition-all cursor-pointer">
+                                <option value="PENDING">PENDING</option>
+                                <option value="RELEASED">RELEASED</option>
+                                <option value="JOINED">JOINED / COMPLETED</option>
+                                <option value="CANCELLED">CANCELLED</option>
+                            </select>
+                        </div>
+
+                        <!-- ROW 3: REASON & REMARKS SIDE BY SIDE -->
+                        <div class="lg:col-span-2">
+                            <label class="block text-[11px] font-semibold text-slate-700 dark:text-slate-300 mb-1">Transfer Reason</label>
+                            <input type="text" name="transfer_reason" placeholder="Routine administrative transfer."
+                                class="w-full h-8 px-2.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-md text-xs text-slate-800 dark:text-slate-200 placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:border-primary transition-all">
+                        </div>
+
+                        <div class="lg:col-span-2">
+                            <label class="block text-[11px] font-semibold text-slate-700 dark:text-slate-300 mb-1">Official Note / Remarks</label>
+                            <input type="text" name="note" placeholder="Joined on time."
+                                class="w-full h-8 px-2.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-md text-xs text-slate-800 dark:text-slate-200 placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:border-primary transition-all">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- SECTION 2: LOCATION & MOVEMENT DETAILS -->
+                <div class="p-3.5 bg-slate-50/50 dark:bg-slate-950/40 rounded-lg border border-slate-200/60 dark:border-slate-800/60">
+                    <h3 class="text-[11px] font-bold uppercase tracking-wider text-primary pb-2 mb-3 border-b border-slate-200 dark:border-slate-800 flex items-center gap-1.5">
+                        <span class="material-symbols-outlined text-[16px]">domain</span> Location & Designation Movement
+                    </h3>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <!-- FROM CURRENT POSTING -->
+                        <div class="space-y-3 p-3 bg-white dark:bg-slate-900 rounded-md border border-slate-200/80 dark:border-slate-800">
+                            <div class="text-[10px] font-bold uppercase tracking-wider text-slate-400">Current Station (From)</div>
+                            <div>
+                                <label class="block text-[11px] font-semibold text-slate-700 dark:text-slate-300 mb-1">From Posting Place</label>
+                                <input type="text" id="from_posting_input" name="from_posting_place" readonly placeholder="Auto-loaded Station"
+                                    value="[[= emp.get('current_posting_place', '') if emp else '' ]]"
+                                    class="w-full h-8 px-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-md text-xs text-slate-700 dark:text-slate-300 placeholder:text-slate-400 dark:placeholder:text-slate-500" readonly>
+                            </div>
+                            <div class="grid grid-cols-3 gap-2">
+                                <div>
+                                    <label class="block text-[11px] font-semibold text-slate-700 dark:text-slate-300 mb-1">From Dept</label>
+                                    <input type="text" id="from_dept_input" name="from_department" readonly placeholder="Current Dept"
+                                        value="[[= emp.get('emp_department', '') if emp else '' ]]"
+                                        class="w-full h-8 px-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-md text-xs text-slate-700 dark:text-slate-300 placeholder:text-slate-400 dark:placeholder:text-slate-500" readonly>
+                                </div>
+                                <div>
+                                    <label class="block text-[11px] font-semibold text-slate-700 dark:text-slate-300 mb-1">From Designation</label>
+                                    <input type="text" id="from_desig_input" name="from_designation" readonly placeholder="Current Designation"
+                                        value="[[= emp.get('emp_designation', '') if emp else '' ]]"
+                                        class="w-full h-8 px-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-md text-xs text-slate-700 dark:text-slate-300 placeholder:text-slate-400 dark:placeholder:text-slate-500" readonly>
+                                </div>
+                                <div>
+                                    <label class="block text-[11px] font-semibold text-slate-700 dark:text-slate-300 mb-1">From Grade</label>
+                                    <input type="text" id="from_grade_input" name="from_grade" readonly placeholder="Current Grade"
+                                        value="[[= emp.get('emp_grade', '') if emp else '' ]]"
+                                        class="w-full h-8 px-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-md text-xs text-slate-700 dark:text-slate-300 placeholder:text-slate-400 dark:placeholder:text-slate-500" readonly>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- TO TARGET POSTING -->
+                        <div class="space-y-3 p-3 bg-white dark:bg-slate-900 rounded-md border border-slate-200/80 dark:border-slate-800">
+                            <div class="text-[10px] font-bold uppercase tracking-wider text-emerald-600 dark:text-emerald-400">Target Station (To)</div>
+                            <div>
+                                <label class="block text-[11px] font-semibold text-slate-700 dark:text-slate-300 mb-1">To Posting Place <span class="text-rose-500">*</span></label>
+                                <input type="text" name="to_posting_place" required placeholder="e.g. Chittagong Division"
+                                    class="w-full h-8 px-2.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-md text-xs text-slate-800 dark:text-slate-200 placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:border-primary transition-all">
+                            </div>
+                            <div class="grid grid-cols-3 gap-2">
+                                <div>
+                                    <label class="block text-[11px] font-semibold text-slate-700 dark:text-slate-300 mb-1">To Dept</label>
+                                    <input type="text" id="to_dept_input" name="to_department" placeholder="Target Dept"
+                                        value="[[= emp.get('emp_department', '') if emp else '' ]]"
+                                        class="w-full h-8 px-2.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-md text-xs text-slate-800 dark:text-slate-200 placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:border-primary transition-all">
+                                </div>
+                                <div>
+                                    <label class="block text-[11px] font-semibold text-slate-700 dark:text-slate-300 mb-1">To Designation</label>
+                                    <input type="text" id="to_desig_input" name="to_designation" placeholder="Target Designation"
+                                        value="[[= emp.get('emp_designation', '') if emp else '' ]]"
+                                        class="w-full h-8 px-2.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-md text-xs text-slate-800 dark:text-slate-200 placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:border-primary transition-all">
+                                </div>
+                                <div>
+                                    <label class="block text-[11px] font-semibold text-slate-700 dark:text-slate-300 mb-1">To Grade</label>
+                                    <input type="text" id="to_grade_input" name="to_grade" placeholder="Target Grade"
+                                        value="[[= emp.get('emp_grade', '') if emp else '' ]]"
+                                        class="w-full h-8 px-2.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-md text-xs text-slate-800 dark:text-slate-200 placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:border-primary transition-all">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- FORM ACTIONS -->
+            <div class="p-3 bg-slate-50 dark:bg-slate-950/60 border-t border-slate-200 dark:border-slate-800 flex items-center justify-end gap-2">
+                <a href="[[=URL('employees/postings_transfers')]]"
+                    class="h-8 px-4 bg-slate-200 hover:bg-slate-300 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 rounded-md text-xs font-semibold transition-all inline-flex items-center justify-center">
+                    Cancel
+                </a>
+                <button type="submit"
+                    class="h-8 px-5 bg-primary hover:opacity-90 text-white rounded-md text-xs font-bold transition-all shadow-xs inline-flex items-center justify-center gap-1.5 cursor-pointer">
+                    <span class="material-symbols-outlined text-[16px]">save</span>
+                    Issue Transfer Order
+                </button>
+            </div>
+        </form>
+
+    </div>
+</div>
+
+<script>
+    function fetchEmployeeDetails() {
+        const empId = (document.getElementById('emp_id_input').value || '').trim();
+        if (empId) {
+            window.location.href = "[[=URL('employees/add_transfer')]]?lookup_id=" + encodeURIComponent(empId);
+        }
+    }
+</script>

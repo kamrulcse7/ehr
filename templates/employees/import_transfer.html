@@ -8,11 +8,11 @@
             <div class="flex items-center gap-1.5 text-xs font-medium">
                 <span class="text-slate-400 dark:text-slate-500">Officers & Staff</span>
                 <span class="material-symbols-outlined text-[14px] text-slate-400 select-none">chevron_right</span>
-                <a href="[[=URL('employees/personnel_directory')]]" class="text-slate-400 dark:text-slate-500 hover:text-primary">Personnel Directory</a>
+                <a href="[[=URL('employees/postings_transfers')]]" class="text-slate-400 dark:text-slate-500 hover:text-primary">Postings & Transfers</a>
                 <span class="material-symbols-outlined text-[14px] text-slate-400 select-none">chevron_right</span>
                 <span class="text-primary font-semibold">Import</span>
             </div>
-            <a href="[[=URL('employees/personnel_directory')]]"
+            <a href="[[=URL('employees/postings_transfers')]]"
                 class="h-7 px-2.5 bg-slate-200 hover:bg-slate-300 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 rounded-md text-xs font-semibold transition-all inline-flex items-center gap-1 shrink-0">
                 <span class="material-symbols-outlined text-[15px]">arrow_back</span>
                 Back
@@ -38,10 +38,10 @@
                 <!-- Successfully Created -->
                 <div class="bg-white dark:bg-slate-900 rounded-xl border border-slate-200/80 dark:border-slate-800/80 p-3.5 flex items-center gap-3 shadow-2xs">
                     <div class="w-9 h-9 rounded-lg bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shrink-0">
-                        <span class="material-symbols-outlined text-[20px]">person_add</span>
+                        <span class="material-symbols-outlined text-[20px]">swap_horiz</span>
                     </div>
                     <div>
-                        <div class="text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500">New Personnel</div>
+                        <div class="text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500">New Transfer Orders</div>
                         <div class="text-lg font-bold text-emerald-600 dark:text-emerald-400 mt-0.5">[[= stats["created"] ]]</div>
                     </div>
                 </div>
@@ -53,7 +53,7 @@
                     </div>
                     <div>
                         <div class="text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500">Updated Records</div>
-                        <div class="text-lg font-bold text-sky-600 dark:text-sky-400 mt-0.5">[[= stats["updated"] ]]</div>
+                        <div class="text-lg font-bold text-sky-600 dark:text-sky-400 mt-0.5">[[= stats.get("updated", 0) ]]</div>
                     </div>
                 </div>
 
@@ -112,7 +112,7 @@
                             <span class="material-symbols-outlined text-primary text-[20px]">info</span>
                             CSV Import Instructions
                         </h3>
-                        <p class="text-xs text-slate-500 mt-1">Please read carefully before preparing your CSV file for import.</p>
+                        <p class="text-xs text-slate-500 mt-1">Please read carefully before preparing your transfer order CSV file.</p>
                     </div>
 
                     <div class="border-t border-slate-100 dark:border-slate-800 pt-3.5 space-y-3 text-xs leading-relaxed">
@@ -120,7 +120,7 @@
                             <span class="w-5 h-5 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center font-bold text-[10px] text-slate-600 dark:text-slate-400 shrink-0 mt-0.5">1</span>
                             <div>
                                 <span class="font-semibold text-slate-800 dark:text-slate-200">Required Fields:</span>
-                                <p class="text-slate-500 mt-0.5">Your CSV file <span class="font-bold text-rose-500">MUST</span> contain <code class="bg-slate-100 dark:bg-slate-850 px-1 py-0.5 rounded text-[10px]">Official ID</code> and <code class="bg-slate-100 dark:bg-slate-850 px-1 py-0.5 rounded text-[10px]">Full Name</code>. Other columns are optional.</p>
+                                <p class="text-slate-500 mt-0.5">Your CSV file <span class="font-bold text-rose-500">MUST</span> contain <code class="bg-slate-100 dark:bg-slate-850 px-1 py-0.5 rounded text-[10px]">Official ID</code>, <code class="bg-slate-100 dark:bg-slate-850 px-1 py-0.5 rounded text-[10px]">Transfer Order No</code>, and <code class="bg-slate-100 dark:bg-slate-850 px-1 py-0.5 rounded text-[10px]">To Posting</code>.</p>
                             </div>
                         </div>
 
@@ -128,15 +128,15 @@
                             <span class="w-5 h-5 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center font-bold text-[10px] text-slate-600 dark:text-slate-400 shrink-0 mt-0.5">2</span>
                             <div>
                                 <span class="font-semibold text-slate-800 dark:text-slate-200">Automatic Mapping:</span>
-                                <p class="text-slate-500 mt-0.5">Headers are matched case-insensitively. Feel free to use headers like "Official ID", "Full Name", "Mobile", "Email", "Status", or their SQL column counterparts.</p>
+                                <p class="text-slate-500 mt-0.5">Headers match case-insensitively. Supported headers: "Official ID", "Transfer Order No", "Transfer Type", "From Posting", "To Posting", "From Department", "To Department", "Order Date", "Expected Joining Date", "Status", "Remarks".</p>
                             </div>
                         </div>
 
                         <div class="flex items-start gap-2">
                             <span class="w-5 h-5 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center font-bold text-[10px] text-slate-600 dark:text-slate-400 shrink-0 mt-0.5">3</span>
                             <div>
-                                <span class="font-semibold text-slate-800 dark:text-slate-200">Upsert Logic:</span>
-                                <p class="text-slate-500 mt-0.5">If the Official ID already exists, the record will be updated. If it does not exist, a new record will be created.</p>
+                                <span class="font-semibold text-slate-800 dark:text-slate-200">Transfer Types & Statuses:</span>
+                                <p class="text-slate-500 mt-0.5">Types: <code class="bg-slate-100 dark:bg-slate-850 px-1 py-0.5 rounded text-[10px]">ADMINISTRATIVE</code>, <code class="bg-slate-100 dark:bg-slate-850 px-1 py-0.5 rounded text-[10px]">ON_REQUEST</code>, <code class="bg-slate-100 dark:bg-slate-850 px-1 py-0.5 rounded text-[10px]">PROMOTION</code>. Statuses: <code class="bg-slate-100 dark:bg-slate-850 px-1 py-0.5 rounded text-[10px]">PENDING</code>, <code class="bg-slate-100 dark:bg-slate-850 px-1 py-0.5 rounded text-[10px]">RELEASED</code>, <code class="bg-slate-100 dark:bg-slate-850 px-1 py-0.5 rounded text-[10px]">JOINED</code>, <code class="bg-slate-100 dark:bg-slate-850 px-1 py-0.5 rounded text-[10px]">CANCELLED</code>.</p>
                             </div>
                         </div>
 
@@ -144,20 +144,12 @@
                             <span class="w-5 h-5 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center font-bold text-[10px] text-slate-600 dark:text-slate-400 shrink-0 mt-0.5">4</span>
                             <div>
                                 <span class="font-semibold text-slate-800 dark:text-slate-200">Date Formats:</span>
-                                <p class="text-slate-500 mt-0.5">Dates should be formatted as <code class="bg-slate-100 dark:bg-slate-850 px-1 py-0.5 rounded text-[10px]">YYYY-MM-DD</code>. However, common formats like DD-MM-YYYY, DD/MM/YYYY, or MM/DD/YYYY are parsed automatically.</p>
+                                <p class="text-slate-500 mt-0.5">Dates should be formatted as <code class="bg-slate-100 dark:bg-slate-850 px-1 py-0.5 rounded text-[10px]">YYYY-MM-DD</code> (e.g. 2026-08-01).</p>
                             </div>
                         </div>
 
                         <div class="flex items-start gap-2">
                             <span class="w-5 h-5 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center font-bold text-[10px] text-slate-600 dark:text-slate-400 shrink-0 mt-0.5">5</span>
-                            <div>
-                                <span class="font-semibold text-slate-800 dark:text-slate-200">Status Values:</span>
-                                <p class="text-slate-500 mt-0.5">Set the status as <code class="bg-slate-100 dark:bg-slate-850 px-1 py-0.5 rounded text-[10px]">ACTIVE</code>, <code class="bg-slate-100 dark:bg-slate-850 px-1 py-0.5 rounded text-[10px]">PROBATIONARY</code>, or <code class="bg-slate-100 dark:bg-slate-850 px-1 py-0.5 rounded text-[10px]">INACTIVE</code>.</p>
-                            </div>
-                        </div>
-
-                        <div class="flex items-start gap-2">
-                            <span class="w-5 h-5 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center font-bold text-[10px] text-slate-600 dark:text-slate-400 shrink-0 mt-0.5">6</span>
                             <div>
                                 <span class="font-semibold text-slate-800 dark:text-slate-200">Import Limits:</span>
                                 <p class="text-slate-500 mt-0.5">CSV files must be under <span class="font-bold">2MB</span> in size and contain a maximum of <span class="font-bold">1,000 rows</span>.</p>
@@ -165,7 +157,7 @@
                         </div>
 
                         <div class="flex items-start gap-2">
-                            <span class="w-5 h-5 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center font-bold text-[10px] text-slate-600 dark:text-slate-400 shrink-0 mt-0.5">7</span>
+                            <span class="w-5 h-5 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center font-bold text-[10px] text-slate-600 dark:text-slate-400 shrink-0 mt-0.5">6</span>
                             <div>
                                 <span class="font-semibold text-slate-800 dark:text-slate-200">Excel Direct Copy-Paste:</span>
                                 <p class="text-slate-500 mt-0.5">Switch to the "Paste Raw Data" tab, copy the cells from Excel/Google Sheets (with headers), and paste them directly into the text box.</p>
@@ -174,7 +166,7 @@
                     </div>
 
                     <div class="border-t border-slate-100 dark:border-slate-800 pt-3.5">
-                        <a href="[[=URL('employees/import_directory', vars={'template': 'csv'})]]" 
+                        <a href="[[=URL('employees/import_transfer', vars={'template': 'csv'})]]" 
                            class="w-full h-8.5 px-3 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 rounded-lg text-xs font-bold transition-all inline-flex items-center justify-center gap-1.5 border border-slate-200 dark:border-slate-700">
                             <span class="material-symbols-outlined text-[16px] text-emerald-600 dark:text-emerald-400">download</span>
                             Download Sample CSV Template
@@ -199,7 +191,7 @@
                 </div>
 
                 <!-- Tab Content 1: File Upload Form -->
-                <form action="[[=URL('employees/import_directory')]]" method="POST" enctype="multipart/form-data" id="importFileForm"
+                <form action="[[=URL('employees/import_transfer')]]" method="POST" enctype="multipart/form-data" id="importFileForm"
                       class="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-2xs overflow-hidden flex flex-col justify-between">
                     
                     <div class="p-4 space-y-4 flex flex-col">
@@ -208,7 +200,7 @@
                                 <span class="material-symbols-outlined text-primary text-[20px]">upload_file</span>
                                 Upload CSV File
                             </h3>
-                            <p class="text-xs text-slate-500 mt-1">Select your completed employee record CSV sheet to begin the batch upload.</p>
+                            <p class="text-xs text-slate-500 mt-1">Select your completed transfer order CSV sheet to begin the batch upload.</p>
                         </div>
 
                         <div class="border-t border-slate-100 dark:border-slate-800 pt-3.5 space-y-4 flex flex-col">
@@ -240,7 +232,7 @@
                     <!-- Footer Action -->
                     <div class="px-4 py-3 bg-slate-50/80 dark:bg-slate-950/40 border-t border-slate-100 dark:border-slate-800 flex items-center justify-end">
                         <button type="submit" id="submitFileBtn" disabled
-                                class="h-8.5 px-4 bg-primary text-white font-bold rounded-lg text-xs shadow-xs transition-all inline-flex items-center justify-center gap-1.5 opacity-50 cursor-not-allowed">
+                                class="h-8.5 px-4 bg-primary text-white font-bold rounded-lg text-xs shadow-xs transition-all inline-flex items-center justify-center gap-1.5 opacity-50 cursor-not-allowed cursor-pointer">
                             <span class="material-symbols-outlined text-[16px]">publish</span>
                             <span>Upload & Import</span>
                         </button>
@@ -248,7 +240,7 @@
                 </form>
 
                 <!-- Tab Content 2: Copy-Paste Text Area (Hidden by default) -->
-                <form action="[[=URL('employees/import_directory')]]" method="POST" id="importTextForm"
+                <form action="[[=URL('employees/import_transfer')]]" method="POST" id="importTextForm"
                       class="hidden bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-2xs overflow-hidden flex flex-col justify-between flex-1">
                     
                     <div class="p-4 space-y-4 flex-1 flex flex-col">
@@ -262,7 +254,7 @@
 
                         <div class="border-t border-slate-100 dark:border-slate-800 pt-3.5 space-y-2 flex flex-col flex-1">
                             <label class="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider">Paste Data Below:</label>
-                            <textarea name="csv_text" id="pasteTextArea" placeholder="Official ID&#9;Full Name&#9;Department&#9;Designation&#10;OFF1001&#9;Abul Kalam&#9;Administration&#9;Senior Officer"
+                            <textarea name="csv_text" id="pasteTextArea" placeholder="Official ID&#9;Transfer Order No&#9;Transfer Type&#9;From Posting&#9;To Posting&#10;EMP-00101&#9;BADC/TR-2026/001&#9;ADMINISTRATIVE&#9;Head Office&#9;Bogura Regional Office"
                                       class="w-full px-3 py-2 text-xs font-mono bg-slate-50 dark:bg-slate-950/60 border border-slate-200 dark:border-slate-800 rounded-lg focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary transition-all resize-y text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 flex-1"></textarea>
                             <div class="flex items-center justify-between text-[10px] text-slate-400 dark:text-slate-500 mt-1">
                                 <span>Tip: Delimiters like tabs (Excel format), commas, or semicolons are parsed automatically.</span>
@@ -274,7 +266,7 @@
                     <!-- Footer Action -->
                     <div class="px-4 py-3 bg-slate-50/80 dark:bg-slate-950/40 border-t border-slate-100 dark:border-slate-800 flex items-center justify-end">
                         <button type="submit" id="submitTextBtn" disabled
-                                class="h-8.5 px-4 bg-primary text-white font-bold rounded-lg text-xs shadow-xs transition-all inline-flex items-center justify-center gap-1.5 opacity-50 cursor-not-allowed">
+                                class="h-8.5 px-4 bg-primary text-white font-bold rounded-lg text-xs shadow-xs transition-all inline-flex items-center justify-center gap-1.5 opacity-50 cursor-not-allowed cursor-pointer">
                             <span class="material-symbols-outlined text-[16px]">publish</span>
                             <span>Parse & Import Paste Data</span>
                         </button>
