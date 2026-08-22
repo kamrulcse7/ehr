@@ -3,19 +3,19 @@
 <div class="w-full space-y-4 text-slate-700 dark:text-slate-200">
     <div class="max-w-[1800px] mx-auto space-y-4">
 
-        <!-- HEADER SECTION & BREADCRUMB -->
-        <div class="flex items-center justify-between gap-2 pb-2.5 border-b border-slate-200/60 dark:border-slate-800/60">
-            <div class="flex items-center gap-1 text-[11px] font-medium tracking-tight min-w-0">
-                <span class="text-slate-400 dark:text-slate-500 truncate">Administration</span>
-                <span class="material-symbols-outlined text-[12px] text-slate-300 dark:text-slate-600 select-none shrink-0">chevron_right</span>
-                <a href="[[=URL('administration/users')]]" class="text-slate-400 dark:text-slate-500 hover:text-primary transition-colors truncate">User Management</a>
-                <span class="material-symbols-outlined text-[12px] text-slate-300 dark:text-slate-600 select-none shrink-0">chevron_right</span>
-                <span class="text-primary font-bold truncate">Create User</span>
+        <!-- HEADER SECTION (Breadcrumb) -->
+        <div class="pb-2 border-b border-slate-200/80 dark:border-slate-800/80 flex items-center justify-between h-7">
+            <div class="flex items-center gap-0.5 text-xs font-medium">
+                <a href="[[=URL('administration/users')]]" class="text-slate-400 dark:text-slate-500 hover:text-primary transition-colors">Administration</a>
+                <span class="material-symbols-outlined text-[12px] text-slate-400 dark:text-slate-600 select-none -mx-0.5">chevron_right</span>
+                <a href="[[=URL('administration/users')]]" class="text-slate-400 dark:text-slate-500 hover:text-primary transition-colors">User Management</a>
+                <span class="material-symbols-outlined text-[12px] text-slate-400 dark:text-slate-600 select-none -mx-0.5">chevron_right</span>
+                <span class="text-primary font-bold">Create User</span>
             </div>
-
-            <a href="[[=URL('administration/users')]]" class="inline-flex items-center justify-center gap-1 px-3 py-1.5 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-200 rounded-md font-semibold text-[10px] shadow-sm transition-all shrink-0 whitespace-nowrap">
-                <span class="material-symbols-outlined text-[14px]">arrow_back</span>
-                <span>Back to Users</span>
+            <a href="[[=URL('administration/users')]]"
+                class="h-7 px-2.5 bg-slate-200 hover:bg-slate-300 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 rounded-md text-xs font-semibold transition-all inline-flex items-center gap-1 shrink-0">
+                <span class="material-symbols-outlined text-[15px]">arrow_back</span>
+                Back
             </a>
         </div>
 
