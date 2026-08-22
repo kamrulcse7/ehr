@@ -283,17 +283,21 @@ def add_directory():
                 %s, %s, %s, %s, %s, %s
                 )
             """
+            user_id = session.user.get('user_id', '') if (session and session.user) else ''
             values = (
                 emp_id, emp_name, card_number, emp_type, emp_department,
                 emp_designation, emp_grade, current_posting_place, current_posting_join_date,
                 current_grade_join_date, mobile, email, gender, dob,
                 blood_group, join_date, confirmation_date, retirement_date,
                 edu_qualification, home_district, present_address, permanent_address,
-                nid_number, saved_filename, note, 'Active', db_datetime, session.user.get('user_id', '')
+                nid_number, saved_filename, note, 'ACTIVE', db_datetime, user_id
             )
             db.executesql(insert_sql, values)
+            db.commit()
+            flash.set("Employee added successfully!", "success")
         except Exception as e:
             print(f"Error during employee insert: {e}")
+            flash.set(f"Failed to add employee: {str(e)}", "danger")
 
     return dict()
 
@@ -553,6 +557,7 @@ def import_directory():
                         "error": str(ex)
                     })
 
+            db.commit()
             if stats["failed"] > 0:
                 flash.set(f"Import completed with some errors. Succeeded: {stats['created'] + stats['updated']} (Created: {stats['created']}, Updated: {stats['updated']}), Failed: {stats['failed']}", "warning")
             else:
@@ -730,7 +735,7 @@ def add_transfer():
     emp = None
     if lookup_id:
         emp_res = db.executesql(
-            "SELECT emp_id, emp_name, emp_designation, emp_department, current_posting_place, emp_grade FROM employees WHERE emp_id = %s AND status_type = 'Active' LIMIT 1",
+            "SELECT emp_id, emp_name, emp_designation, emp_department, current_posting_place, emp_grade FROM employees WHERE emp_id = %s AND UPPER(status_type) = 'ACTIVE' LIMIT 1",
             [lookup_id],
             as_dict=True
         )
@@ -745,7 +750,7 @@ def add_transfer():
             emp_id = clean_val(request.forms.get("emp_id"))
             transfer_order_no = clean_val(request.forms.get("transfer_order_no"))
             transfer_type = clean_val(request.forms.get("transfer_type")) or "ADMINISTRATIVE"
-            from_posting_place = clean_val(request.forms.get("from_posting_place")) or "Head Office"
+            from_posting_place = clean_val(request.forms.get("from_posting_place"))
             to_posting_place = clean_val(request.forms.get("to_posting_place"))
             from_department = clean_val(request.forms.get("from_department"))
             to_department = clean_val(request.forms.get("to_department"))
@@ -764,6 +769,23 @@ def add_transfer():
             status_type = "COMPLETED" if joining_status in ["JOINED", "COMPLETED"] else joining_status
 
             if emp_id and transfer_order_no and to_posting_place:
+                # If from_* fields are empty (e.g. form submitted without lookup button click), fetch current details from employee record
+                if not from_posting_place or not from_department or not from_designation or not from_grade:
+                    emp_curr = db.executesql(
+                        "SELECT current_posting_place, emp_department, emp_designation, emp_grade FROM employees WHERE emp_id = %s LIMIT 1",
+                        [emp_id],
+                        as_dict=True
+                    )
+                    if emp_curr:
+                        ec = emp_curr[0]
+                        if not from_posting_place: from_posting_place = ec.get('current_posting_place') or "Head Office"
+                        if not from_department: from_department = ec.get('emp_department')
+                        if not from_designation: from_designation = ec.get('emp_designation')
+                        if not from_grade: from_grade = ec.get('emp_grade')
+                
+                if not from_posting_place:
+                    from_posting_place = "Head Office"
+
                 insert_sql = """
                 INSERT INTO employee_transfers (
                     emp_id, transfer_order_no, transfer_type, transfer_reason,
@@ -774,17 +796,18 @@ def add_transfer():
                 ) VALUES (
                     %s, %s, %s, %s,
                     %s, %s, %s, %s,
-                    %s, %s, %s, %s, %s, %s,
-                    %s, %s, %s, %s, %s,
-                    %s, %s, %s, %s, %s, %s
+                    %s, %s, %s, %s,
+                    %s, %s, %s, %s,
+                    %s, %s, %s, %s, %s
                 )
                 """
+                user_id = session.user.get('user_id', '') if (session and session.user) else ''
                 values = (
                     emp_id, transfer_order_no, transfer_type, transfer_reason,
                     from_posting_place, to_posting_place, from_department, to_department,
                     from_designation, to_designation, from_grade, to_grade, order_date, release_date,
                     expected_joining_date, actual_joining_date, joining_status,
-                    note, status_type, db_datetime, session.user.get('user_id', '')
+                    note, status_type, db_datetime, user_id
                 )
                 db.executesql(insert_sql, values)
 
@@ -799,8 +822,9 @@ def add_transfer():
                     """
                     db.executesql(update_emp_sql, (to_posting_place, to_department, to_designation, actual_joining_date or expected_joining_date or order_date, emp_id))
 
+                db.commit()
                 flash.set("Transfer Order issued successfully!", "success")
-                redirect(URL('employees/postings_transfers'))
+                emp=None
             else:
                 flash.set("Please fill in all required fields marked with *.", "danger")
         except Exception as e:
@@ -913,6 +937,7 @@ def import_transfer():
                     stats["failed"] += 1
                     stats["errors"].append({"row": row_num, "emp_id": emp_id, "error": str(ex)})
 
+            db.commit()
             if stats["failed"] > 0:
                 flash.set(f"Import completed with warnings. Created: {stats['created']}, Failed: {stats['failed']}", "warning")
             else:
@@ -922,18 +947,4 @@ def import_transfer():
             flash.set(f"Failed to process CSV file: {str(e)}", "danger")
 
     return dict(stats=stats, active_tab=active_tab)
-
-
-@action("employees/delete_transfer/<id:int>")
-@action("employees/delete_transfer/<id:int>/")
-@web_auth_required
-def delete_transfer(id):
-    try:
-        db.executesql("DELETE FROM employee_transfers WHERE id = %s", [id])
-        flash.set("Transfer record deleted successfully.", "success")
-    except Exception as e:
-        flash.set(f"Failed to delete record: {str(e)}", "danger")
-    redirect(URL('employees/postings_transfers'))
-
-
 
