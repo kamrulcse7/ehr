@@ -181,16 +181,21 @@
                     full_name = session.user.get('user_name', 'User').strip()
                     first_name = full_name.split(' ')[0] if full_name else 'User'
                     avatar_char = first_name[0].upper() if first_name else 'U'
+                    user_photo = session.user.get('profile_image')
                     ]]
 
                     <button id="profile-dropdown-btn"
                         class="flex items-center gap-1.5 p-1 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition-all text-left outline-none group">
 
                         <!-- Dynamic Avatar Initials (First letter of first name) -->
+                        [[if not user_photo:]]
                         <div
                             class="w-6 h-6 rounded-full bg-emerald-600 flex items-center justify-center text-white font-bold text-[10px] shadow-xs">
                             [[= avatar_char ]]
                         </div>
+                        [[else:]]
+                        <img src="[[= user_photo ]]" alt="[[= first_name ]]" class="w-6 h-6 rounded-full object-cover border border-slate-200 dark:border-slate-700 shrink-0">
+                        [[pass]]
 
                         <div class="flex flex-col min-w-0 hidden md:flex">
                             <!-- Display Only First Name -->

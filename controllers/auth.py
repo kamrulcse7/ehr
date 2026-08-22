@@ -24,7 +24,7 @@ def login():
             user_role,
             email AS user_email,
             mobile AS user_mobile,
-            profile_image,
+            COALESCE(profile_image, '') AS profile_image,
             sync_code,
             sync_count,
             fcm_token,
