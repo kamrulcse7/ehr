@@ -10,15 +10,17 @@ from ..core.db import db, db_datetime
 @web_auth_required
 def dashboard():
     recent_employee_records_sql = """
-    SELECT emp_id, emp_name, card_number, emp_type, emp_department, 
-            emp_designation, emp_grade, current_posting_place, 
-            current_posting_join_date, current_grade_join_date, mobile, 
-            email, gender, dob, blood_group, join_date, retirement_date, 
-            edu_qualification, home_district, present_address, permanent_address, 
-            nid_number, photo_url, note 
-    FROM employees 
-    WHERE status_type = 'ACTIVE' 
-    ORDER BY id DESC LIMIT 10;
+    SELECT 
+        e.emp_id, 
+        e.emp_name, 
+        e.emp_designation, 
+        e.current_branch_id,
+        COALESCE(b.branch_name, e.current_branch_id, 'Head Office') AS current_posting_place,
+        e.join_date 
+    FROM employees e
+    LEFT JOIN branches b ON e.current_branch_id = b.branch_id AND e.cid = b.cid
+    WHERE e.status_type = 'ACTIVE' 
+    ORDER BY e.id DESC LIMIT 10;
     """
     recent_employees = db.executesql(recent_employee_records_sql, as_dict=True)
     for emp in recent_employees:
@@ -39,7 +41,6 @@ def dashboard():
         else:
             emp['join_date'] = d_obj.strftime('%Y-%m-%d')
 
-
     recent_transfers_sql = """
     SELECT 
         t.id,
@@ -47,13 +48,17 @@ def dashboard():
         t.emp_id,
         e.emp_name,
         COALESCE(t.to_designation, e.emp_designation) AS designation,
-        t.from_posting_place,
-        t.to_posting_place,
+        t.from_branch_id,
+        t.to_branch_id,
+        COALESCE(fb.branch_name, t.from_branch_id, 'N/A') AS from_posting_place,
+        COALESCE(tb.branch_name, t.to_branch_id, 'N/A') AS to_posting_place,
         t.order_date,
         t.joining_status,
         t.status_type
     FROM employee_transfers t
-    LEFT JOIN employees e ON t.emp_id = e.emp_id
+    LEFT JOIN employees e ON t.emp_id = e.emp_id AND t.cid = e.cid
+    LEFT JOIN branches fb ON t.from_branch_id = fb.branch_id AND t.cid = fb.cid
+    LEFT JOIN branches tb ON t.to_branch_id = tb.branch_id AND t.cid = tb.cid
     ORDER BY t.id DESC 
     LIMIT 10;
     """

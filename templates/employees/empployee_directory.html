@@ -1,11 +1,11 @@
 [[ extend 'layout.html' ]]
 
 <div class="w-full space-y-4 text-slate-700 dark:text-slate-200">
-    <div class="max-w-[1800px] mx-auto space-y-4">
+    <div class="w-full space-y-4">
         <!-- HEADER SECTION (Breadcrumb) -->
         <div class="pb-2 border-b border-slate-200/80 dark:border-slate-800/80 flex items-center justify-between h-7">
             <div class="flex items-center gap-0.5 text-xs font-medium">
-                <a href="[[=URL('employees/personnel_directory')]]" class="text-slate-400 dark:text-slate-500 hover:text-primary transition-colors">Officers & Staff</a>
+                <a href="[[=URL('employees/empployee_directory')]]" class="text-slate-400 dark:text-slate-500 hover:text-primary transition-colors">Officers & Staff</a>
                 <span class="material-symbols-outlined text-[12px] text-slate-400 dark:text-slate-600 select-none -mx-0.5">chevron_right</span>
                 <span class="text-primary font-bold">Personnel Directory</span>
             </div>
@@ -13,7 +13,6 @@
 
         <!-- SUMMARY STATS CARDS -->
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5">
-            <!-- Total Employees -->
             <div
                 class="bg-white dark:bg-slate-900 rounded-xl border border-slate-200/80 dark:border-slate-800/80 p-3.5 flex items-center gap-3 shadow-sm">
                 <div class="w-10 h-10 rounded-lg bg-primary/10 text-primary flex items-center justify-center shrink-0">
@@ -27,7 +26,6 @@
                 </div>
             </div>
 
-            <!-- Active Employees -->
             <div
                 class="bg-white dark:bg-slate-900 rounded-xl border border-slate-200/80 dark:border-slate-800/80 p-3.5 flex items-center gap-3 shadow-sm">
                 <div
@@ -42,7 +40,6 @@
                 </div>
             </div>
 
-            <!-- Probationary -->
             <div
                 class="bg-white dark:bg-slate-900 rounded-xl border border-slate-200/80 dark:border-slate-800/80 p-3.5 flex items-center gap-3 shadow-sm">
                 <div
@@ -56,7 +53,6 @@
                 </div>
             </div>
 
-            <!-- Inactive -->
             <div
                 class="bg-white dark:bg-slate-900 rounded-xl border border-slate-200/80 dark:border-slate-800/80 p-3.5 flex items-center gap-3 shadow-sm">
                 <div
@@ -81,8 +77,18 @@
                 class="flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-2.5 bg-slate-50/70 dark:bg-slate-800/40 p-2 rounded-xl border border-slate-200/60 dark:border-slate-800/60">
 
                 <!-- LEFT SIDE: FILTER FORM -->
-                <form action="[[=URL('employees/personnel_directory')]]" method="GET" class="flex flex-wrap items-center gap-2 grow">
+                <form action="[[=URL('employees/empployee_directory')]]" method="GET" class="flex flex-wrap items-center gap-2 grow">
                     <input type="hidden" name="limit" value="[[= pagination['limit'] ]]">
+
+                    [[ if not user_cid: ]]
+                    <!-- CID Input Filter (Shown when CID is not bound in session) -->
+                    <div class="relative flex items-center w-full sm:w-28">
+                        <span class="material-symbols-outlined absolute left-1.5 top-1/2 -translate-y-1/2 text-slate-400 text-xs pointer-events-none z-10 leading-none">domain</span>
+                        <input type="text" name="cid" value="[[= request.query.get('cid', '') ]]"
+                            placeholder="CID..." autocomplete="off"
+                            class="w-full h-[28px] py-0 pl-8 pr-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-md text-[11px] font-medium text-slate-800 dark:text-slate-200 placeholder:text-slate-400 focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary transition-all leading-none">
+                    </div>
+                    [[ pass ]]
 
                     <!-- Search Input (Simple Manual Search) -->
                     <div class="relative flex items-center w-full sm:w-60">
@@ -115,8 +121,8 @@
                     </button>
 
                     <!-- Reset Filter Button -->
-                    [[ if request.query.get('keywords') or request.query.get('department') or request.query.get('status'): ]]
-                    <a href="[[=URL('employees/personnel_directory')]]" title="Clear Filters"
+                    [[ if request.query.get('keywords') or request.query.get('department') or request.query.get('status') or request.query.get('cid'): ]]
+                    <a href="[[=URL('employees/empployee_directory')]]" title="Clear Filters"
                         class="h-[28px] px-2 bg-rose-50 hover:bg-rose-100 dark:bg-rose-950/40 dark:hover:bg-rose-900/50 text-rose-600 dark:text-rose-400 border border-rose-200/60 dark:border-rose-800/60 rounded-md transition-all inline-flex items-center justify-center shrink-0">
                         <span class="material-symbols-outlined text-[14px] leading-none">filter_list_off</span>
                     </a>
@@ -144,14 +150,14 @@
                             class="hidden absolute right-0 top-full mt-1 w-36 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg shadow-lg z-50 py-1 text-xs">
                             
                             <!-- Excel Export -->
-                            <a href="[[=URL('employees/personnel_directory', vars=request.query | {'export': 'xlsx'})]]" 
+                            <a href="[[=URL('employees/empployee_directory', vars=request.query | {'export': 'xlsx'})]]" 
                             class="flex items-center gap-2 px-3 py-1.5 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200">
                                 <span class="material-symbols-outlined text-[16px] text-emerald-600 shrink-0">table_view</span>
                                 <span>Excel (.xls)</span>
                             </a>
 
                             <!-- CSV Export -->
-                            <a href="[[=URL('employees/personnel_directory', vars=request.query | {'export': 'csv'})]]" 
+                            <a href="[[=URL('employees/empployee_directory', vars=request.query | {'export': 'csv'})]]" 
                             class="flex items-center gap-2 px-3 py-1.5 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200">
                                 <span class="material-symbols-outlined text-[16px] text-amber-600 shrink-0">csv</span>
                                 <span>CSV File</span>
@@ -180,9 +186,9 @@
                     <thead>
                         <tr
                             class="bg-slate-100/70 dark:bg-slate-800/60 text-[10px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 border-b border-slate-200/80 dark:border-slate-800">
-                            <th class="py-2.5 px-4 whitespace-nowrap">Info</th>
+                            <th class="py-2.5 px-4 whitespace-nowrap">Personnel Info</th>
                             <th class="py-2.5 px-4 whitespace-nowrap">Designation & Dept</th>
-                            <th class="py-2.5 px-4 whitespace-nowrap">Posting Place</th>
+                            <th class="py-2.5 px-4 whitespace-nowrap">Posting & Service</th>
                             <th class="py-2.5 px-4 whitespace-nowrap">Contact & District</th>
                             <th class="py-2.5 px-4 whitespace-nowrap">Status</th>
                             <th class="py-2 px-2 text-center w-px whitespace-nowrap font-medium text-slate-600 dark:text-slate-300">
@@ -211,6 +217,8 @@
                                     <div class="flex flex-col min-w-0">
                                         <span class="font-bold text-slate-900 dark:text-white text-xs truncate">
                                             [[= emp.get('emp_name', '--') ]]
+                                            [[ if not user_cid and emp.get('cid'): ]]<span class="font-semibold text-sky-600 dark:text-sky-400">([[= emp.get('cid') ]])</span> 
+                                            [[ pass ]]
                                         </span>
                                         <span class="font-mono text-[10px] text-slate-400 dark:text-slate-500">
                                             #[[= emp.get('emp_id') ]] [[ if emp.get('blood_group'): ]]<span
@@ -221,23 +229,33 @@
                                 </div>
                             </td>
 
-                            
-
                             <td class="py-2.5 px-4">
-                                <div class="font-bold text-slate-800 dark:text-slate-200">[[= emp.get('emp_designation', '--') ]]</div>
+                                <div class="font-bold text-slate-800 dark:text-slate-200">
+                                    [[= emp.get('emp_designation', '--') ]]
+                                    [[ if emp.get('emp_grade'): ]]
+                                    <span class="inline-block ml-1 px-1.5 py-0.2 text-[9px] font-semibold bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 rounded border border-slate-200/60 dark:border-slate-700/60">
+                                        [[= emp.get('emp_grade') ]]
+                                    </span>
+                                    [[ pass ]]
+                                </div>
                                 <div class="text-[10px] text-slate-400 dark:text-slate-500">[[= emp.get('emp_department', '--') ]]</div>
                             </td>
 
                             <td class="py-2.5 px-4 text-slate-600 dark:text-slate-300">
-                                <span class="bg-slate-100 dark:bg-slate-800 px-2 py-0.5 rounded text-[11px]">
+                                <span class="bg-slate-100 dark:bg-slate-800 px-2 py-0.5 rounded text-[11px] font-medium inline-block">
                                     [[= emp.get('current_posting_place', 'Head Office') ]]
                                 </span>
+                                [[ if emp.get('emp_type'): ]]
+                                <div class="text-[10px] text-slate-400 dark:text-slate-500 mt-0.5 font-medium">[[= emp.get('emp_type') ]]</div>
+                                [[ pass ]]
                             </td>
 
                             <td class="py-2.5 px-4">
-                                <div class="font-mono text-slate-700 dark:text-slate-300">[[= emp.get('mobile', '--') ]]
+                                <div class="font-mono text-slate-700 dark:text-slate-300">[[= emp.get('mobile', '--') ]]</div>
+                                <div class="text-[10px] text-slate-400 dark:text-slate-500">
+                                    [[= emp.get('home_district', '--') ]]
+                                    [[ if emp.get('email'): ]] <span class="text-slate-300 dark:text-slate-600">•</span> [[= emp.get('email') ]][[ pass ]]
                                 </div>
-                                <div class="text-[10px] text-slate-400 dark:text-slate-500">[[= emp.get('home_district', '--') ]]</div>
                             </td>
 
                             <td class="py-2.5 px-4">
@@ -302,7 +320,7 @@
                             class="h-7 pl-2 pr-6 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-md text-xs font-semibold text-slate-700 dark:text-slate-200 focus:outline-none focus:ring-1 focus:ring-primary cursor-pointer">
                             [[ current_limit = pagination['limit'] ]]
                             [[ for l in [10, 25, 50, 100]: ]]
-                            <option value="[[= URL('employees/personnel_directory', vars=request.query | {'limit': l, 'page': 1}) ]]"
+                            <option value="[[= URL('employees/empployee_directory', vars=request.query | {'limit': l, 'page': 1}) ]]"
                                 [[='selected' if l==current_limit else '' ]]>
                                 [[= l ]]
                             </option>
@@ -323,7 +341,7 @@
                 <!-- RIGHT: Dynamic Page Numbers -->
                 <div class="flex items-center gap-1 select-none">
                     [[ if pagination['current_page'] > 1: ]]
-                    <a href="[[= URL('employees/personnel_directory', vars=request.query | {'page': pagination['current_page'] - 1}) ]]"
+                    <a href="[[= URL('employees/empployee_directory', vars=request.query | {'page': pagination['current_page'] - 1}) ]]"
                         class="w-7 h-7 rounded-lg border border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 flex items-center justify-center transition-colors text-slate-600 dark:text-slate-300">
                         <span class="material-symbols-outlined text-[14px]">chevron_left</span>
                     </a>
@@ -348,7 +366,7 @@
                         class="w-7 h-7 rounded-lg bg-primary text-white font-bold flex items-center justify-center shadow-2xs">
                         [[= p ]]</span>
                         [[ else: ]]
-                        <a href="[[= URL('employees/personnel_directory', vars=request.query | {'page': p}) ]]"
+                        <a href="[[= URL('employees/empployee_directory', vars=request.query | {'page': p}) ]]"
                             class="w-7 h-7 rounded-lg border border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 font-medium flex items-center justify-center text-slate-600 dark:text-slate-300 transition-colors">
                             [[= p ]]
                         </a>
@@ -359,7 +377,7 @@
                         [[ pass ]]
 
                         [[ if pagination['current_page'] < pagination['total_pages']: ]] <a
-                            href="[[= URL('employees/personnel_directory', vars=request.query | {'page': pagination['current_page'] + 1}) ]]"
+                            href="[[= URL('employees/empployee_directory', vars=request.query | {'page': pagination['current_page'] + 1}) ]]"
                             class="w-7 h-7 rounded-lg border border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 flex items-center justify-center transition-colors text-slate-600 dark:text-slate-300">
                             <span class="material-symbols-outlined text-[14px]">chevron_right</span>
                             </a>

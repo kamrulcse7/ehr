@@ -2,6 +2,7 @@ from functools import wraps
 from datetime import datetime, timedelta
 from py4web import request, response, redirect, URL
 from ..utils.common import session, flash
+from ..utils.menu_utils import get_user_menu_tree
 from ..core.config import settings
 
 def web_auth_required(handler):
@@ -26,7 +27,7 @@ def web_auth_required(handler):
 
         if not is_authenticated:
             session.clear()
-            response.delete_cookie("3DB-AUTH-1")
+            response.delete_cookie(f"{settings.APP_NAME}_session")
             redirect(URL("auth/login"))
             return
 
@@ -43,6 +44,10 @@ def web_auth_required(handler):
                 response_dict["session"] = session
             if "flash" not in response_dict:
                 response_dict["flash"] = flash
+            if "user_menu" not in response_dict:
+                if "user_menu" not in session or not session.user_menu:
+                    session.user_menu = get_user_menu_tree(session.user)
+                response_dict["user_menu"] = session.user_menu
                 
         return response_dict
 

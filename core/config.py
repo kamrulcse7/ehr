@@ -76,14 +76,14 @@ class AppSettings(BaseSettings):
     MYSQL_PASS: str = ""
     MYSQL_HOST: str = "localhost"
     MYSQL_PORT: str = "3306"
-    MYSQL_DB_NAME: str = "badc"
+    MYSQL_DB_NAME: str = "ehr"
     
     ## Database
     MYSQL_REPLICA_USER: str = "root"
     MYSQL_REPLICA_PASS: str = ""
     MYSQL_REPLICA_HOST: str = "localhost"
     MYSQL_REPLICA_PORT: str = "3306"
-    MYSQL_REPLICA_DB_NAME: str = "badc"
+    MYSQL_REPLICA_DB_NAME: str = "ehr"
 
     ## Timezone / Time offset
     TIMEZONE: str = "Asia/Dhaka"

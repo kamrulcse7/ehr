@@ -4,7 +4,7 @@ from ..core.config import settings
 from ..core.db import db
 
 session = Session(
-    name=settings.APP_NAME,
+    name=f"{settings.APP_NAME}_session",
     same_site=settings.SAME_SITE,
     secret=settings.SECRET_KEY,
     algorithm=settings.ALGORITHM,

@@ -27,74 +27,56 @@
         <!-- Navigation (Compact List & Lower Heights) -->
         <nav id="sidebar-menu" class="flex-1 px-2 py-2 flex flex-col gap-0.5 overflow-y-auto overflow-x-hidden">
 
-            <!-- Dashboard -->
-            <div class="menu-item-wrapper relative group">
-                <a href="[[=URL('dashboard')]]"
-                    class="menu-link flex items-center gap-2.5 px-3 py-1.5 rounded-lg text-xs font-medium text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white transition-all duration-150">
-                    <span
-                        class="material-symbols-outlined text-slate-500 dark:text-slate-400 group-hover:text-primary text-[18px] shrink-0">dashboard</span>
-                    <span class="sidebar-text truncate">Dashboard</span>
-                </a>
-                <div
-                    class="hover-flyout absolute left-full top-0 ml-2 w-48 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg shadow-xl py-1 hidden z-30">
+            [[ if globals().get('user_menu'): ]]
+                [[ for menu in user_menu: ]]
+                    [[ if menu.get('children'): ]]
+                        <!-- Submenu Dropdown Header -->
+                        <div class="menu-item-wrapper relative group">
+                            <button
+                                class="submenu-toggle w-full flex items-center gap-2.5 px-3 py-1.5 rounded-lg text-xs font-medium text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white transition-all duration-150 outline-none">
+                                <span
+                                    class="material-symbols-outlined text-slate-500 dark:text-slate-400 group-hover:text-primary text-[18px] shrink-0">[[=menu.get('icon') or 'folder']]</span>
+                                <span class="sidebar-text truncate text-left flex-1">[[=menu.get('display_title')]]</span>
+                                <span
+                                    class="material-symbols-outlined sidebar-text text-xs text-slate-400 transition-transform duration-200 arrow-icon">chevron_right</span>
+                            </button>
+                            <div
+                                class="submenu-container max-h-0 overflow-hidden transition-all duration-300 ease-in-out bg-slate-50/50 dark:bg-slate-950/30 rounded-lg mt-0.5 pl-8 pr-1.5 flex flex-col gap-0.5">
+                                [[ for child in menu.get('children'): ]]
+                                    <a href="[[=URL(child.get('route_path', '').lstrip('/')) if child.get('route_path') else '#']] "
+                                        class="block py-1 px-2.5 text-[11px] font-medium text-slate-600 dark:text-slate-400 hover:text-primary dark:hover:text-white transition-all duration-150">[[=child.get('display_title')]]</a>
+                                [[ pass ]]
+                            </div>
+                            <div
+                                class="hover-flyout absolute left-full top-0 ml-2 w-48 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg shadow-xl py-1 hidden z-30">
+                            </div>
+                        </div>
+                    [[ else: ]]
+                        <!-- Direct Menu Link -->
+                        <div class="menu-item-wrapper relative group">
+                            <a href="[[=URL(menu.get('route_path', '').lstrip('/')) if menu.get('route_path') else '#']] "
+                                class="menu-link flex items-center gap-2.5 px-3 py-1.5 rounded-lg text-xs font-medium text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white transition-all duration-150">
+                                <span
+                                    class="material-symbols-outlined text-slate-500 dark:text-slate-400 group-hover:text-primary text-[18px] shrink-0">[[=menu.get('icon') or 'dashboard']]</span>
+                                <span class="sidebar-text truncate">[[=menu.get('display_title')]]</span>
+                            </a>
+                            <div
+                                class="hover-flyout absolute left-full top-0 ml-2 w-48 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg shadow-xl py-1 hidden z-30">
+                            </div>
+                        </div>
+                    [[ pass ]]
+                [[ pass ]]
+            [[ else: ]]
+                <!-- Default Static Fallback Navigation -->
+                <div class="menu-item-wrapper relative group">
+                    <a href="[[=URL('dashboard')]]"
+                        class="menu-link flex items-center gap-2.5 px-3 py-1.5 rounded-lg text-xs font-medium text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white transition-all duration-150">
+                        <span
+                            class="material-symbols-outlined text-slate-500 dark:text-slate-400 group-hover:text-primary text-[18px] shrink-0">dashboard</span>
+                        <span class="sidebar-text truncate">Dashboard</span>
+                    </a>
                 </div>
-            </div>
-
-            <!-- Administration -->
-            <div class="menu-item-wrapper relative group">
-                <button
-                    class="submenu-toggle w-full flex items-center gap-2.5 px-3 py-1.5 rounded-lg text-xs font-medium text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white transition-all duration-150 outline-none">
-                    <span
-                        class="material-symbols-outlined text-slate-500 dark:text-slate-400 group-hover:text-primary text-[18px] shrink-0">admin_panel_settings</span>
-                    <span class="sidebar-text truncate text-left flex-1">Administration</span>
-                    <span
-                        class="material-symbols-outlined sidebar-text text-xs text-slate-400 transition-transform duration-200 arrow-icon">chevron_right</span>
-                </button>
-                <div
-                    class="submenu-container max-h-0 overflow-hidden transition-all duration-300 ease-in-out bg-slate-50/50 dark:bg-slate-950/30 rounded-lg mt-0.5 pl-8 pr-1.5 flex flex-col gap-0.5">
-                    <a href="[[=URL('administration/users')]]"
-                        class="block py-1 px-2.5 text-[11px] font-medium text-slate-600 dark:text-slate-400 hover:text-primary dark:hover:text-white transition-all duration-150">User
-                        Management</a>
-                    <a href="[[=URL('administration/roles_permisions')]]"
-                        class="block py-1 px-2.5 text-[11px] font-medium text-slate-600 dark:text-slate-400 hover:text-primary dark:hover:text-white transition-all duration-150">Roles & Permissions</a>
-                </div>
-                <div
-                    class="hover-flyout absolute left-full top-0 ml-2 w-48 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg shadow-xl py-1 hidden z-30">
-                </div>
-            </div>
-
-            <!-- Employees -->
-            <div class="menu-item-wrapper relative group">
-                <button
-                    class="submenu-toggle w-full flex items-center gap-2.5 px-3 py-1.5 rounded-lg text-xs font-medium text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white transition-all duration-150 outline-none">
-                    <span
-                        class="material-symbols-outlined text-slate-500 dark:text-slate-400 group-hover:text-primary text-[18px] shrink-0">badge</span>
-                    <span class="sidebar-text truncate text-left flex-1">Officers & Staff</span>
-                    <span
-                        class="material-symbols-outlined sidebar-text text-xs text-slate-400 transition-transform duration-200 arrow-icon">chevron_right</span>
-                </button>
-                <div
-                    class="submenu-container max-h-0 overflow-hidden transition-all duration-300 ease-in-out bg-slate-50/50 dark:bg-slate-950/30 rounded-lg mt-0.5 pl-8 pr-1.5 flex flex-col gap-0.5">
-                    <a href="[[=URL('employees/personnel_directory')]]"
-                        class="block py-1 px-2.5 text-[11px] font-medium text-slate-600 dark:text-slate-400 hover:text-primary dark:hover:text-white transition-all duration-150">
-                        Personnel Directory</a>
-                    <a href="[[=URL('employees/postings_transfers')]]"
-                        class="block py-1 px-2.5 text-[11px] font-medium text-slate-600 dark:text-slate-400 hover:text-primary dark:hover:text-white transition-all duration-150">Postings & Transfers</a>
-                </div>
-                <div
-                    class="hover-flyout absolute left-full top-0 ml-2 w-48 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg shadow-xl py-1 hidden z-30">
-                </div>
-            </div>
-
-            <!-- Report -->
-            <div class="menu-item-wrapper relative group">
-                <a href="#"
-                    class="menu-link flex items-center gap-2.5 px-3 py-1.5 rounded-lg text-xs font-medium text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white transition-all duration-150">
-                    <span
-                        class="material-symbols-outlined text-slate-500 dark:text-slate-400 group-hover:text-primary text-[18px] shrink-0">bar_chart</span>
-                    <span class="sidebar-text truncate">Reports & Analytics</span>
-                </a>
-            </div>
+            [[ pass ]]
 
         </nav>
 
@@ -123,8 +105,8 @@
             <div class="flex-1 flex items-center justify-center min-w-0 px-2 overflow-hidden">
                 <h1
                     class="text-[11px] sm:text-xs font-semibold text-slate-800 dark:text-slate-100 uppercase tracking-tight text-center truncate">
-                    <span class="inline md:hidden">BADC</span>
-                    <span class="hidden md:inline">Bangladesh Agricultural Development Corporation (BADC)</span>
+                    <span class="inline md:hidden">[[=session.user.get('cid', 'Eon').strip()]]</span>
+                    <span class="hidden md:inline">[[=session.user.get('company_name', 'Eon Systems').strip()]]</span>
                 </h1>
             </div>
 
@@ -178,6 +160,7 @@
                 <div class="relative">
                     <!-- Python Helper: Extract First Name Safely -->
                     [[
+                    user_id = session.user.get('user_id', 'User').strip()
                     full_name = session.user.get('user_name', 'User').strip()
                     first_name = full_name.split(' ')[0] if full_name else 'User'
                     avatar_char = first_name[0].upper() if first_name else 'U'
@@ -201,7 +184,7 @@
                             <!-- Display Only First Name -->
                             <span
                                 class="text-xs font-semibold text-slate-700 dark:text-slate-200 leading-tight truncate">
-                                [[= first_name ]]
+                                 [[=first_name]] ([[= user_id ]])
                             </span>
 
                             <!-- User Role -->
@@ -223,7 +206,7 @@
                         <!-- Mobile Header View (Only First Name Displayed Here Too) -->
                         <div class="px-3 py-1.5 border-b border-slate-100 dark:border-slate-800 sm:hidden">
                             <p class="text-xs font-semibold text-slate-800 dark:text-white truncate">
-                                [[= first_name ]]
+                                [[= first_name ]] ([[=user_id]])
                             </p>
                             <p class="text-[10px] text-slate-400 truncate">
                                 [[= session.user.get('user_role', '') ]]
@@ -256,7 +239,9 @@
 
         <!-- Main Content Included Area (Tight Padding) -->
         <main class="flex-1 overflow-y-auto p-3 sm:p-4 bg-slate-100 dark:bg-slate-950 transition-colors duration-200">
-            [[include]]
+            <div class="max-w-[1600px] w-full">
+                [[include]]
+            </div>
         </main>
 
     </div>

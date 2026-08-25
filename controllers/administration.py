@@ -407,13 +407,14 @@ def users():
             COALESCE(u.email, '--') AS user_email, 
             COALESCE(e.emp_department, '--') AS department, 
             COALESCE(e.emp_designation, '--') AS designation, 
-            COALESCE(e.current_posting_place, '--') AS branch, 
+            COALESCE(b.branch_name, e.current_branch_id, '--') AS branch, 
             u.last_login_on AS last_login, 
-            u.user_role, 
+            u.role_id AS user_role, 
             u.status_type AS user_status,
             COALESCE(u.profile_image, '') AS user_photo
         FROM users u
-        LEFT JOIN employees e ON (u.user_id = e.emp_id)
+        LEFT JOIN employees e ON u.emp_id = e.emp_id AND u.cid = e.cid
+        LEFT JOIN branches b ON e.current_branch_id = b.branch_id AND e.cid = b.cid
         ORDER BY u.id DESC; 
     """  
     try:
