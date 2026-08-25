@@ -949,6 +949,10 @@ html.dark body {
   max-height: 100px;
 }
 
+.max-h-64 {
+  max-height: 16rem;
+}
+
 .min-h-\[100px\] {
   min-height: 100px;
 }
@@ -1043,6 +1047,10 @@ html.dark body {
 
 .w-64 {
   width: 16rem;
+}
+
+.w-52 {
+  width: 13rem;
 }
 
 .min-w-0 {
@@ -1386,6 +1394,11 @@ html.dark body {
 .rounded-r-md {
   border-top-right-radius: 0.375rem;
   border-bottom-right-radius: 0.375rem;
+}
+
+.rounded-t-xl {
+  border-top-left-radius: 0.75rem;
+  border-top-right-radius: 0.75rem;
 }
 
 .border {

@@ -47,9 +47,6 @@
                                         class="block py-1 px-2.5 text-[11px] font-medium text-slate-600 dark:text-slate-400 hover:text-primary dark:hover:text-white transition-all duration-150">[[=child.get('display_title')]]</a>
                                 [[ pass ]]
                             </div>
-                            <div
-                                class="hover-flyout absolute left-full top-0 ml-2 w-48 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg shadow-xl py-1 hidden z-30">
-                            </div>
                         </div>
                     [[ else: ]]
                         <!-- Direct Menu Link -->
@@ -60,9 +57,6 @@
                                     class="material-symbols-outlined text-slate-500 dark:text-slate-400 group-hover:text-primary text-[18px] shrink-0">[[=menu.get('icon') or 'dashboard']]</span>
                                 <span class="sidebar-text truncate" data-title="[[=menu.get('display_title')]]">[[=menu.get('display_title')]]</span>
                             </a>
-                            <div
-                                class="hover-flyout absolute left-full top-0 ml-2 w-48 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg shadow-xl py-1 hidden z-30">
-                            </div>
                         </div>
                     [[ pass ]]
                 [[ pass ]]
@@ -289,6 +283,8 @@
                 document.querySelectorAll(".arrow-icon").forEach(el => el.classList.remove("rotate-90"));
 
                 sidebarTexts.forEach(txt => txt.classList.toggle("hidden"));
+
+                if (typeof sidebarFlyout !== "undefined" && sidebarFlyout) sidebarFlyout.classList.add("hidden");
             } else {
                 sidebar.classList.toggle("-translate-x-full");
                 backdrop.classList.toggle("hidden");
@@ -376,50 +372,125 @@
             });
         }
 
-        // Mini Sidebar Hover Flyout
+        // Mini Sidebar Floating Flyout Menu Handler
+        const sidebarFlyout = document.getElementById("sidebar-flyout");
+        const flyoutIcon = document.getElementById("flyout-icon");
+        const flyoutTitle = document.getElementById("flyout-title");
+        const flyoutBody = document.getElementById("flyout-body");
+        let flyoutHideTimeout = null;
+
+        function showFlyout(wrapper) {
+            if (!sidebar.classList.contains("sidebar-mini") || !sidebarFlyout) return;
+
+            const subLinks = wrapper.querySelectorAll(".submenu-container a");
+
+            // ONLY show flyout for menu items that have actual submenus!
+            if (!subLinks || subLinks.length === 0) {
+                sidebarFlyout.classList.add("hidden");
+                return;
+            }
+
+            clearTimeout(flyoutHideTimeout);
+
+            const sidebarTooltip = document.getElementById("sidebar-tooltip");
+            if (sidebarTooltip) sidebarTooltip.classList.add("hidden");
+
+            const btnOrLink = wrapper.querySelector("button, a");
+            if (!btnOrLink) return;
+
+            const iconEl = btnOrLink.querySelector(".material-symbols-outlined");
+            const iconName = iconEl ? iconEl.textContent.trim() : "folder";
+            const mainTitle = (btnOrLink.getAttribute("data-title") || btnOrLink.innerText || "").replace("chevron_right", "").trim();
+
+            if (flyoutIcon) flyoutIcon.textContent = iconName;
+            if (flyoutTitle) flyoutTitle.textContent = mainTitle;
+
+            if (flyoutBody) flyoutBody.innerHTML = "";
+
+            subLinks.forEach(sub => {
+                const subTitle = sub.getAttribute("data-title") || sub.textContent.trim();
+                const subHref = sub.getAttribute("href") || "#";
+                const helperAnchor = document.createElement('a');
+                helperAnchor.href = sub.href;
+                const isSubActive = currentPath === helperAnchor.pathname || window.location.href.includes(sub.href);
+
+                const a = document.createElement("a");
+                a.href = subHref;
+                a.className = `flex items-center justify-between px-3 py-1.5 text-xs font-medium rounded-lg transition-colors ${
+                    isSubActive 
+                    ? "bg-slate-100 dark:bg-slate-800 text-primary dark:text-white font-bold" 
+                    : "text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white"
+                }`;
+                a.innerHTML = `<span>${subTitle}</span><span class="material-symbols-outlined text-[14px] text-slate-400">chevron_right</span>`;
+                flyoutBody.appendChild(a);
+            });
+
+            const rect = btnOrLink.getBoundingClientRect();
+            sidebarFlyout.style.left = `${rect.right + 6}px`;
+            sidebarFlyout.style.top = `${rect.top}px`;
+            sidebarFlyout.classList.remove("hidden");
+
+            const flyoutHeight = sidebarFlyout.offsetHeight;
+            if (rect.top + flyoutHeight > window.innerHeight - 12) {
+                const adjustedTop = Math.max(10, window.innerHeight - flyoutHeight - 12);
+                sidebarFlyout.style.top = `${adjustedTop}px`;
+            }
+        }
+
+        function scheduleHideFlyout() {
+            flyoutHideTimeout = setTimeout(() => {
+                if (sidebarFlyout) sidebarFlyout.classList.add("hidden");
+            }, 180);
+        }
+
         menuWrappers.forEach(wrapper => {
             wrapper.addEventListener("mouseenter", function () {
                 if (sidebar.classList.contains("sidebar-mini")) {
-                    const flyout = this.querySelector(".hover-flyout");
-                    const targetBtnOrLink = this.querySelector("a, button");
-                    if (flyout && targetBtnOrLink) {
-                        flyout.innerHTML = '';
-
-                        const mainTitle = targetBtnOrLink.innerText.replace('chevron_right', '').trim();
-                        const headerDiv = document.createElement("div");
-                        headerDiv.className = "px-3 py-1 text-[10px] font-bold text-slate-400 dark:text-slate-500 border-b border-slate-100 dark:border-slate-800 mb-1 uppercase tracking-wider";
-                        headerDiv.innerText = mainTitle;
-                        flyout.appendChild(headerDiv);
-
-                        const subLinks = this.querySelectorAll(".submenu-container a");
-                        if (subLinks.length > 0) {
-                            subLinks.forEach(sub => {
-                                const newLink = sub.cloneNode(true);
-                                newLink.className = "block px-3 py-1.5 text-xs font-medium text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 hover:text-primary transition-colors";
-                                flyout.appendChild(newLink);
-                            });
-                        } else {
-                            const mainLink = this.querySelector("a");
-                            if (mainLink && mainLink.getAttribute("href") !== "#") {
-                                const newLink = mainLink.cloneNode(true);
-                                newLink.className = "block px-3 py-1.5 text-xs font-medium text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 hover:text-primary transition-colors";
-                                newLink.innerHTML = `Go to ${mainTitle}`;
-                                flyout.appendChild(newLink);
-                            }
-                        }
-
-                        flyout.classList.remove("hidden");
+                    const hasSubmenus = wrapper.querySelectorAll(".submenu-container a").length > 0;
+                    if (hasSubmenus) {
+                        showFlyout(this);
+                    } else if (sidebarFlyout) {
+                        sidebarFlyout.classList.add("hidden");
                     }
                 }
             });
 
             wrapper.addEventListener("mouseleave", function () {
                 if (sidebar.classList.contains("sidebar-mini")) {
-                    const flyout = this.querySelector(".hover-flyout");
-                    if (flyout) flyout.classList.add("hidden");
+                    scheduleHideFlyout();
                 }
             });
+
+            const toggleSubBtn = wrapper.querySelector(".submenu-toggle");
+            if (toggleSubBtn) {
+                toggleSubBtn.addEventListener("click", function (e) {
+                    if (sidebar.classList.contains("sidebar-mini")) {
+                        const hasSubmenus = wrapper.querySelectorAll(".submenu-container a").length > 0;
+                        if (hasSubmenus) {
+                            e.stopPropagation();
+                            showFlyout(wrapper);
+                        }
+                    }
+                });
+            }
         });
+
+        if (sidebarFlyout) {
+            sidebarFlyout.addEventListener("mouseenter", function () {
+                clearTimeout(flyoutHideTimeout);
+            });
+
+            sidebarFlyout.addEventListener("mouseleave", function () {
+                scheduleHideFlyout();
+            });
+        }
+
+        const sidebarMenuNav = document.getElementById("sidebar-menu");
+        if (sidebarMenuNav) {
+            sidebarMenuNav.addEventListener("scroll", () => {
+                if (sidebarFlyout) sidebarFlyout.classList.add("hidden");
+            });
+        }
 
         // Language Dropdown Handler
         const langBtn = document.getElementById("lang-dropdown-btn");
@@ -469,9 +540,12 @@
         }
 
         // Close dropdowns on outside click
-        document.addEventListener("click", function () {
+        document.addEventListener("click", function (e) {
             if (profileDropdown) profileDropdown.classList.add("hidden");
             if (langDropdown) langDropdown.classList.add("hidden");
+            if (typeof sidebarFlyout !== "undefined" && sidebarFlyout && !sidebarFlyout.contains(e.target)) {
+                sidebarFlyout.classList.add("hidden");
+            }
         });
 
         // Active Menu Item Highlighter
@@ -549,16 +623,20 @@
             menuTargets.forEach(el => {
                 el.addEventListener("mouseenter", function () {
                     const isMini = sidebar.classList.contains("sidebar-mini");
-                    const textEl = this.querySelector(".sidebar-text") || this;
+                    const parentWrapper = this.closest(".menu-item-wrapper");
+                    const hasSubmenus = parentWrapper ? (parentWrapper.querySelectorAll(".submenu-container a").length > 0) : false;
                     
-                    // Check if text is truncated (overflowing with ...)
+                    // In mini mode, items WITH submenus use the flyout panel.
+                    // Items WITHOUT submenus (like Dashboard) show simple tooltip!
+                    if (isMini && hasSubmenus) return;
+
+                    const textEl = this.querySelector(".sidebar-text") || this;
                     const isTruncated = textEl.scrollWidth > textEl.clientWidth;
 
-                    // Only show tooltip if sidebar is in mini mode OR if text is truncated in expanded mode!
+                    // If NOT in mini mode, only show tooltip if text is truncated
                     if (!isMini && !isTruncated) return;
 
-                    const fullText = (textEl.getAttribute("data-title") || textEl.innerText || "").replace("chevron_right", "").trim();
-                    
+                    const fullText = (this.getAttribute("data-title") || textEl.getAttribute("data-title") || this.innerText || "").replace("chevron_right", "").trim();
                     if (!fullText) return;
 
                     const rect = this.getBoundingClientRect();
@@ -582,3 +660,13 @@
 
 <!-- Floating Tooltip Container -->
 <div id="sidebar-tooltip" class="fixed hidden px-2.5 py-1 bg-slate-900/90 dark:bg-slate-800/95 text-white text-xs font-semibold rounded-lg shadow-2xl z-50 pointer-events-none whitespace-nowrap border border-slate-700/60 backdrop-blur-xs transition-opacity duration-150"></div>
+
+<!-- Floating Submenu Flyout Container for Mini Sidebar -->
+<div id="sidebar-flyout" class="fixed hidden w-52 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl shadow-2xl py-1.5 z-50 transition-all duration-150 font-sans">
+    <div id="flyout-header" class="px-3 py-2 text-xs font-bold text-slate-800 dark:text-white border-b border-slate-100 dark:border-slate-800 flex items-center gap-2 bg-slate-50/50 dark:bg-slate-800/40 rounded-t-xl">
+        <span id="flyout-icon" class="material-symbols-outlined text-primary text-[18px] shrink-0">folder</span>
+        <span id="flyout-title" class="truncate">Menu Title</span>
+    </div>
+    <div id="flyout-body" class="p-1 flex flex-col gap-0.5 max-h-64 overflow-y-auto">
+    </div>
+</div>
