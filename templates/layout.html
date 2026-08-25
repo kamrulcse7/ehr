@@ -32,18 +32,18 @@
                     [[ if menu.get('children'): ]]
                         <!-- Submenu Dropdown Header -->
                         <div class="menu-item-wrapper relative group">
-                            <button
+                            <button data-title="[[=menu.get('display_title')]]"
                                 class="submenu-toggle w-full flex items-center gap-2.5 px-3 py-1.5 rounded-lg text-xs font-medium text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white transition-all duration-150 outline-none">
                                 <span
                                     class="material-symbols-outlined text-slate-500 dark:text-slate-400 group-hover:text-primary text-[18px] shrink-0">[[=menu.get('icon') or 'folder']]</span>
-                                <span class="sidebar-text truncate text-left flex-1">[[=menu.get('display_title')]]</span>
+                                <span class="sidebar-text truncate text-left flex-1" data-title="[[=menu.get('display_title')]]">[[=menu.get('display_title')]]</span>
                                 <span
                                     class="material-symbols-outlined sidebar-text text-xs text-slate-400 transition-transform duration-200 arrow-icon">chevron_right</span>
                             </button>
                             <div
                                 class="submenu-container max-h-0 overflow-hidden transition-all duration-300 ease-in-out bg-slate-50/50 dark:bg-slate-950/30 rounded-lg mt-0.5 pl-8 pr-1.5 flex flex-col gap-0.5">
                                 [[ for child in menu.get('children'): ]]
-                                    <a href="[[=URL(child.get('route_path', '').lstrip('/')) if child.get('route_path') else '#']] "
+                                    <a data-title="[[=child.get('display_title')]]" href="[[=URL(child.get('route_path', '').lstrip('/')) if child.get('route_path') else '#']] "
                                         class="block py-1 px-2.5 text-[11px] font-medium text-slate-600 dark:text-slate-400 hover:text-primary dark:hover:text-white transition-all duration-150">[[=child.get('display_title')]]</a>
                                 [[ pass ]]
                             </div>
@@ -54,11 +54,11 @@
                     [[ else: ]]
                         <!-- Direct Menu Link -->
                         <div class="menu-item-wrapper relative group">
-                            <a href="[[=URL(menu.get('route_path', '').lstrip('/')) if menu.get('route_path') else '#']] "
+                            <a data-title="[[=menu.get('display_title')]]" href="[[=URL(menu.get('route_path', '').lstrip('/')) if menu.get('route_path') else '#']] "
                                 class="menu-link flex items-center gap-2.5 px-3 py-1.5 rounded-lg text-xs font-medium text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white transition-all duration-150">
                                 <span
                                     class="material-symbols-outlined text-slate-500 dark:text-slate-400 group-hover:text-primary text-[18px] shrink-0">[[=menu.get('icon') or 'dashboard']]</span>
-                                <span class="sidebar-text truncate">[[=menu.get('display_title')]]</span>
+                                <span class="sidebar-text truncate" data-title="[[=menu.get('display_title')]]">[[=menu.get('display_title')]]</span>
                             </a>
                             <div
                                 class="hover-flyout absolute left-full top-0 ml-2 w-48 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg shadow-xl py-1 hidden z-30">
@@ -268,12 +268,22 @@
 
         updateThemeIcon();
 
+        // Restore Sidebar Mini State from LocalStorage
+        const isMiniSaved = localStorage.getItem("sidebar_mini") === "true";
+        if (isMiniSaved && window.innerWidth >= 768) {
+            sidebar.classList.remove("w-56");
+            sidebar.classList.add("w-16", "sidebar-mini");
+            sidebarTexts.forEach(txt => txt.classList.add("hidden"));
+        }
+
         // Sidebar Toggle Logic
         function handleSidebarToggle() {
             if (window.innerWidth >= 768) {
                 sidebar.classList.toggle("w-56");
                 sidebar.classList.toggle("w-16");
-                sidebar.classList.toggle("sidebar-mini");
+                const isMiniNow = sidebar.classList.toggle("sidebar-mini");
+
+                localStorage.setItem("sidebar_mini", isMiniNow ? "true" : "false");
 
                 document.querySelectorAll(".submenu-container").forEach(el => el.style.maxHeight = null);
                 document.querySelectorAll(".arrow-icon").forEach(el => el.classList.remove("rotate-90"));
@@ -481,11 +491,13 @@
 
                 if (parentContainer) {
                     parentContainer.classList.add("active-menu-parent");
-                    parentContainer.style.maxHeight = parentContainer.scrollHeight + "px";
+                    if (!sidebar.classList.contains("sidebar-mini")) {
+                        parentContainer.style.maxHeight = parentContainer.scrollHeight + "px";
+                    }
 
                     const parentWrapper = parentContainer.closest(".menu-item-wrapper");
                     const arrow = parentWrapper.querySelector(".arrow-icon");
-                    if (arrow) arrow.classList.add("rotate-90");
+                    if (arrow && !sidebar.classList.contains("sidebar-mini")) arrow.classList.add("rotate-90");
 
                     const parentButton = parentWrapper.querySelector(".submenu-toggle");
                     if (parentButton) {
@@ -528,5 +540,45 @@
         document.addEventListener("fullscreenchange", () => {
             if (fsIcon) fsIcon.innerText = document.fullscreenElement ? "fullscreen_exit" : "fullscreen";
         });
+
+        // Dynamic Floating Tooltip for Sidebar Menu Items
+        const sidebarTooltip = document.getElementById("sidebar-tooltip");
+        if (sidebarTooltip) {
+            const menuTargets = document.querySelectorAll("#sidebar-menu .submenu-toggle, #sidebar-menu .menu-link, #sidebar-menu .submenu-container a");
+            
+            menuTargets.forEach(el => {
+                el.addEventListener("mouseenter", function () {
+                    const isMini = sidebar.classList.contains("sidebar-mini");
+                    const textEl = this.querySelector(".sidebar-text") || this;
+                    
+                    // Check if text is truncated (overflowing with ...)
+                    const isTruncated = textEl.scrollWidth > textEl.clientWidth;
+
+                    // Only show tooltip if sidebar is in mini mode OR if text is truncated in expanded mode!
+                    if (!isMini && !isTruncated) return;
+
+                    const fullText = (textEl.getAttribute("data-title") || textEl.innerText || "").replace("chevron_right", "").trim();
+                    
+                    if (!fullText) return;
+
+                    const rect = this.getBoundingClientRect();
+                    sidebarTooltip.textContent = fullText;
+                    
+                    const tooltipTop = rect.top + (rect.height / 2) - 13;
+                    const tooltipLeft = rect.right + 8;
+                    
+                    sidebarTooltip.style.top = `${tooltipTop}px`;
+                    sidebarTooltip.style.left = `${tooltipLeft}px`;
+                    sidebarTooltip.classList.remove("hidden");
+                });
+
+                el.addEventListener("mouseleave", function () {
+                    sidebarTooltip.classList.add("hidden");
+                });
+            });
+        }
     });
 </script>
+
+<!-- Floating Tooltip Container -->
+<div id="sidebar-tooltip" class="fixed hidden px-2.5 py-1 bg-slate-900/90 dark:bg-slate-800/95 text-white text-xs font-semibold rounded-lg shadow-2xl z-50 pointer-events-none whitespace-nowrap border border-slate-700/60 backdrop-blur-xs transition-opacity duration-150"></div>
