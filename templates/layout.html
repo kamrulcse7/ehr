@@ -279,8 +279,21 @@
 
                 localStorage.setItem("sidebar_mini", isMiniNow ? "true" : "false");
 
-                document.querySelectorAll(".submenu-container").forEach(el => el.style.maxHeight = null);
-                document.querySelectorAll(".arrow-icon").forEach(el => el.classList.remove("rotate-90"));
+                if (isMiniNow) {
+                    document.querySelectorAll(".submenu-container").forEach(el => el.style.maxHeight = null);
+                    document.querySelectorAll(".arrow-icon").forEach(el => el.classList.remove("rotate-90"));
+                } else {
+                    document.querySelectorAll(".submenu-container").forEach(container => {
+                        if (container.classList.contains("active-menu-parent") || container.classList.contains("user-opened")) {
+                            container.style.maxHeight = container.scrollHeight + "px";
+                            const parentWrapper = container.closest(".menu-item-wrapper");
+                            if (parentWrapper) {
+                                const arrow = parentWrapper.querySelector(".arrow-icon");
+                                if (arrow) arrow.classList.add("rotate-90");
+                            }
+                        }
+                    });
+                }
 
                 sidebarTexts.forEach(txt => txt.classList.toggle("hidden"));
 
@@ -307,9 +320,11 @@
                 if (container) {
                     if (container.style.maxHeight) {
                         container.style.maxHeight = null;
+                        container.classList.remove("user-opened");
                         arrow.classList.remove("rotate-90");
                     } else {
                         container.style.maxHeight = container.scrollHeight + "px";
+                        container.classList.add("user-opened");
                         arrow.classList.add("rotate-90");
                     }
                 }
@@ -359,7 +374,7 @@
                         const arrow = item.querySelector(".arrow-icon");
 
                         if (container) {
-                            if (container.classList.contains("active-menu-parent") && !sidebar.classList.contains("sidebar-mini")) {
+                            if ((container.classList.contains("active-menu-parent") || container.classList.contains("user-opened")) && !sidebar.classList.contains("sidebar-mini")) {
                                 container.style.maxHeight = container.scrollHeight + "px";
                                 if (arrow) arrow.classList.add("rotate-90");
                             } else {
@@ -421,7 +436,7 @@
                     ? "bg-slate-100 dark:bg-slate-800 text-primary dark:text-white font-bold" 
                     : "text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white"
                 }`;
-                a.innerHTML = `<span>${subTitle}</span><span class="material-symbols-outlined text-[14px] text-slate-400">chevron_right</span>`;
+                a.innerHTML = `<span>${subTitle}</span>`;
                 flyoutBody.appendChild(a);
             });
 
@@ -662,8 +677,8 @@
 <div id="sidebar-tooltip" class="fixed hidden px-2.5 py-1 bg-slate-900/90 dark:bg-slate-800/95 text-white text-xs font-semibold rounded-lg shadow-2xl z-50 pointer-events-none whitespace-nowrap border border-slate-700/60 backdrop-blur-xs transition-opacity duration-150"></div>
 
 <!-- Floating Submenu Flyout Container for Mini Sidebar -->
-<div id="sidebar-flyout" class="fixed hidden w-52 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl shadow-2xl py-1.5 z-50 transition-all duration-150 font-sans">
-    <div id="flyout-header" class="px-3 py-2 text-xs font-bold text-slate-800 dark:text-white border-b border-slate-100 dark:border-slate-800 flex items-center gap-2 bg-slate-50/50 dark:bg-slate-800/40 rounded-t-xl">
+<div id="sidebar-flyout" class="fixed hidden w-52 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl shadow-2xl pb-1 z-50 transition-all duration-150 font-sans overflow-hidden">
+    <div id="flyout-header" class="px-3 py-2 text-xs font-bold text-slate-800 dark:text-white border-b border-slate-100 dark:border-slate-800 flex items-center gap-2 bg-slate-50/50 dark:bg-slate-800/40">
         <span id="flyout-icon" class="material-symbols-outlined text-primary text-[18px] shrink-0">folder</span>
         <span id="flyout-title" class="truncate">Menu Title</span>
     </div>

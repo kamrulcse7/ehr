@@ -1937,6 +1937,10 @@ html.dark body {
   padding-top: 0.875rem;
 }
 
+.pb-1 {
+  padding-bottom: 0.25rem;
+}
+
 .text-left {
   text-align: left;
 }
@@ -3095,6 +3099,10 @@ html.dark input:-webkit-autofill:active {
 
 .dark\:bg-slate-800\/95:is(.dark *) {
   background-color: rgb(30 41 59 / 0.95);
+}
+
+.dark\:bg-emerald-500\/10:is(.dark *) {
+  background-color: rgb(16 185 129 / 0.1);
 }
 
 .dark\:text-amber-400:is(.dark *) {
