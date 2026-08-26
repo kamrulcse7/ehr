@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="utf-8" />
     <meta content="width=device-width, initial-scale=1.0" name="viewport" />
@@ -18,7 +19,44 @@
     <link rel="stylesheet" href="css/tailwind/output.css">
 </head>
 
-<body class="min-h-screen flex flex-col items-center justify-center transition-colors duration-300"></body>
-    [[include]]
+<body class="min-h-screen flex flex-col items-center justify-center transition-colors duration-300">
+[[if globals().get('flash'):]]
+    [[
+    _f = globals().get('flash')
+    _fd = _f if isinstance(_f, dict) else (getattr(_f.local, 'flash', None) if hasattr(_f, 'local') else None)
+    _msg = _fd.get('message') if isinstance(_fd, dict) else None
+    _cls = str(_fd.get('class', '')).lower() if isinstance(_fd, dict) else ''
+    _icon = 'error' if ('error' in _cls or 'danger' in _cls) else ('warning' if ('warn' in _cls or 'alert' in _cls) else ('info' if 'info' in _cls else 'check_circle'))
+    _icon_color = 'text-rose-600 dark:text-rose-400' if ('error' in _cls or 'danger' in _cls) else ('text-amber-600 dark:text-amber-400' if ('warn' in _cls or 'alert' in _cls) else ('text-sky-600 dark:text-sky-400' if 'info' in _cls else 'text-emerald-600 dark:text-emerald-400'))
+    _bg_style = 'bg-rose-50 dark:bg-rose-950/90 text-rose-950 dark:text-rose-100 border-rose-300 dark:border-rose-800/80 shadow-rose-900/10' if ('error' in _cls or 'danger' in _cls) else ('bg-amber-50 dark:bg-amber-950/90 text-amber-950 dark:text-amber-100 border-amber-300 dark:border-amber-800/80 shadow-amber-900/10' if ('warn' in _cls or 'alert' in _cls) else ('bg-sky-50 dark:bg-sky-950/90 text-sky-950 dark:text-sky-100 border-sky-300 dark:border-sky-800/80 shadow-sky-900/10' if 'info' in _cls else 'bg-emerald-50 dark:bg-emerald-950/90 text-emerald-950 dark:text-emerald-100 border-emerald-300 dark:border-emerald-800/80 shadow-emerald-900/10'))
+    ]]
+    [[if _msg:]]
+    <div id="flashPopup" class="fixed bottom-4 left-3 right-3 sm:bottom-auto sm:top-4 sm:left-1/2 sm:-translate-x-1/2 sm:right-auto sm:w-auto sm:max-w-md z-[100] flex items-center justify-between sm:justify-start gap-2.5 px-4 py-2.5 rounded-xl shadow-lg border [[=_bg_style]] backdrop-blur-md transition-all duration-300 font-sans">
+        <div class="flex items-center gap-2.5 min-w-0">
+            <span class="material-symbols-outlined [[=_icon_color]] text-xl shrink-0">[[=_icon]]</span>
+            <span class="text-xs font-bold tracking-wide truncate sm:whitespace-nowrap">[[=_msg]]</span>
+        </div>
+        <button type="button" class="ml-2 opacity-70 hover:opacity-100 transition-opacity p-0.5 rounded-lg flex items-center justify-center outline-none shrink-0" onclick="this.parentElement.style.display='none'">
+            <span class="material-symbols-outlined text-sm">close</span>
+        </button>
+    </div>
+    <script>
+        setTimeout(function() {
+            const popup = document.getElementById('flashPopup');
+            if (popup) {
+                popup.style.opacity = '0';
+                if (window.innerWidth >= 640) {
+                    popup.style.transform = 'translate(-50%, -12px)';
+                } else {
+                    popup.style.transform = 'translateY(12px)';
+                }
+                setTimeout(() => popup.style.display = 'none', 300);
+            }
+        }, 4000);
+    </script>
+    [[pass]]
+[[pass]]
+[[include]]
 </body>
+
 </html>
