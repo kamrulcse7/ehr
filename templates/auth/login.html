@@ -120,6 +120,39 @@
     const EXPIRATION_TIME = 60 * 24 * 60 * 60 * 1000;
 
     document.addEventListener("DOMContentLoaded", () => {
+        // Purge browser caches, CacheStorage, Service Workers, and sessionStorage on Login
+        try {
+            sessionStorage.clear();
+            if ('caches' in window) {
+                caches.keys().then(names => {
+                    for (let name of names) {
+                        caches.delete(name);
+                    }
+                });
+            }
+            if ('serviceWorker' in navigator) {
+                navigator.serviceWorker.getRegistrations().then(registrations => {
+                    for (let registration of registrations) {
+                        registration.unregister();
+                    }
+                });
+            }
+
+            const theme = localStorage.getItem("theme");
+            const rememberedUsername = localStorage.getItem("rememberedUsername");
+            const rememberedPassword = localStorage.getItem("rememberedPassword");
+            const rememberedTime = localStorage.getItem("rememberedTime");
+
+            localStorage.clear();
+
+            if (theme) localStorage.setItem("theme", theme);
+            if (rememberedUsername) localStorage.setItem("rememberedUsername", rememberedUsername);
+            if (rememberedPassword) localStorage.setItem("rememberedPassword", rememberedPassword);
+            if (rememberedTime) localStorage.setItem("rememberedTime", rememberedTime);
+        } catch (err) {
+            console.log("Cache purge handled:", err);
+        }
+
         function preventBack() {
             window.history.forward();
         }
@@ -127,7 +160,7 @@
         window.onunload = function () { null };
         window.addEventListener('pageshow', function (event) {
             if (event.persisted || (window.performance && window.performance.navigation.type === 2)) {
-                window.location.reload();
+                window.location.reload(true);
             }
         });
 

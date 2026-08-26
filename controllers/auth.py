@@ -7,6 +7,9 @@ from ..core.config import settings
 @action("auth/login", method=["GET", "POST"])
 @view_page("auth/login.html", title="Login | EMS Admin")
 def login():
+    response.headers["Cache-Control"] = "no-cache, no-store, must-revalidate, max-age=0"
+    response.headers["Pragma"] = "no-cache"
+    response.headers["Expires"] = "0"
     error = None
     if session.userorized or session.user:
         redirect(URL("dashboard"))
