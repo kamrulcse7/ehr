@@ -1,4 +1,5 @@
 [[extend 'layout.html']]
+[[ form_data = form_data if 'form_data' in locals() and form_data else {} ]]
 
 <div class="w-full space-y-4 text-slate-700 dark:text-slate-200">
     <div class="max-w-[1800px] mx-auto space-y-4">
@@ -39,7 +40,7 @@
                         <div>
                             <label
                                 class="block text-[11px] font-semibold text-slate-700 dark:text-slate-300 mb-1">Company ID (CID) <span class="text-rose-500">*</span></label>
-                            <input type="text" name="cid" required placeholder="e.g. EON"
+                            <input type="text" name="cid" value="[[=form_data.get('cid', '')]]" required placeholder="e.g. EON"
                                 class="w-full h-8 px-2.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-md text-xs text-slate-800 dark:text-slate-200 focus:outline-none focus:border-primary transition-all">
                         </div>
                         [[ pass ]]
@@ -47,7 +48,7 @@
                         <div>
                             <label class="block text-[11px] font-semibold text-slate-700 dark:text-slate-300 mb-1">Full
                                 Name <span class="text-rose-500">*</span></label>
-                            <input type="text" name="emp_name" required placeholder="Enter full name"
+                            <input type="text" name="emp_name" value="[[=form_data.get('emp_name', '')]]" required placeholder="Enter full name"
                                 class="w-full h-8 px-2.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-md text-xs text-slate-800 dark:text-slate-200 focus:outline-none focus:border-primary transition-all">
                         </div>
 
@@ -55,28 +56,28 @@
                             <label
                                 class="block text-[11px] font-semibold text-slate-700 dark:text-slate-300 mb-1">Mobile
                                 Number <span class="text-rose-500">*</span></label>
-                            <input type="tel" name="mobile" required placeholder="01711000000"
+                            <input type="tel" name="mobile" value="[[=form_data.get('mobile', '')]]" required placeholder="01711000000"
                                 class="w-full h-8 px-2.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-md text-xs text-slate-800 dark:text-slate-200 focus:outline-none focus:border-primary transition-all">
                         </div>
 
                         <div>
                             <label class="block text-[11px] font-semibold text-slate-700 dark:text-slate-300 mb-1">Email
                                 Address</label>
-                            <input type="email" name="email" placeholder="example@domain.com"
+                            <input type="email" name="email" value="[[=form_data.get('email', '')]]" placeholder="example@domain.com"
                                 class="w-full h-8 px-2.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-md text-xs text-slate-800 dark:text-slate-200 focus:outline-none focus:border-primary transition-all">
                         </div>
 
                         <div>
                             <label class="block text-[11px] font-semibold text-slate-700 dark:text-slate-300 mb-1">NID
                                 Number</label>
-                            <input type="text" name="nid_number" placeholder="NID Number"
+                            <input type="text" name="nid_number" value="[[=form_data.get('nid_number', '')]]" placeholder="NID Number"
                                 class="w-full h-8 px-2.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-md text-xs text-slate-800 dark:text-slate-200 focus:outline-none focus:border-primary transition-all">
                         </div>
 
                         <div>
                             <label class="block text-[11px] font-semibold text-slate-700 dark:text-slate-300 mb-1">Date
                                 of Birth (DOB)  <span class="text-rose-500">*</span></label>
-                            <input type="date" name="dob" required
+                            <input type="date" name="dob" value="[[=form_data.get('dob', '')]]" required
                                 class="w-full h-8 px-2.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-md text-xs text-slate-800 dark:text-slate-200 focus:outline-none focus:border-primary transition-all">
                         </div>
 
@@ -86,9 +87,9 @@
                             <select name="gender" required
                                 class="w-full h-8 px-2.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-md text-xs text-slate-800 dark:text-slate-200 focus:outline-none focus:border-primary transition-all cursor-pointer">
                                 <option value="">Select Gender</option>
-                                <option value="MALE">Male</option>
-                                <option value="FEMALE">Female</option>
-                                <option value="OTHER">Other</option>
+                                <option value="MALE" [[= 'selected' if form_data.get('gender') == 'MALE' else '' ]]>Male</option>
+                                <option value="FEMALE" [[= 'selected' if form_data.get('gender') == 'FEMALE' else '' ]]>Female</option>
+                                <option value="OTHER" [[= 'selected' if form_data.get('gender') == 'OTHER' else '' ]]>Other</option>
                             </select>
                         </div>
 
@@ -98,14 +99,14 @@
                             <select name="blood_group"
                                 class="w-full h-8 px-2.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-md text-xs text-slate-800 dark:text-slate-200 focus:outline-none focus:border-primary transition-all cursor-pointer">
                                 <option value="">Select Group</option>
-                                <option value="A+">A+</option>
-                                <option value="A-">A-</option>
-                                <option value="B+">B+</option>
-                                <option value="B-">B-</option>
-                                <option value="O+">O+</option>
-                                <option value="O-">O-</option>
-                                <option value="AB+">AB+</option>
-                                <option value="AB-">AB-</option>
+                                <option value="A+" [[= 'selected' if form_data.get('blood_group') == 'A+' else '' ]]>A+</option>
+                                <option value="A-" [[= 'selected' if form_data.get('blood_group') == 'A-' else '' ]]>A-</option>
+                                <option value="B+" [[= 'selected' if form_data.get('blood_group') == 'B+' else '' ]]>B+</option>
+                                <option value="B-" [[= 'selected' if form_data.get('blood_group') == 'B-' else '' ]]>B-</option>
+                                <option value="O+" [[= 'selected' if form_data.get('blood_group') == 'O+' else '' ]]>O+</option>
+                                <option value="O-" [[= 'selected' if form_data.get('blood_group') == 'O-' else '' ]]>O-</option>
+                                <option value="AB+" [[= 'selected' if form_data.get('blood_group') == 'AB+' else '' ]]>AB+</option>
+                                <option value="AB-" [[= 'selected' if form_data.get('blood_group') == 'AB-' else '' ]]>AB-</option>
                             </select>
                         </div>
 
@@ -113,7 +114,7 @@
                             <label
                                 class="block text-[11px] font-semibold text-slate-700 dark:text-slate-300 mb-1">Education
                                 Qualification</label>
-                            <input type="text" name="edu_qualification"
+                            <input type="text" name="edu_qualification" value="[[=form_data.get('edu_qualification', '')]]"
                                 placeholder="e.g. B.Sc. in Computer Science & Engineering"
                                 class="w-full h-8 px-2.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-md text-xs text-slate-800 dark:text-slate-200 focus:outline-none focus:border-primary transition-all">
                         </div>
@@ -133,7 +134,7 @@
                         <div>
                             <label
                                 class="block text-[11px] font-semibold text-slate-700 dark:text-slate-300 mb-1">Official ID <span class="text-rose-500">*</span></label>
-                            <input type="text" name="emp_id" required placeholder="EMP-00101"
+                            <input type="text" name="emp_id" value="[[=form_data.get('emp_id', '')]]" required placeholder="EMP-00101"
                                 class="w-full h-8 px-2.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-md text-xs text-slate-800 dark:text-slate-200 focus:outline-none focus:border-primary transition-all">
                         </div>
 
@@ -143,10 +144,10 @@
                                 Type <span class="text-rose-500">*</span></label>
                             <select name="emp_type" required
                                 class="w-full h-8 px-2.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-md text-xs text-slate-800 dark:text-slate-200 focus:outline-none focus:border-primary transition-all cursor-pointer">
-                                <option value="PERMANENT">PERMANENT</option>
-                                <option value="PROBATIONARY">PROBATIONARY</option>
-                                <option value="TEMPORARY">TEMPORARY</option>
-                                <option value="CONTRACTUAL">CONTRACTUAL</option>
+                                <option value="PERMANENT" [[= 'selected' if form_data.get('emp_type', 'PERMANENT') == 'PERMANENT' else '' ]]>PERMANENT</option>
+                                <option value="PROBATIONARY" [[= 'selected' if form_data.get('emp_type') == 'PROBATIONARY' else '' ]]>PROBATIONARY</option>
+                                <option value="TEMPORARY" [[= 'selected' if form_data.get('emp_type') == 'TEMPORARY' else '' ]]>TEMPORARY</option>
+                                <option value="CONTRACTUAL" [[= 'selected' if form_data.get('emp_type') == 'CONTRACTUAL' else '' ]]>CONTRACTUAL</option>
                             </select>
                         </div>
 
@@ -154,7 +155,7 @@
                             <label
                                 class="block text-[11px] font-semibold text-slate-700 dark:text-slate-300 mb-1">Department
                                 <span class="text-rose-500">*</span></label>
-                            <input type="text" name="emp_department" required placeholder="e.g. Software Development"
+                            <input type="text" name="emp_department" value="[[=form_data.get('emp_department', '')]]" required placeholder="e.g. Software Development"
                                 class="w-full h-8 px-2.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-md text-xs text-slate-800 dark:text-slate-200 focus:outline-none focus:border-primary transition-all">
                         </div>
 
@@ -162,21 +163,21 @@
                             <label
                                 class="block text-[11px] font-semibold text-slate-700 dark:text-slate-300 mb-1">Designation
                                 <span class="text-rose-500">*</span></label>
-                            <input type="text" name="emp_designation" required placeholder="e.g. Software Engineer"
+                            <input type="text" name="emp_designation" value="[[=form_data.get('emp_designation', '')]]" required placeholder="e.g. Software Engineer"
                                 class="w-full h-8 px-2.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-md text-xs text-slate-800 dark:text-slate-200 focus:outline-none focus:border-primary transition-all">
                         </div>
 
                         <div>
                             <label
                                 class="block text-[11px] font-semibold text-slate-700 dark:text-slate-300 mb-1">Grade</label>
-                            <input type="text" name="emp_grade" placeholder="e.g. Grade-2"
+                            <input type="text" name="emp_grade" value="[[=form_data.get('emp_grade', '')]]" placeholder="e.g. Grade-2"
                                 class="w-full h-8 px-2.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-md text-xs text-slate-800 dark:text-slate-200 focus:outline-none focus:border-primary transition-all">
                         </div>
 
                         <div>
                             <label class="block text-[11px] font-semibold text-slate-700 dark:text-slate-300 mb-1">Join
                                 Date <span class="text-rose-500">*</span></label>
-                            <input type="date" name="join_date" required
+                            <input type="date" name="join_date" value="[[=form_data.get('join_date', '')]]" required
                                 class="w-full h-8 px-2.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-md text-xs text-slate-800 dark:text-slate-200 focus:outline-none focus:border-primary transition-all">
                         </div>
 
@@ -186,7 +187,7 @@
                             <label
                                 class="block text-[11px] font-semibold text-slate-700 dark:text-slate-300 mb-1">Retirement
                                 Date</label>
-                            <input type="date" name="retirement_date"
+                            <input type="date" name="retirement_date" value="[[=form_data.get('retirement_date', '')]]"
                                 class="w-full h-8 px-2.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-md text-xs text-slate-800 dark:text-slate-200 focus:outline-none focus:border-primary transition-all">
                         </div>
 
@@ -213,7 +214,7 @@
                                         class="block text-[11px] font-semibold text-slate-700 dark:text-slate-300 mb-1">
                                         Home District  <span class="text-rose-500">*</span>
                                     </label>
-                                    <input type="text" name="home_district" placeholder="e.g. Dhaka" required
+                                    <input type="text" name="home_district" value="[[=form_data.get('home_district', '')]]" placeholder="e.g. Dhaka" required
                                         class="w-full h-8 px-2.5 text-xs bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-md text-slate-800 dark:text-slate-200 placeholder:text-slate-400 focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary transition-all">
                                 </div>
 
@@ -222,7 +223,7 @@
                                         class="block text-[11px] font-semibold text-slate-700 dark:text-slate-300 mb-1">
                                         Present Address <span class="text-rose-500">*</span>
                                     </label>
-                                    <input type="text" name="present_address" placeholder="House/Street, Area..." required
+                                    <input type="text" name="present_address" value="[[=form_data.get('present_address', '')]]" placeholder="House/Street, Area..." required
                                         class="w-full h-8 px-2.5 text-xs bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-md text-slate-800 dark:text-slate-200 placeholder:text-slate-400 focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary transition-all">
                                 </div>
 
@@ -231,7 +232,7 @@
                                         class="block text-[11px] font-semibold text-slate-700 dark:text-slate-300 mb-1">
                                         Permanent Address <span class="text-rose-500">*</span>
                                     </label>
-                                    <input type="text" name="permanent_address" placeholder="Village/Street, Upazila..." required
+                                    <input type="text" name="permanent_address" value="[[=form_data.get('permanent_address', '')]]" placeholder="Village/Street, Upazila..." required
                                         class="w-full h-8 px-2.5 text-xs bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-md text-slate-800 dark:text-slate-200 placeholder:text-slate-400 focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary transition-all">
                                 </div>
                             </div>
@@ -242,7 +243,7 @@
                                     Note / Comments
                                 </label>
                                 <textarea name="note" rows="2" placeholder="Additional notes..."
-                                    class="w-full px-2.5 py-1.5 text-xs bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-md text-slate-800 dark:text-slate-200 placeholder:text-slate-400 focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary transition-all resize-none"></textarea>
+                                    class="w-full px-2.5 py-1.5 text-xs bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-md text-slate-800 dark:text-slate-200 placeholder:text-slate-400 focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary transition-all resize-none">[[=form_data.get('note', '')]]</textarea>
                             </div>
 
                         </div>

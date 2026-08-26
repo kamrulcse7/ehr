@@ -249,10 +249,10 @@ def empployee_directory():
 @web_auth_required
 def add_directory():
     user_cid = session.user.get("cid", "")
-    msg = None
-    msg_type = None
+    form_data = {}
 
     if request.method == "POST":
+        form_data = dict(request.forms)
         try:
             def clean_val(val):
                 val = str(val).strip() if val else None
@@ -261,14 +261,14 @@ def add_directory():
             cid = user_cid if user_cid else clean_val(request.forms.get("cid"))
             if not cid:
                 flash.set("Company ID (CID) is required.", "danger")
-                return dict(user_cid=user_cid)
+                return dict(user_cid=user_cid, form_data=form_data)
 
             # Validate CID against companies master table if user is System Admin
             if not user_cid:
                 comp_check = db.executesql("SELECT cid FROM companies WHERE cid = %s LIMIT 1", [cid.upper()], as_dict=True)
                 if not comp_check:
                     flash.set(f"Invalid CID '{cid}'. Company does not exist.", "danger")
-                    return dict(user_cid=user_cid)
+                    return dict(user_cid=user_cid, form_data=form_data)
                 cid = comp_check[0]['cid']
 
             emp_name = clean_val(request.forms.get("emp_name"))
@@ -296,8 +296,8 @@ def add_directory():
             # Check duplicate Official ID for CID
             emp_check = db.executesql("SELECT id FROM employees WHERE cid = %s AND emp_id = %s LIMIT 1", [cid, emp_id])
             if emp_check:
-                flash.set(f"Employee with Official ID '{emp_id}' already exists for CID '{cid}'.", "danger")
-                return dict(user_cid=user_cid)
+                flash.set(f"'{emp_id}' already exists.", "danger")
+                return dict(user_cid=user_cid, form_data=form_data)
 
             photo = request.files.get("emp_photo")
             saved_filename = None
@@ -336,13 +336,14 @@ def add_directory():
             )
             db.executesql(insert_sql, values)
             db.commit()
-            flash.set("Employee added successfully!", "success")
-            redirect(URL("employees/empployee_directory"))
+            flash.set("Added successfully!", "success")
+            # Clear form fields on success
+            form_data = {}
         except Exception as e:
-            print(f"Error during employee insert: {e}")
-            flash.set(f"Failed to add employee: {str(e)}", "danger")
+            flash.set(f"Failed to add: {str(e)}", "danger")
+            return dict(user_cid=user_cid, form_data=form_data)
 
-    return dict(user_cid=user_cid)
+    return dict(user_cid=user_cid, form_data=form_data)
 
 
 @action("employees/import_directory", method=["GET", "POST"])

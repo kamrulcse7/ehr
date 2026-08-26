@@ -38,7 +38,7 @@ def get_user_menu_tree(user):
           AND cm.status_type = 'ACTIVE'
           AND rmp.can_view = 1
           AND m.status_type = 'ACTIVE'
-        ORDER BY COALESCE(cm.display_order, m.display_order) ASC;
+        ORDER BY COALESCE(NULLIF(cm.display_order, 0), m.display_order) ASC, m.display_order ASC;
         """
         modules_list = db.executesql(menu_sql, placeholders=[cid, role_id], as_dict=True)
 
