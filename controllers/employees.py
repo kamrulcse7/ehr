@@ -10,38 +10,7 @@ import csv
 import os
 import time
 
-HEADER_MAP = {
-    'cid': ['company id', 'company_id', 'cid', 'company', 'companyid', 'company_code', 'company code'],
-    'emp_id': ['official id', 'official_id', 'officialid', 'employee id', 'id', 'empid', 'emp_id', 'employee_id'],
-    'emp_name': ['full name', 'name', 'emp_name', 'employee_name', 'employee name'],
-    'card_number': ['card number', 'card_number', 'card no', 'cardno', 'rfid'],
-    'emp_type': ['employment type', 'emp_type', 'type', 'employment_type'],
-    'emp_department': ['department', 'emp_department', 'dept', 'department name'],
-    'emp_designation': ['designation', 'emp_designation', 'designation name'],
-    'current_branch_id': ['branch id', 'branch_id', 'current_branch_id', 'branch', 'posting place', 'posting_place', 'current_posting_place', 'posting location', 'posting station'],
-    'current_branch_join_date': ['branch join date', 'branch_join_date', 'current_branch_join_date', 'posting join date', 'posting_join_date', 'current_posting_join_date'],
-    'current_grade_join_date': ['grade join date', 'grade_join_date', 'current_grade_join_date'],
-    'mobile': ['mobile', 'phone', 'contact', 'mobile number', 'mobile_number'],
-    'email': ['email', 'email address', 'email_address'],
-    'gender': ['gender', 'sex'],
-    'dob': ['dob', 'date of birth', 'birth date', 'date_of_birth'],
-    'blood_group': ['blood group', 'blood_group', 'blood'],
-    'join_date': ['join date', 'join_date', 'joining date', 'joining_date'],
-    'confirmation_date': ['confirmation date', 'confirmation_date'],
-    'retirement_date': ['retirement_date', 'retirement date'],
-    'edu_qualification': ['education', 'educational qualification', 'qualification', 'edu_qualification'],
-    'home_district': ['home district', 'home_district', 'district'],
-    'present_address': ['present address', 'present_address'],
-    'permanent_address': ['permanent address', 'permanent_address'],
-    'nid_number': ['nid number', 'nid_number', 'nid'],
-    'note': ['note', 'remarks', 'remark'],
-    'status_type': ['status', 'status_type', 'status type']
-}
 
-ALIAS_MAP = {}
-for field, aliases in HEADER_MAP.items():
-    for alias in aliases:
-        ALIAS_MAP[alias] = field
 
 def parse_date(date_str):
     if not date_str:
@@ -402,6 +371,10 @@ def import_directory():
         content = None
         delimiter = ','
         
+        is_sys_admin = not user_cid
+        max_file_mb = 10 if is_sys_admin else 2
+        max_rows = 10000 if is_sys_admin else 1000
+
         if csv_file and csv_file.filename:
             active_tab = "file"
             if not csv_file.filename.lower().endswith('.csv'):
@@ -409,12 +382,12 @@ def import_directory():
                 return dict(stats=None, active_tab=active_tab, user_cid=user_cid)
                 
             try:
-                # Check file size (2MB limit)
+                # Check file size limit
                 csv_file.file.seek(0, 2)
                 file_size = csv_file.file.tell()
                 csv_file.file.seek(0)
-                if file_size > 2 * 1024 * 1024:
-                    flash.set("File size exceeds the maximum limit of 2MB.", "danger")
+                if file_size > max_file_mb * 1024 * 1024:
+                    flash.set(f"File size exceeds the maximum limit of {max_file_mb}MB.", "danger")
                     return dict(stats=None, active_tab=active_tab, user_cid=user_cid)
                 
                 content = csv_file.file.read().decode('utf-8-sig')
@@ -424,9 +397,9 @@ def import_directory():
                 
         elif csv_text and csv_text.strip():
             active_tab = "text"
-            # Check pasted text length (2MB limit)
-            if len(csv_text.encode('utf-8')) > 2 * 1024 * 1024:
-                flash.set("Pasted content size exceeds the maximum limit of 2MB.", "danger")
+            # Check pasted text length limit
+            if len(csv_text.encode('utf-8')) > max_file_mb * 1024 * 1024:
+                flash.set(f"Pasted content size exceeds the maximum limit of {max_file_mb}MB.", "danger")
                 return dict(stats=None, active_tab=active_tab, user_cid=user_cid)
                 
             content = csv_text.strip()
@@ -445,27 +418,28 @@ def import_directory():
             f = io.StringIO(content)
             reader = csv.DictReader(f, delimiter=delimiter)
             
-            headers = reader.fieldnames or []
-            mapped_headers = {}
-            for h in headers:
-                h_clean = h.strip().lower()
-                field = ALIAS_MAP.get(h_clean)
-                if field:
-                    mapped_headers[field] = h
-            
+            raw_headers = reader.fieldnames or []
+            headers_clean = [h.strip().lower() for h in raw_headers if h]
+
+            def has_header(*aliases):
+                return any(alias in headers_clean for alias in aliases)
+
             if not user_cid:
-                if 'cid' not in mapped_headers or 'emp_id' not in mapped_headers or 'emp_name' not in mapped_headers:
-                    flash.set("Invalid format. Missing required columns for System Admin: 'Company ID (CID)', 'Official ID', and 'Full Name'.", "danger")
+                if not has_header('cid', 'company id', 'company_id') or \
+                   not has_header('emp_id', 'official id', 'official_id', 'employee id') or \
+                   not has_header('emp_name', 'full name', 'name', 'employee name'):
+                    flash.set("Invalid format. Missing required columns: 'cid' (or 'Company ID'), 'emp_id' (or 'Official ID'), and 'emp_name' (or 'Full Name').", "danger")
                     return dict(stats=None, active_tab=active_tab, user_cid=user_cid)
             else:
-                if 'emp_id' not in mapped_headers or 'emp_name' not in mapped_headers:
-                    flash.set("Invalid format. Missing required columns: 'Official ID' and 'Full Name'.", "danger")
+                if not has_header('emp_id', 'official id', 'official_id', 'employee id') or \
+                   not has_header('emp_name', 'full name', 'name', 'employee name'):
+                    flash.set("Invalid format. Missing required columns: 'emp_id' (or 'Official ID') and 'emp_name' (or 'Full Name').", "danger")
                     return dict(stats=None, active_tab=active_tab, user_cid=user_cid)
 
-            # Check row count limit (1000 rows max)
+            # Check row count limit
             rows = list(reader)
-            if len(rows) > 1000:
-                flash.set("The data contains too many rows. Maximum allowed is 1,000 rows.", "danger")
+            if len(rows) > max_rows:
+                flash.set(f"The data contains too many rows. Maximum allowed is {max_rows:,} rows.", "danger")
                 return dict(stats=None, active_tab=active_tab, user_cid=user_cid)
 
             stats = {
@@ -476,22 +450,35 @@ def import_directory():
                 "errors": []
             }
 
-            row_num = 1
-            
+            # Pre-fetch existing employee IDs and valid companies for fast O(1) in-memory checks
+            if user_cid:
+                existing_emp_set = set(r[0] for r in db.executesql("SELECT emp_id FROM employees WHERE cid = %s", [user_cid]))
+                company_dict = {user_cid.upper(): user_cid}
+            else:
+                existing_emp_rows = db.executesql("SELECT cid, emp_id FROM employees")
+                existing_emp_set = set((r[0], r[1]) for r in existing_emp_rows)
+                company_rows = db.executesql("SELECT cid FROM companies")
+                company_dict = {r[0].upper(): r[0] for r in company_rows}
+
+            to_insert_list = []
+            to_update_list = []
+
             for row in rows:
                 row_num += 1
                 stats["total"] += 1
                 
-                def get_val(field):
-                    csv_col = mapped_headers.get(field)
-                    if csv_col and csv_col in row:
-                        val = row[csv_col]
-                        return val.strip() if val else None
+                row_norm = {k.strip().lower(): (v.strip() if v and str(v).strip() else None) for k, v in row.items() if k}
+
+                def get_val(*aliases):
+                    for a in aliases:
+                        val = row_norm.get(a)
+                        if val is not None and val != "":
+                            return val
                     return None
 
-                emp_id = get_val('emp_id')
-                emp_name = get_val('emp_name')
-                row_cid = user_cid if user_cid else get_val('cid')
+                emp_id = get_val('emp_id', 'official id', 'official_id', 'employee id', 'id')
+                emp_name = get_val('emp_name', 'full name', 'name', 'employee name')
+                row_cid = user_cid if user_cid else get_val('cid', 'company id', 'company_id', 'company')
                 
                 if not emp_id or not emp_name:
                     stats["failed"] += 1
@@ -512,8 +499,8 @@ def import_directory():
                     continue
 
                 if not user_cid:
-                    comp_check = db.executesql("SELECT cid FROM companies WHERE cid = %s LIMIT 1", [row_cid.upper()], as_dict=True)
-                    if not comp_check:
+                    row_cid_upper = row_cid.upper()
+                    if row_cid_upper not in company_dict:
                         stats["failed"] += 1
                         stats["errors"].append({
                             "row": row_num,
@@ -521,12 +508,12 @@ def import_directory():
                             "error": f"Invalid CID '{row_cid}'. Company does not exist."
                         })
                         continue
-                    row_cid = comp_check[0]['cid']
+                    row_cid = company_dict[row_cid_upper]
 
-                mobile = get_val('mobile') or ""
-                email = get_val('email') or ""
+                mobile = get_val('mobile', 'phone', 'contact', 'mobile number', 'mobile_number') or ""
+                email = get_val('email', 'email address', 'email_address') or ""
                 
-                join_date_str = get_val('join_date')
+                join_date_str = get_val('join_date', 'join date', 'joining date', 'joining_date')
                 join_date = parse_date(join_date_str)
                 if not join_date:
                     if join_date_str:
@@ -540,109 +527,117 @@ def import_directory():
                     else:
                         join_date = db_datetime.strftime('%Y-%m-%d')
 
-                dob = parse_date(get_val('dob'))
-                current_posting_join_date = parse_date(get_val('current_posting_join_date'))
-                current_grade_join_date = parse_date(get_val('current_grade_join_date'))
-                confirmation_date = parse_date(get_val('confirmation_date'))
-                retirement_date = parse_date(get_val('retirement_date'))
+                dob = parse_date(get_val('dob', 'date of birth', 'date_of_birth'))
+                current_posting_join_date = parse_date(get_val('current_posting_join_date', 'branch_join_date', 'posting_join_date'))
+                current_grade_join_date = parse_date(get_val('current_grade_join_date', 'grade_join_date'))
+                confirmation_date = parse_date(get_val('confirmation_date', 'confirmation date'))
+                retirement_date = parse_date(get_val('retirement_date', 'retirement date'))
 
-                emp_type = get_val('emp_type') or "PERMANENT"
-                emp_department = get_val('emp_department')
-                emp_designation = get_val('emp_designation')
-                emp_grade = get_val('emp_grade')
-                current_branch_id = get_val('current_branch_id') or get_val('current_posting_place')
-                current_branch_join_date = parse_date(get_val('current_branch_join_date') or get_val('current_posting_join_date'))
-                gender = get_val('gender')
+                emp_type = get_val('emp_type', 'employment type', 'employment_type', 'type') or "PERMANENT"
+                emp_department = get_val('emp_department', 'department', 'dept')
+                emp_designation = get_val('emp_designation', 'designation')
+                emp_grade = get_val('emp_grade', 'grade')
+                current_branch_id = get_val('current_branch_id', 'branch_id', 'posting_place', 'branch')
+                current_branch_join_date = parse_date(get_val('current_branch_join_date', 'branch_join_date', 'posting_join_date'))
+                gender = get_val('gender', 'sex')
                 if gender:
                     gender = gender.upper()
-                blood_group = get_val('blood_group')
-                edu_qualification = get_val('edu_qualification')
-                home_district = get_val('home_district')
-                present_address = get_val('present_address')
-                permanent_address = get_val('permanent_address')
-                nid_number = get_val('nid_number')
-                note = get_val('note')
-                status_type = get_val('status_type') or "ACTIVE"
+                blood_group = get_val('blood_group', 'blood group', 'blood')
+                edu_qualification = get_val('edu_qualification', 'education', 'qualification')
+                home_district = get_val('home_district', 'home district', 'district')
+                present_address = get_val('present_address', 'present address')
+                permanent_address = get_val('permanent_address', 'permanent address')
+                nid_number = get_val('nid_number', 'nid number', 'nid')
+                note = get_val('note', 'remarks', 'remark')
+                status_type = get_val('status_type', 'status', 'status type') or "ACTIVE"
                 if status_type:
                     status_type = status_type.upper()
                 
-                try:
-                    existing = db.executesql("SELECT id FROM employees WHERE cid = %s AND emp_id = %s LIMIT 1", [row_cid, emp_id])
-                    
-                    if existing:
-                        update_sql = """
-                        UPDATE employees SET
-                            emp_name = %s,
-                            emp_type = %s,
-                            emp_department = %s,
-                            emp_designation = %s,
-                            emp_grade = %s,
-                            current_branch_id = %s,
-                            current_branch_join_date = %s,
-                            current_grade_join_date = %s,
-                            mobile = %s,
-                            email = %s,
-                            gender = %s,
-                            dob = %s,
-                            blood_group = %s,
-                            join_date = %s,
-                            confirmation_date = %s,
-                            retirement_date = %s,
-                            edu_qualification = %s,
-                            home_district = %s,
-                            present_address = %s,
-                            permanent_address = %s,
-                            nid_number = %s,
-                            note = %s,
-                            status_type = %s,
-                            updated_on = %s,
-                            updated_by = %s
-                        WHERE cid = %s AND emp_id = %s
-                        """
-                        values = (
-                            emp_name, emp_type, emp_department, emp_designation, emp_grade,
-                            current_branch_id, current_branch_join_date, current_grade_join_date,
-                            mobile, email, gender, dob, blood_group, join_date, confirmation_date, retirement_date,
-                            edu_qualification, home_district, present_address, permanent_address, nid_number,
-                            note, status_type, db_datetime, session.user.get('user_id', ''), row_cid, emp_id
-                        )
-                        db.executesql(update_sql, values)
-                        stats["updated"] += 1
+                is_update = (emp_id in existing_emp_set) if user_cid else ((row_cid, emp_id) in existing_emp_set)
+                
+                if is_update:
+                    update_values = (
+                        emp_name, emp_type, emp_department, emp_designation, emp_grade,
+                        current_branch_id, current_branch_join_date, current_grade_join_date,
+                        mobile, email, gender, dob, blood_group, join_date, confirmation_date, retirement_date,
+                        edu_qualification, home_district, present_address, permanent_address, nid_number,
+                        note, status_type, db_datetime, session.user.get('user_id', ''), row_cid, emp_id
+                    )
+                    to_update_list.append({"row": row_num, "emp_id": emp_id, "values": update_values})
+                else:
+                    insert_values = (
+                        row_cid, emp_id, emp_name, emp_type, emp_department, emp_designation, emp_grade,
+                        current_branch_id, current_branch_join_date, current_grade_join_date,
+                        mobile, email, gender, dob, blood_group, join_date, confirmation_date, retirement_date,
+                        edu_qualification, home_district, present_address, permanent_address, nid_number,
+                        note, status_type, db_datetime, session.user.get('user_id', '')
+                    )
+                    to_insert_list.append({"row": row_num, "emp_id": emp_id, "values": insert_values})
+                    if user_cid:
+                        existing_emp_set.add(emp_id)
                     else:
-                        insert_sql = """
-                        INSERT INTO employees (
-                            cid, emp_id, emp_name, emp_type, emp_department, 
-                            emp_designation, emp_grade, current_branch_id, current_branch_join_date, 
-                            current_grade_join_date, mobile, email, gender, dob, 
-                            blood_group, join_date, confirmation_date, retirement_date, 
-                            edu_qualification, home_district, present_address, permanent_address, 
-                            nid_number, note, status_type, created_on, created_by
-                        ) VALUES (
-                            %s, %s, %s, %s, %s, 
-                            %s, %s, %s, %s, 
-                            %s, %s, %s, %s, %s, 
-                            %s, %s, %s, %s, 
-                            %s, %s, %s, %s, 
-                            %s, %s, %s, %s, %s
-                        )
-                        """
-                        values = (
-                            row_cid, emp_id, emp_name, emp_type, emp_department, emp_designation, emp_grade,
-                            current_branch_id, current_branch_join_date, current_grade_join_date,
-                            mobile, email, gender, dob, blood_group, join_date, confirmation_date, retirement_date,
-                            edu_qualification, home_district, present_address, permanent_address, nid_number,
-                            note, status_type, db_datetime, session.user.get('user_id', '')
-                        )
-                        db.executesql(insert_sql, values)
-                        stats["created"] += 1
-                        
-                except Exception as ex:
-                    stats["failed"] += 1
-                    stats["errors"].append({
-                        "row": row_num,
-                        "emp_id": emp_id,
-                        "error": str(ex)
-                    })
+                        existing_emp_set.add((row_cid, emp_id))
+
+            # 1. BATCH INSERT EXECUTION (Multi-row VALUES SQL in 500-row chunks)
+            if to_insert_list:
+                cols = [
+                    "cid", "emp_id", "emp_name", "emp_type", "emp_department", 
+                    "emp_designation", "emp_grade", "current_branch_id", "current_branch_join_date", 
+                    "current_grade_join_date", "mobile", "email", "gender", "dob", 
+                    "blood_group", "join_date", "confirmation_date", "retirement_date", 
+                    "edu_qualification", "home_district", "present_address", "permanent_address", 
+                    "nid_number", "note", "status_type", "created_on", "created_by"
+                ]
+                cols_str = ", ".join(cols)
+                row_placeholder = "(" + ", ".join(["%s"] * len(cols)) + ")"
+                
+                BATCH_SIZE = 500
+                for i in range(0, len(to_insert_list), BATCH_SIZE):
+                    batch = to_insert_list[i:i + BATCH_SIZE]
+                    placeholders = ", ".join([row_placeholder] * len(batch))
+                    batch_sql = f"INSERT INTO employees ({cols_str}) VALUES {placeholders}"
+                    flat_vals = [val for item in batch for val in item["values"]]
+                    try:
+                        db.executesql(batch_sql, flat_vals)
+                        stats["created"] += len(batch)
+                    except Exception as batch_ex:
+                        # Fallback to single inserts for this batch to isolate bad row(s)
+                        single_sql = f"INSERT INTO employees ({cols_str}) VALUES {row_placeholder}"
+                        for item in batch:
+                            try:
+                                db.executesql(single_sql, item["values"])
+                                stats["created"] += 1
+                            except Exception as row_ex:
+                                stats["failed"] += 1
+                                stats["errors"].append({
+                                    "row": item["row"],
+                                    "emp_id": item["emp_id"],
+                                    "error": str(row_ex)
+                                })
+
+            # 2. UPDATE EXECUTION
+            if to_update_list:
+                update_sql = """
+                UPDATE employees SET
+                    emp_name = %s, emp_type = %s, emp_department = %s, emp_designation = %s, emp_grade = %s,
+                    current_branch_id = %s, current_branch_join_date = %s, current_grade_join_date = %s,
+                    mobile = %s, email = %s, gender = %s, dob = %s, blood_group = %s, join_date = %s,
+                    confirmation_date = %s, retirement_date = %s, edu_qualification = %s, home_district = %s,
+                    present_address = %s, permanent_address = %s, nid_number = %s, note = %s,
+                    status_type = %s, updated_on = %s, updated_by = %s
+                WHERE cid = %s AND emp_id = %s
+                """
+                for item in to_update_list:
+                    try:
+                        db.executesql(update_sql, item["values"])
+                        stats["updated"] += 1
+                    except Exception as row_ex:
+                        stats["failed"] += 1
+                        stats["errors"].append({
+                            "row": item["row"],
+                            "emp_id": item["emp_id"],
+                            "error": str(row_ex)
+                        })
 
             db.commit()
             if stats["failed"] > 0:
