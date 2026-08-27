@@ -386,6 +386,7 @@ def edit_directory(emp_id=None):
             old_photo = emp.get("photo_url")
             remove_photo = request.forms.get("remove_photo") == "1"
             saved_filename = old_photo
+            new_file_path = None
             UPLOAD_DIR = os.path.join(os.path.dirname(__file__), "..", "static", "uploads", "emp_images")
 
             if remove_photo:
@@ -403,6 +404,7 @@ def edit_directory(emp_id=None):
                 ext = os.path.splitext(photo.filename)[1]
                 saved_filename = f"{cid}_{emp_id_code}_{int(time.time())}{ext}"
                 file_path = os.path.join(UPLOAD_DIR, saved_filename)
+                new_file_path = file_path
                 with open(file_path, "wb") as f:
                     f.write(photo.file.read())
 
@@ -440,6 +442,11 @@ def edit_directory(emp_id=None):
             flash.set("Updated successfully!", "success")
             redirect(URL("employees/empployee_directory"))
         except Exception as e:
+            if new_file_path and os.path.exists(new_file_path):
+                try:
+                    os.remove(new_file_path)
+                except Exception:
+                    pass
             flash.set(f"Failed to update employee: {str(e)}", "danger")
             return dict(user_cid=user_cid, emp=emp, form_data=form_data)
 
@@ -506,14 +513,15 @@ def add_directory():
 
             photo = request.files.get("emp_photo")
             saved_filename = None
+            saved_file_path = None
 
             if photo and photo.filename:
                 UPLOAD_DIR = os.path.join(os.path.dirname(__file__), "..", "static", "uploads", "emp_images")
                 os.makedirs(UPLOAD_DIR, exist_ok=True)
                 ext = os.path.splitext(photo.filename)[1]
                 saved_filename = f"{cid}_{emp_id}_{int(time.time())}{ext}"
-                file_path = os.path.join(UPLOAD_DIR, saved_filename)
-                with open(file_path, "wb") as f:
+                saved_file_path = os.path.join(UPLOAD_DIR, saved_filename)
+                with open(saved_file_path, "wb") as f:
                     f.write(photo.file.read())
 
             insert_sql = """
@@ -545,8 +553,15 @@ def add_directory():
             # Clear form fields on success
             form_data = {}
         except Exception as e:
+            if saved_file_path and os.path.exists(saved_file_path):
+                try:
+                    os.remove(saved_file_path)
+                except Exception:
+                    pass
             flash.set(f"Failed to add: {str(e)}", "danger")
             return dict(user_cid=user_cid, form_data=form_data)
+
+    return dict(user_cid=user_cid, form_data=form_data)
 
     return dict(user_cid=user_cid, form_data=form_data)
 
@@ -1325,6 +1340,13 @@ def add_transfer():
             emp_res = db.executesql(
                 "SELECT emp_id, emp_name, emp_designation, emp_department, current_branch_id, emp_grade, cid FROM employees WHERE emp_id = %s AND cid = %s AND status_type = 'ACTIVE' LIMIT 1",
                 [lookup_id, search_cid],
+                as_dict=True
+            )
+            emp = emp_res[0] if emp_res else None
+        else:
+            emp_res = db.executesql(
+                "SELECT emp_id, emp_name, emp_designation, emp_department, current_branch_id, emp_grade, cid FROM employees WHERE emp_id = %s AND status_type = 'ACTIVE' LIMIT 1",
+                [lookup_id],
                 as_dict=True
             )
             emp = emp_res[0] if emp_res else None

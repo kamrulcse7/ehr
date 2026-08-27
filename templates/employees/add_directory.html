@@ -333,6 +333,27 @@
     if (window.history.replaceState) {
         window.history.replaceState(null, null, window.location.href);
     }
+
+    [[ if not form_data: ]]
+    try {
+        sessionStorage.removeItem('pending_emp_photo');
+        sessionStorage.removeItem('pending_emp_photo_name');
+    } catch (e) {}
+    [[ pass ]]
+
+    function dataURLtoFile(dataurl, filename) {
+        try {
+            let arr = dataurl.split(','), mime = arr[0].match(/:(.*?);/)[1],
+                bstr = atob(arr[1]), n = bstr.length, u8arr = new Uint8Array(n);
+            while (n--) {
+                u8arr[n] = bstr.charCodeAt(n);
+            }
+            return new File([u8arr], filename || 'photo.jpg', { type: mime });
+        } catch (e) {
+            return null;
+        }
+    }
+
     function validateAndPreviewImage(input) {
         const file = input.files[0];
         const errorEl = document.getElementById('photoError');
@@ -359,6 +380,10 @@
                 previewImg.src = e.target.result;
                 placeholder.classList.add('hidden');
                 previewContainer.classList.remove('hidden');
+                try {
+                    sessionStorage.setItem('pending_emp_photo', e.target.result);
+                    sessionStorage.setItem('pending_emp_photo_name', file.name);
+                } catch (err) {}
             };
             reader.readAsDataURL(file);
         } else {
@@ -384,5 +409,35 @@
         if (previewImg) previewImg.src = '#';
         if (placeholder) placeholder.classList.remove('hidden');
         if (previewContainer) previewContainer.classList.add('hidden');
+        try {
+            sessionStorage.removeItem('pending_emp_photo');
+            sessionStorage.removeItem('pending_emp_photo_name');
+        } catch (err) {}
+    }
+
+    document.addEventListener('DOMContentLoaded', function () {
+        restorePendingImage();
+    });
+
+    function restorePendingImage() {
+        try {
+            const savedData = sessionStorage.getItem('pending_emp_photo');
+            const savedName = sessionStorage.getItem('pending_emp_photo_name') || 'uploaded_photo.jpg';
+            if (savedData) {
+                const file = dataURLtoFile(savedData, savedName);
+                const input = document.getElementById('empPhotoInput');
+                if (file && input && typeof DataTransfer !== 'undefined') {
+                    const dt = new DataTransfer();
+                    dt.items.add(file);
+                    input.files = dt.files;
+                }
+                const previewImg = document.getElementById('imagePreview');
+                const placeholder = document.getElementById('uploadPlaceholder');
+                const previewContainer = document.getElementById('imagePreviewContainer');
+                if (previewImg) previewImg.src = savedData;
+                if (placeholder) placeholder.classList.add('hidden');
+                if (previewContainer) previewContainer.classList.remove('hidden');
+            }
+        } catch (e) {}
     }
 </script>
