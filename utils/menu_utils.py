@@ -8,19 +8,35 @@ def get_user_menu_tree(user):
     role_id = user.get("user_role")
 
     if role_id in ("SUPER_ADMIN", "SYSTEM_ADMIN"):
-        menu_sql = """
-        SELECT 
-            module_id, 
-            module_name AS display_title, 
-            parent_module_id, 
-            COALESCE(icon, 'grid_view') AS icon, 
-            COALESCE(route_path, '') AS route_path, 
-            is_clickable
-        FROM modules
-        WHERE status_type = 'ACTIVE'
-        ORDER BY display_order ASC;
-        """
-        modules_list = db.executesql(menu_sql, as_dict=True)
+        if cid:
+            menu_sql = """
+            SELECT 
+                m.module_id, 
+                m.parent_module_id, 
+                COALESCE(cm.custom_name, m.module_name) AS display_title, 
+                COALESCE(cm.custom_icon, m.icon, 'grid_view') AS icon, 
+                COALESCE(cm.custom_route_path, m.route_path, '') AS route_path, 
+                m.is_clickable
+            FROM modules m
+            LEFT JOIN company_modules cm ON m.module_id = cm.module_id AND cm.cid = %s
+            WHERE m.status_type = 'ACTIVE'
+            ORDER BY COALESCE(NULLIF(cm.display_order, 0), m.display_order) ASC, m.display_order ASC;
+            """
+            modules_list = db.executesql(menu_sql, placeholders=[cid], as_dict=True)
+        else:
+            menu_sql = """
+            SELECT 
+                m.module_id, 
+                m.parent_module_id, 
+                m.module_name AS display_title, 
+                COALESCE(icon, 'grid_view') AS icon, 
+                COALESCE(route_path, '') AS route_path, 
+                is_clickable
+            FROM modules m
+            WHERE m.status_type = 'ACTIVE'
+            ORDER BY m.display_order ASC;
+            """
+            modules_list = db.executesql(menu_sql, as_dict=True)
     else:
         menu_sql = """
         SELECT 
@@ -58,3 +74,79 @@ def get_user_menu_tree(user):
             parents.append(item)
 
     return parents
+
+
+def get_active_module_info(user_menu, current_path):
+    if not user_menu or not current_path:
+        return {"parent_title": None, "child_title": None}
+
+    clean_path = str(current_path).strip().lower().strip('/')
+    path_segments = [s for s in clean_path.split('/') if s]
+    
+    target_action = path_segments[-1] if path_segments else ""
+
+    best_match = None
+    best_score = 0
+
+    for parent in user_menu:
+        parent_title = parent.get('display_title')
+        
+        for child in parent.get('children', []):
+            child_title = child.get('display_title')
+            child_route = str(child.get('route_path') or '').strip().lower().strip('/')
+            module_id = str(child.get('module_id') or '').lower()
+            
+            if not child_route and not module_id:
+                continue
+
+            child_segments = [s for s in child_route.split('/') if s]
+            last_child_seg = child_segments[-1] if child_segments else ""
+
+            score = 0
+
+            # 1. Exact route match
+            if child_route and (child_route == clean_path or clean_path.endswith(child_route)):
+                score = 100
+            # 2. Action exact match with last segment of child route
+            elif last_child_seg and last_child_seg == target_action:
+                score = 85
+            # 3. Keyword / Token matching for sub-actions (e.g. add_directory matching directory)
+            else:
+                action_tokens = [t for t in target_action.split('_') if len(t) > 3]
+                route_tokens = [t for t in last_child_seg.split('_') if len(t) > 3]
+                module_tokens = [t for t in module_id.split('_') if len(t) > 3]
+
+                all_child_tokens = set(route_tokens + module_tokens)
+                
+                # Check token containment (e.g. 'directory' in 'empployee_directory' or 'dir' in 'employee_dir')
+                matched_token = False
+                for act_tok in action_tokens:
+                    for ch_tok in all_child_tokens:
+                        if act_tok in ch_tok or ch_tok in act_tok:
+                            if act_tok not in ('employee', 'employees', 'report', 'reports', 'manage'):
+                                matched_token = True
+                                break
+                    if matched_token:
+                        break
+
+                if matched_token:
+                    score = 70
+
+            if score > best_score:
+                best_score = score
+                best_match = {
+                    "parent_title": parent_title,
+                    "child_title": child_title
+                }
+
+    if best_match and best_score > 0:
+        return best_match
+
+    # Fallback to parent match if any parent route matches
+    for parent in user_menu:
+        parent_route = str(parent.get('route_path') or '').strip().lower().strip('/')
+        if parent_route and parent_route in clean_path:
+            return {"parent_title": parent.get('display_title'), "child_title": None}
+
+    return {"parent_title": None, "child_title": None}
+

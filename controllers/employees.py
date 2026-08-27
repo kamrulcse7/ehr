@@ -27,7 +27,7 @@ def parse_date(date_str):
 
 
 @action("employees/empployee_directory")
-@view_page("employees/empployee_directory.html", title="Personnel Directory | EMS")
+@view_page("employees/empployee_directory.html", title="Personnel Directory")
 @web_auth_required
 def empployee_directory():
     user_cid = session.user.get("cid", "")
@@ -214,7 +214,7 @@ def empployee_directory():
 
 
 @action("employees/add_directory", method=["GET", "POST"])
-@view_page("employees/add_directory.html", title="Add Directory | EMS")
+@view_page("employees/add_directory.html", title="Add Directory")
 @web_auth_required
 def add_directory():
     user_cid = session.user.get("cid", "")
@@ -316,7 +316,7 @@ def add_directory():
 
 
 @action("employees/import_directory", method=["GET", "POST"])
-@view_page("employees/import_directory.html", title="Import Directory | EMS")
+@view_page("employees/import_directory.html", title="Import Directory")
 @web_auth_required
 def import_directory():
     user_cid = session.user.get("cid", "")
@@ -652,7 +652,7 @@ def import_directory():
 
 
 @action("employees/postings_transfers")
-@view_page("employees/postings_transfers.html", title="Postings & Transfers | EMS")
+@view_page("employees/postings_transfers.html", title="Postings & Transfers")
 @web_auth_required
 def postings_transfers():
     keywords = request.query.get("keywords", "").strip()
@@ -819,7 +819,7 @@ def postings_transfers():
 
 
 @action("employees/add_transfer", method=["GET", "POST"])
-@view_page("employees/add_transfer.html", title="Issue Transfer Order | EMS")
+@view_page("employees/add_transfer.html", title="Issue Transfer Order")
 @web_auth_required
 def add_transfer():
     lookup_id = request.query.get("lookup_id", "").strip()
@@ -926,7 +926,7 @@ def add_transfer():
 
 
 @action("employees/import_transfer", method=["GET", "POST"])
-@view_page("employees/import_transfer.html", title="Import Postings & Transfers | EMS")
+@view_page("employees/import_transfer.html", title="Import Postings & Transfers")
 @web_auth_required
 def import_transfer():
 

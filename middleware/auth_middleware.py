@@ -2,7 +2,7 @@ from functools import wraps
 from datetime import datetime, timedelta
 from py4web import request, response, redirect, URL
 from ..utils.common import session, flash
-from ..utils.menu_utils import get_user_menu_tree
+from ..utils.menu_utils import get_user_menu_tree, get_active_module_info
 from ..core.config import settings
 
 def web_auth_required(handler):
@@ -48,6 +48,21 @@ def web_auth_required(handler):
                 if "user_menu" not in session or not session.user_menu:
                     session.user_menu = get_user_menu_tree(session.user)
                 response_dict["user_menu"] = session.user_menu
+
+            if "active_module_info" not in response_dict:
+                active_info = get_active_module_info(response_dict.get("user_menu"), request.path)
+                response_dict["active_module_info"] = active_info
+                if "active_parent_title" not in response_dict:
+                    response_dict["active_parent_title"] = active_info.get("parent_title")
+                if "active_child_title" not in response_dict:
+                    response_dict["active_child_title"] = active_info.get("child_title")
+
+            # Override page_title dynamically for main module pages based on company custom title
+            child_title = response_dict.get("active_child_title")
+            if child_title:
+                current_title = response_dict.get("page_title")
+                if not current_title or current_title in ("Personnel Directory", "Employee Directory", "Postings & Transfers", "Users Management", "Roles & Permissions"):
+                    response_dict["page_title"] = child_title
                 
         return response_dict
 
