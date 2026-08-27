@@ -31,6 +31,24 @@ def parse_date(date_str):
 @web_auth_required
 def empployee_directory():
     user_cid = session.user.get("cid", "")
+    action_type = request.query.get("action", "").strip()
+    delete_id = request.query.get("id") or request.query.get("delete_id")
+    if action_type == "delete" and delete_id:
+        try:
+            del_id = int(delete_id)
+            del_where = ["id = %s"]
+            del_params = [del_id]
+            res = db.executesql(f"SELECT id, emp_name FROM employees WHERE {' AND '.join(del_where)} LIMIT 1", del_params, as_dict=True)
+            if res:
+                emp_name = res[0]['emp_name']
+                db.executesql(f"DELETE FROM employees WHERE {' AND '.join(del_where)}", del_params)
+                db.commit()
+                flash.set(f"Deleted successfully!", "success")
+            else:
+                flash.set("Record not found or access denied.", "danger")
+        except Exception as e:
+            flash.set(f"Failed to delete record: {str(e)}", "danger")
+
     keywords = request.query.get("keywords", "").strip()
     department = request.query.get("department", "").strip()
     status = request.query.get("status", "").strip()
@@ -210,6 +228,158 @@ def empployee_directory():
     }
 
     return dict(employees=employees_list, pagination=pagination, stats=stats_res, user_cid=user_cid)
+
+
+@action("employees/show_directory/<emp_id:int>")
+@action("employees/show_directory")
+@view_page("employees/show_directory.html", title="Employee Details")
+@web_auth_required
+def show_directory(emp_id=None):
+    user_cid = session.user.get("cid", "")
+    if emp_id is None:
+        try:
+            emp_id = int(request.query.get("id"))
+        except (TypeError, ValueError):
+            emp_id = None
+
+    if not emp_id:
+        flash.set("Invalid Employee ID specified.", "danger")
+        redirect(URL("employees/empployee_directory"))
+
+    where_clauses = ["e.id = %s"]
+    params = [emp_id]
+
+    if user_cid:
+        where_clauses.append("e.cid = %s")
+        params.append(user_cid)
+
+    where_str = " AND ".join(where_clauses)
+    sql = f"""
+        SELECT e.*, COALESCE(b.branch_name, e.current_branch_id, 'Head Office') AS current_posting_place
+        FROM employees e
+        LEFT JOIN branches b ON e.current_branch_id = b.branch_id AND e.cid = b.cid
+        WHERE {where_str} LIMIT 1
+    """
+    res = db.executesql(sql, params, as_dict=True)
+    if not res:
+        flash.set("Employee record not found.", "danger")
+        redirect(URL("employees/empployee_directory"))
+
+    emp = res[0]
+    return dict(emp=emp, user_cid=user_cid)
+
+
+@action("employees/edit_directory/<emp_id:int>", method=["GET", "POST"])
+@action("employees/edit_directory", method=["GET", "POST"])
+@view_page("employees/edit_directory.html", title="Edit Employee")
+@web_auth_required
+def edit_directory(emp_id=None):
+    user_cid = session.user.get("cid", "")
+    if emp_id is None:
+        try:
+            emp_id = int(request.query.get("id"))
+        except (TypeError, ValueError):
+            emp_id = None
+
+    if not emp_id:
+        flash.set("Invalid Employee ID specified.", "danger")
+        redirect(URL("employees/empployee_directory"))
+
+    where_clauses = ["id = %s"]
+    params = [emp_id]
+    if user_cid:
+        where_clauses.append("cid = %s")
+        params.append(user_cid)
+
+    res = db.executesql(f"SELECT * FROM employees WHERE {' AND '.join(where_clauses)} LIMIT 1", params, as_dict=True)
+    if not res:
+        flash.set("Employee record not found.", "danger")
+        redirect(URL("employees/empployee_directory"))
+
+    emp = res[0]
+    form_data = dict(emp)
+
+    if request.method == "POST":
+        post_data = dict(request.forms)
+        form_data.update(post_data)
+        try:
+            def clean_val(val):
+                val = str(val).strip() if val else None
+                return val if val != "" else None
+
+            cid = user_cid if user_cid else (clean_val(request.forms.get("cid")) or emp.get("cid"))
+            emp_name = clean_val(request.forms.get("emp_name"))
+            mobile = clean_val(request.forms.get("mobile"))
+            email = clean_val(request.forms.get("email"))
+            nid_number = clean_val(request.forms.get("nid_number"))
+            dob = clean_val(request.forms.get("dob"))
+            gender = clean_val(request.forms.get("gender"))
+            blood_group = clean_val(request.forms.get("blood_group"))
+            edu_qualification = clean_val(request.forms.get("edu_qualification"))
+
+            emp_id_code = clean_val(request.forms.get("emp_id")) or emp.get("emp_id")
+            emp_type = clean_val(request.forms.get("emp_type")) or "PERMANENT"
+            emp_department = clean_val(request.forms.get("emp_department"))
+            emp_designation = clean_val(request.forms.get("emp_designation"))
+            emp_grade = clean_val(request.forms.get("emp_grade"))
+            join_date = clean_val(request.forms.get("join_date"))
+            retirement_date = clean_val(request.forms.get("retirement_date"))
+            status_type = clean_val(request.forms.get("status_type")) or emp.get("status_type") or "ACTIVE"
+
+            home_district = clean_val(request.forms.get("home_district"))
+            present_address = clean_val(request.forms.get("present_address"))
+            permanent_address = clean_val(request.forms.get("permanent_address"))
+            note = clean_val(request.forms.get("note"))
+
+            if emp_id_code != emp.get("emp_id"):
+                dup_check = db.executesql("SELECT id FROM employees WHERE cid = %s AND emp_id = %s AND id != %s LIMIT 1", [cid, emp_id_code, emp_id])
+                if dup_check:
+                    flash.set(f"Official ID '{emp_id_code}' already exists.", "danger")
+                    return dict(user_cid=user_cid, emp=emp, form_data=form_data)
+
+            photo = request.files.get("emp_photo")
+            saved_filename = emp.get("photo_url")
+
+            if photo and photo.filename:
+                UPLOAD_DIR = os.path.join(os.path.dirname(__file__), "..", "static", "uploads", "profile_images")
+                os.makedirs(UPLOAD_DIR, exist_ok=True)
+                ext = os.path.splitext(photo.filename)[1]
+                saved_filename = f"{emp_id_code}_{int(time.time())}{ext}"
+                file_path = os.path.join(UPLOAD_DIR, saved_filename)
+                with open(file_path, "wb") as f:
+                    f.write(photo.file.read())
+
+            user_id = session.user.get('user_id', '') if (session and session.user) else ''
+
+            update_sql = """
+            UPDATE employees SET
+                cid = %s, emp_id = %s, emp_name = %s, emp_type = %s, emp_department = %s,
+                emp_designation = %s, emp_grade = %s, mobile = %s, email = %s, gender = %s,
+                dob = %s, blood_group = %s, join_date = %s, retirement_date = %s,
+                edu_qualification = %s, home_district = %s, present_address = %s,
+                permanent_address = %s, nid_number = %s, photo_url = %s, note = %s,
+                status_type = %s, updated_on = %s, updated_by = %s
+            WHERE id = %s
+            """
+            values = (
+                cid, emp_id_code, emp_name, emp_type, emp_department,
+                emp_designation, emp_grade, mobile, email, gender,
+                dob, blood_group, join_date, retirement_date,
+                edu_qualification, home_district, present_address,
+                permanent_address, nid_number, saved_filename, note,
+                status_type, db_datetime, user_id, emp_id
+            )
+            db.executesql(update_sql, values)
+            db.commit()
+            flash.set("Employee details updated successfully!", "success")
+            redirect(URL("employees/empployee_directory"))
+        except Exception as e:
+            flash.set(f"Failed to update employee: {str(e)}", "danger")
+            return dict(user_cid=user_cid, emp=emp, form_data=form_data)
+
+    return dict(user_cid=user_cid, emp=emp, form_data=form_data)
+
+
 
 
 

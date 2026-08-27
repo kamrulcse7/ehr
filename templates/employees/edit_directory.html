@@ -1,0 +1,394 @@
+[[extend 'layout.html']]
+[[ form_data = form_data if 'form_data' in locals() and form_data else (emp if 'emp' in locals() and emp else {}) ]]
+
+<div class="w-full space-y-4 text-slate-700 dark:text-slate-200">
+    <div class="max-w-[1800px] mx-auto space-y-4">
+
+        <!-- HEADER SECTION (Breadcrumb) -->
+        <div class="pb-2 border-b border-slate-200/80 dark:border-slate-800/80 flex items-center justify-between h-7">
+            <div class="flex items-center gap-0.5 text-xs font-medium">
+                <a href="[[=URL('employees/empployee_directory')]]" class="text-slate-400 dark:text-slate-500 hover:text-primary transition-colors">[[= globals().get('active_parent_title') or 'Employee Management' ]]</a>
+                <span class="material-symbols-outlined text-[12px] text-slate-400 dark:text-slate-600 select-none -mx-0.5">chevron_right</span>
+                <a href="[[=URL('employees/empployee_directory')]]" class="text-slate-400 dark:text-slate-500 hover:text-primary transition-colors">[[= globals().get('active_child_title') or 'Employee Directory' ]]</a>
+                <span class="material-symbols-outlined text-[12px] text-slate-400 dark:text-slate-600 select-none -mx-0.5">chevron_right</span>
+                <span class="text-primary font-bold">Edit Directory</span>
+            </div>
+            <a href="[[=URL('employees/empployee_directory')]]"
+                class="h-7 px-2.5 bg-slate-200 hover:bg-slate-300 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 rounded-md text-xs font-semibold transition-all inline-flex items-center gap-1 shrink-0">
+                <span class="material-symbols-outlined text-[15px]">arrow_back</span>
+                Back
+            </a>
+        </div>
+
+        <!-- FORM START -->
+        <form action="[[=URL('employees/edit_directory', emp.get('id'))]]" method="POST" enctype="multipart/form-data" id="employeeForm"
+            autocomplete="off"
+            class="bg-white dark:bg-slate-900 rounded-lg border border-slate-200 dark:border-slate-800 shadow-xs overflow-hidden">
+
+            <div class="p-4 space-y-4">
+
+                <!-- SECTION 1: PERSONAL DETAILS -->
+                <div
+                    class="p-3.5 bg-slate-50/50 dark:bg-slate-950/40 rounded-lg border border-slate-200/60 dark:border-slate-800/60">
+                    <h3
+                        class="text-[11px] font-bold uppercase tracking-wider text-primary pb-2 mb-3 border-b border-slate-200 dark:border-slate-800 flex items-center gap-1.5">
+                        <span class="material-symbols-outlined text-[16px]">badge</span> Personal Details
+                    </h3>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
+
+                        [[ if not user_cid: ]]
+                        <div>
+                            <label
+                                class="block text-[11px] font-semibold text-slate-700 dark:text-slate-300 mb-1">Company ID (CID) <span class="text-rose-500">*</span></label>
+                            <input type="text" name="cid" value="[[=form_data.get('cid', '')]]" required placeholder="e.g. EON"
+                                class="w-full h-8 px-2.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-md text-xs text-slate-800 dark:text-slate-200 focus:outline-none focus:border-primary transition-all">
+                        </div>
+                        [[ pass ]]
+
+                        <div>
+                            <label class="block text-[11px] font-semibold text-slate-700 dark:text-slate-300 mb-1">Full
+                                Name <span class="text-rose-500">*</span></label>
+                            <input type="text" name="emp_name" value="[[=form_data.get('emp_name', '')]]" required placeholder="Enter full name"
+                                class="w-full h-8 px-2.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-md text-xs text-slate-800 dark:text-slate-200 focus:outline-none focus:border-primary transition-all">
+                        </div>
+
+                        <div>
+                            <label
+                                class="block text-[11px] font-semibold text-slate-700 dark:text-slate-300 mb-1">Mobile
+                                Number <span class="text-rose-500">*</span></label>
+                            <input type="tel" name="mobile" value="[[=form_data.get('mobile', '')]]" required placeholder="01711000000"
+                                class="w-full h-8 px-2.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-md text-xs text-slate-800 dark:text-slate-200 focus:outline-none focus:border-primary transition-all">
+                        </div>
+
+                        <div>
+                            <label class="block text-[11px] font-semibold text-slate-700 dark:text-slate-300 mb-1">Email
+                                Address</label>
+                            <input type="email" name="email" value="[[=form_data.get('email', '')]]" placeholder="example@domain.com"
+                                class="w-full h-8 px-2.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-md text-xs text-slate-800 dark:text-slate-200 focus:outline-none focus:border-primary transition-all">
+                        </div>
+
+                        <div>
+                            <label class="block text-[11px] font-semibold text-slate-700 dark:text-slate-300 mb-1">NID
+                                Number</label>
+                            <input type="text" name="nid_number" value="[[=form_data.get('nid_number', '')]]" placeholder="NID Number"
+                                class="w-full h-8 px-2.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-md text-xs text-slate-800 dark:text-slate-200 focus:outline-none focus:border-primary transition-all">
+                        </div>
+
+                        <div>
+                            <label class="block text-[11px] font-semibold text-slate-700 dark:text-slate-300 mb-1">Date
+                                of Birth (DOB) <span class="text-rose-500">*</span></label>
+                            <input type="date" name="dob" value="[[=form_data.get('dob', '')]]" required
+                                class="w-full h-8 px-2.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-md text-xs text-slate-800 dark:text-slate-200 focus:outline-none focus:border-primary transition-all">
+                        </div>
+
+                        <div>
+                            <label
+                                class="block text-[11px] font-semibold text-slate-700 dark:text-slate-300 mb-1">Gender <span class="text-rose-500">*</span></label>
+                            <select name="gender" required
+                                class="w-full h-8 px-2.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-md text-xs text-slate-800 dark:text-slate-200 focus:outline-none focus:border-primary transition-all cursor-pointer">
+                                <option value="">Select Gender</option>
+                                <option value="MALE" [[= 'selected' if str(form_data.get('gender')).upper() == 'MALE' else '' ]]>Male</option>
+                                <option value="FEMALE" [[= 'selected' if str(form_data.get('gender')).upper() == 'FEMALE' else '' ]]>Female</option>
+                                <option value="OTHER" [[= 'selected' if str(form_data.get('gender')).upper() == 'OTHER' else '' ]]>Other</option>
+                            </select>
+                        </div>
+
+                        <div>
+                            <label class="block text-[11px] font-semibold text-slate-700 dark:text-slate-300 mb-1">Blood
+                                Group</label>
+                            <select name="blood_group"
+                                class="w-full h-8 px-2.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-md text-xs text-slate-800 dark:text-slate-200 focus:outline-none focus:border-primary transition-all cursor-pointer">
+                                <option value="">Select Group</option>
+                                <option value="A+" [[= 'selected' if form_data.get('blood_group') == 'A+' else '' ]]>A+</option>
+                                <option value="A-" [[= 'selected' if form_data.get('blood_group') == 'A-' else '' ]]>A-</option>
+                                <option value="B+" [[= 'selected' if form_data.get('blood_group') == 'B+' else '' ]]>B+</option>
+                                <option value="B-" [[= 'selected' if form_data.get('blood_group') == 'B-' else '' ]]>B-</option>
+                                <option value="O+" [[= 'selected' if form_data.get('blood_group') == 'O+' else '' ]]>O+</option>
+                                <option value="O-" [[= 'selected' if form_data.get('blood_group') == 'O-' else '' ]]>O-</option>
+                                <option value="AB+" [[= 'selected' if form_data.get('blood_group') == 'AB+' else '' ]]>AB+</option>
+                                <option value="AB-" [[= 'selected' if form_data.get('blood_group') == 'AB-' else '' ]]>AB-</option>
+                            </select>
+                        </div>
+
+                        <div>
+                            <label
+                                class="block text-[11px] font-semibold text-slate-700 dark:text-slate-300 mb-1">Education
+                                Qualification</label>
+                            <input type="text" name="edu_qualification" value="[[=form_data.get('edu_qualification', '')]]"
+                                placeholder="e.g. B.Sc. in Computer Science & Engineering"
+                                class="w-full h-8 px-2.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-md text-xs text-slate-800 dark:text-slate-200 focus:outline-none focus:border-primary transition-all">
+                        </div>
+
+                        <div>
+                            <label
+                                class="block text-[11px] font-semibold text-slate-700 dark:text-slate-300 mb-1">Status <span class="text-rose-500">*</span></label>
+                            <select name="status_type" required
+                                class="w-full h-8 px-2.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-md text-xs text-slate-800 dark:text-slate-200 focus:outline-none focus:border-primary transition-all cursor-pointer font-bold">
+                                <option value="ACTIVE" [[= 'selected' if str(form_data.get('status_type', 'ACTIVE')).upper() == 'ACTIVE' else '' ]]>ACTIVE</option>
+                                <option value="PROBATIONARY" [[= 'selected' if str(form_data.get('status_type')).upper() == 'PROBATIONARY' else '' ]]>PROBATIONARY</option>
+                                <option value="INACTIVE" [[= 'selected' if str(form_data.get('status_type')).upper() == 'INACTIVE' else '' ]]>INACTIVE</option>
+                            </select>
+                        </div>
+
+                    </div>
+                </div>
+
+                <!-- SECTION 2: OFFICIAL DETAILS -->
+                <div
+                    class="p-3.5 bg-slate-50/50 dark:bg-slate-950/40 rounded-lg border border-slate-200/60 dark:border-slate-800/60">
+                    <h3
+                        class="text-[11px] font-bold uppercase tracking-wider text-primary pb-2 mb-3 border-b border-slate-200 dark:border-slate-800 flex items-center gap-1.5">
+                        <span class="material-symbols-outlined text-[16px]">domain</span> Official Details
+                    </h3>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
+
+                        <div>
+                            <label
+                                class="block text-[11px] font-semibold text-slate-700 dark:text-slate-300 mb-1">Official ID <span class="text-rose-500">*</span></label>
+                            <input type="text" name="emp_id" value="[[=form_data.get('emp_id', '')]]" required placeholder="EMP-00101"
+                                class="w-full h-8 px-2.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-md text-xs text-slate-800 dark:text-slate-200 focus:outline-none focus:border-primary transition-all font-mono">
+                        </div>
+
+                        <div>
+                            <label
+                                class="block text-[11px] font-semibold text-slate-700 dark:text-slate-300 mb-1">Service
+                                Type <span class="text-rose-500">*</span></label>
+                            <select name="emp_type" required
+                                class="w-full h-8 px-2.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-md text-xs text-slate-800 dark:text-slate-200 focus:outline-none focus:border-primary transition-all cursor-pointer">
+                                <option value="PERMANENT" [[= 'selected' if str(form_data.get('emp_type', 'PERMANENT')).upper() == 'PERMANENT' else '' ]]>PERMANENT</option>
+                                <option value="PROBATIONARY" [[= 'selected' if str(form_data.get('emp_type')).upper() == 'PROBATIONARY' else '' ]]>PROBATIONARY</option>
+                                <option value="TEMPORARY" [[= 'selected' if str(form_data.get('emp_type')).upper() == 'TEMPORARY' else '' ]]>TEMPORARY</option>
+                                <option value="CONTRACTUAL" [[= 'selected' if str(form_data.get('emp_type')).upper() == 'CONTRACTUAL' else '' ]]>CONTRACTUAL</option>
+                            </select>
+                        </div>
+
+                        <div>
+                            <label
+                                class="block text-[11px] font-semibold text-slate-700 dark:text-slate-300 mb-1">Department
+                                <span class="text-rose-500">*</span></label>
+                            <input type="text" name="emp_department" value="[[=form_data.get('emp_department', '')]]" required placeholder="e.g. Software Development"
+                                class="w-full h-8 px-2.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-md text-xs text-slate-800 dark:text-slate-200 focus:outline-none focus:border-primary transition-all">
+                        </div>
+
+                        <div>
+                            <label
+                                class="block text-[11px] font-semibold text-slate-700 dark:text-slate-300 mb-1">Designation
+                                <span class="text-rose-500">*</span></label>
+                            <input type="text" name="emp_designation" value="[[=form_data.get('emp_designation', '')]]" required placeholder="e.g. Software Engineer"
+                                class="w-full h-8 px-2.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-md text-xs text-slate-800 dark:text-slate-200 focus:outline-none focus:border-primary transition-all">
+                        </div>
+
+                        <div>
+                            <label
+                                class="block text-[11px] font-semibold text-slate-700 dark:text-slate-300 mb-1">Grade</label>
+                            <input type="text" name="emp_grade" value="[[=form_data.get('emp_grade', '')]]" placeholder="e.g. Grade-2"
+                                class="w-full h-8 px-2.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-md text-xs text-slate-800 dark:text-slate-200 focus:outline-none focus:border-primary transition-all">
+                        </div>
+
+                        <div>
+                            <label class="block text-[11px] font-semibold text-slate-700 dark:text-slate-300 mb-1">Join
+                                Date <span class="text-rose-500">*</span></label>
+                            <input type="date" name="join_date" value="[[=form_data.get('join_date', '')]]" required
+                                class="w-full h-8 px-2.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-md text-xs text-slate-800 dark:text-slate-200 focus:outline-none focus:border-primary transition-all">
+                        </div>
+
+                        <div>
+                            <label
+                                class="block text-[11px] font-semibold text-slate-700 dark:text-slate-300 mb-1">Retirement
+                                Date</label>
+                            <input type="date" name="retirement_date" value="[[=form_data.get('retirement_date', '')]]"
+                                class="w-full h-8 px-2.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-md text-xs text-slate-800 dark:text-slate-200 focus:outline-none focus:border-primary transition-all">
+                        </div>
+
+                    </div>
+                </div>
+
+                <!-- SECTION 3: ADDRESS & ATTACHMENTS -->
+                <div
+                    class="p-4 bg-slate-50/50 dark:bg-slate-950/40 rounded-xl border border-slate-200/80 dark:border-slate-800/80 shadow-xs">
+                    <h3
+                        class="text-[12px] font-bold uppercase tracking-wider text-primary pb-2 mb-3 border-b border-slate-200 dark:border-slate-800/80 flex items-center gap-2">
+                        <span class="material-symbols-outlined text-[18px]">home_pin</span> Address & Photo Attachment
+                    </h3>
+
+                    <div class="grid grid-cols-1 lg:grid-cols-12 gap-4 items-stretch">
+
+                        <!-- Left Inputs -->
+                        <div class="lg:col-span-9 xl:col-span-10 flex flex-col justify-between gap-3">
+
+                            <!-- Row 1: District, Present Address, Permanent Address -->
+                            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                                <div>
+                                    <label
+                                        class="block text-[11px] font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                                        Home District <span class="text-rose-500">*</span>
+                                    </label>
+                                    <input type="text" name="home_district" value="[[=form_data.get('home_district', '')]]" placeholder="e.g. Dhaka" required
+                                        class="w-full h-8 px-2.5 text-xs bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-md text-slate-800 dark:text-slate-200 placeholder:text-slate-400 focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary transition-all">
+                                </div>
+
+                                <div>
+                                    <label
+                                        class="block text-[11px] font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                                        Present Address <span class="text-rose-500">*</span>
+                                    </label>
+                                    <input type="text" name="present_address" value="[[=form_data.get('present_address', '')]]" placeholder="House/Street, Area..." required
+                                        class="w-full h-8 px-2.5 text-xs bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-md text-slate-800 dark:text-slate-200 placeholder:text-slate-400 focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary transition-all">
+                                </div>
+
+                                <div>
+                                    <label
+                                        class="block text-[11px] font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                                        Permanent Address <span class="text-rose-500">*</span>
+                                    </label>
+                                    <input type="text" name="permanent_address" value="[[=form_data.get('permanent_address', '')]]" placeholder="Village/Street, Upazila..." required
+                                        class="w-full h-8 px-2.5 text-xs bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-md text-slate-800 dark:text-slate-200 placeholder:text-slate-400 focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary transition-all">
+                                </div>
+                            </div>
+
+                            <!-- Row 2: Note / Comments -->
+                            <div>
+                                <label class="block text-[11px] font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                                    Note / Comments
+                                </label>
+                                <textarea name="note" rows="2" placeholder="Additional notes..."
+                                    class="w-full px-2.5 py-1.5 text-xs bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-md text-slate-800 dark:text-slate-200 placeholder:text-slate-400 focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary transition-all resize-none">[[=form_data.get('note', '')]]</textarea>
+                            </div>
+
+                        </div>
+
+                        <!-- Right Photo Upload Dropzone -->
+                        <div class="lg:col-span-3 xl:col-span-2 flex flex-col h-full justify-between">
+                            <div class="flex items-center justify-between mb-1 shrink-0">
+                                <label class="block text-[11px] font-semibold text-slate-700 dark:text-slate-300">
+                                    Photo Upload
+                                </label>
+                                <span class="text-[9px] text-slate-400 font-normal">(Max 120KB)</span>
+                            </div>
+
+                            [[ photo_url = form_data.get('photo_url') ]]
+                            <div id="dropzone"
+                                class="relative flex-1 w-full min-h-[100px] border-2 border-dashed border-slate-200 dark:border-slate-800 hover:border-primary dark:hover:border-primary rounded-lg flex flex-col items-center justify-center bg-white dark:bg-slate-900 transition-all duration-200 group cursor-pointer shadow-2xs overflow-hidden">
+
+                                <!-- File Input Top Overlay -->
+                                <input type="file" name="emp_photo" id="empPhotoInput" accept="image/jpeg, image/png"
+                                    class="absolute inset-0 opacity-0 cursor-pointer w-full h-full z-10"
+                                    onchange="validateAndPreviewImage(this)">
+
+                                <!-- Placeholder State -->
+                                <div id="uploadPlaceholder"
+                                    class="[[= 'hidden' if photo_url else '' ]] flex flex-col items-center text-center space-y-1 p-2 pointer-events-none">
+                                    <div
+                                        class="p-1 rounded-full bg-slate-50 dark:bg-slate-800 group-hover:bg-primary/10 transition-colors">
+                                        <span
+                                            class="material-symbols-outlined text-[18px] text-slate-400 group-hover:text-primary transition-colors">cloud_upload</span>
+                                    </div>
+                                    <div>
+                                        <p
+                                            class="text-[10px] font-semibold text-slate-700 dark:text-slate-300 group-hover:text-primary transition-colors">
+                                            Upload Image
+                                        </p>
+                                        <p class="text-[8px] text-slate-400 mt-0.5">JPG/PNG (120KB)</p>
+                                    </div>
+                                </div>
+
+                                <!-- Image Preview State -->
+                                <div id="imagePreviewContainer"
+                                    class="[[= '' if photo_url else 'hidden' ]] absolute inset-0 flex items-center justify-center bg-slate-50/90 dark:bg-slate-900/90 backdrop-blur-xs pointer-events-none z-20">
+                                    <div
+                                        class="relative p-0.5 bg-white dark:bg-slate-800 rounded-full shadow-sm border border-slate-500 dark:border-slate-700 pointer-events-auto">
+
+                                        <img id="imagePreview" src="[[= URL('static/uploads/profile_images', photo_url) if photo_url else '#' ]]" alt="Preview"
+                                            class="h-16 w-16 object-cover rounded-full border border-primary/20">
+
+                                        <button type="button" onclick="clearSelectedImage(event)" title="Remove Image"
+                                            class="absolute top-0 right-0 h-3.5 w-3.5 active:scale-95 text-gray-500 rounded-full flex items-center justify-center shadow-xs transition-all duration-150 cursor-pointer z-30 group">
+                                            <span class="material-symbols-outlined text-[8px]">close</span>
+                                        </button>
+                                    </div>
+                                </div>
+
+                            </div>
+                            <p id="photoError"
+                                class="text-[10px] text-rose-500 font-medium mt-1 hidden text-center shrink-0"></p>
+                        </div>
+
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- FORM FOOTER BUTTONS -->
+            <div
+                class="px-4 py-2.5 bg-slate-50 dark:bg-slate-950 border-t border-slate-200 dark:border-slate-800 flex items-center justify-end gap-2">
+                <a href="[[=URL('employees/empployee_directory')]]"
+                    class="h-7 px-3 bg-white dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700 rounded-md text-xs font-semibold transition-all flex items-center justify-center">
+                    Cancel
+                </a>
+                <button type="submit" id="submitBtn"
+                    class="h-7 px-3.5 bg-primary hover:opacity-90 text-white rounded-md text-xs font-semibold shadow-xs transition-all flex items-center gap-1 justify-center">
+                    <span class="material-symbols-outlined text-[15px]">save</span>
+                    Save Changes
+                </button>
+            </div>
+
+        </form>
+
+    </div>
+</div>
+
+<script>
+    if (window.history.replaceState) {
+        window.history.replaceState(null, null, window.location.href);
+    }
+    function validateAndPreviewImage(input) {
+        const file = input.files[0];
+        const errorEl = document.getElementById('photoError');
+        const placeholder = document.getElementById('uploadPlaceholder');
+        const previewContainer = document.getElementById('imagePreviewContainer');
+        const previewImg = document.getElementById('imagePreview');
+
+        errorEl.classList.add('hidden');
+        errorEl.textContent = '';
+
+        if (file) {
+            const maxSize = 120 * 1024;
+            if (file.size > maxSize) {
+                errorEl.textContent = `File size (${(file.size / 1024).toFixed(1)}KB) exceeds 120KB limit!`;
+                errorEl.classList.remove('hidden');
+                resetImageField();
+                return;
+            }
+
+            const reader = new FileReader();
+            reader.onload = function (e) {
+                previewImg.src = e.target.result;
+                placeholder.classList.add('hidden');
+                previewContainer.classList.remove('hidden');
+            };
+            reader.readAsDataURL(file);
+        } else {
+            resetImageField();
+        }
+    }
+
+    function clearSelectedImage(e) {
+        if (e) {
+            e.preventDefault();
+            e.stopPropagation();
+        }
+        resetImageField();
+    }
+
+    function resetImageField() {
+        const input = document.getElementById('empPhotoInput');
+        const placeholder = document.getElementById('uploadPlaceholder');
+        const previewContainer = document.getElementById('imagePreviewContainer');
+        const previewImg = document.getElementById('imagePreview');
+
+        if (input) input.value = '';
+        if (previewImg) previewImg.src = '#';
+        if (placeholder) placeholder.classList.remove('hidden');
+        if (previewContainer) previewContainer.classList.add('hidden');
+    }
+</script>

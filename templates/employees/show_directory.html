@@ -1,0 +1,220 @@
+[[extend 'layout.html']]
+
+<div class="w-full space-y-4 text-slate-700 dark:text-slate-200">
+    <div class="max-w-[1800px] mx-auto space-y-4">
+
+        <!-- HEADER SECTION (Breadcrumb) -->
+        <div class="pb-2 border-b border-slate-200/80 dark:border-slate-800/80 flex items-center justify-between h-7">
+            <div class="flex items-center gap-0.5 text-xs font-medium">
+                <a href="[[=URL('employees/empployee_directory')]]" class="text-slate-400 dark:text-slate-500 hover:text-primary transition-colors">[[= globals().get('active_parent_title') or 'Employee Management' ]]</a>
+                <span class="material-symbols-outlined text-[12px] text-slate-400 dark:text-slate-600 select-none -mx-0.5">chevron_right</span>
+                <a href="[[=URL('employees/empployee_directory')]]" class="text-slate-400 dark:text-slate-500 hover:text-primary transition-colors">[[= globals().get('active_child_title') or 'Employee Directory' ]]</a>
+                <span class="material-symbols-outlined text-[12px] text-slate-400 dark:text-slate-600 select-none -mx-0.5">chevron_right</span>
+                <span class="text-primary font-bold">Directory Details</span>
+            </div>
+            <a href="[[=URL('employees/empployee_directory')]]"
+                class="h-7 px-2.5 bg-slate-200 hover:bg-slate-300 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 rounded-md text-xs font-semibold transition-all inline-flex items-center gap-1 shrink-0">
+                <span class="material-symbols-outlined text-[15px]">arrow_back</span>
+                Back
+            </a>
+        </div>
+
+        <!-- PROFILE BANNER CARD -->
+        <div class="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 p-5 shadow-xs flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+            <div class="flex items-center gap-4">
+                [[ photo_url = emp.get('photo_url') ]]
+                [[ if photo_url: ]]
+                <img src="[[=URL('static/uploads/profile_images', photo_url)]]" alt="[[=emp.get('emp_name')]]"
+                    class="w-16 h-16 rounded-full object-cover border-2 border-primary/20 shadow-xs shrink-0">
+                [[ else: ]]
+                [[ name = emp.get('emp_name', 'E').strip() ]]
+                [[ initial = name[0].upper() if name else 'E' ]]
+                <div class="w-16 h-16 rounded-full bg-primary/10 text-primary font-bold text-xl flex items-center justify-center shrink-0 border-2 border-primary/20 select-none">
+                    [[= initial ]]
+                </div>
+                [[ pass ]]
+
+                <div class="space-y-1">
+                    <div class="flex items-center gap-2 flex-wrap">
+                        <h2 class="text-lg font-bold text-slate-900 dark:text-white">[[= emp.get('emp_name', '--') ]]</h2>
+                        [[ if emp.get('cid'): ]]
+                        <span class="font-semibold text-sky-600 dark:text-sky-400">([[= emp.get('cid') ]])</span>
+                        [[ pass ]]
+
+                        [[ status = emp.get('status_type', 'ACTIVE') ]]
+                        [[ if status == 'ACTIVE': ]]
+                        <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-bold bg-emerald-50 text-emerald-700 dark:bg-emerald-950/50 dark:text-emerald-400">
+                            <span class="w-2 h-2 rounded-full bg-emerald-500"></span> Active
+                        </span>
+                        [[ elif status == 'PROBATIONARY': ]]
+                        <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-bold bg-amber-50 text-amber-700 dark:bg-amber-950/50 dark:text-amber-400">
+                            <span class="w-2 h-2 rounded-full bg-amber-500"></span> Probationary
+                        </span>
+                        [[ else: ]]
+                        <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-bold bg-rose-50 text-rose-600 dark:bg-rose-950/50 dark:text-rose-400">
+                            <span class="w-2 h-2 rounded-full bg-rose-500"></span> Inactive
+                        </span>
+                        [[ pass ]]
+                    </div>
+
+                    <div class="text-xs text-slate-500 dark:text-slate-400 flex items-center gap-3 flex-wrap">
+                        <span class="font-mono text-slate-600 dark:text-slate-300 font-semibold">ID: #[[= emp.get('emp_id', '--') ]]</span>
+                        <span>•</span>
+                        <span>[[= emp.get('emp_designation', '--') ]]</span>
+                        <span>•</span>
+                        <span>[[= emp.get('emp_department', '--') ]]</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ACTION BUTTONS -->
+            <div class="flex items-center gap-2 shrink-0">
+                <a href="[[=URL('employees/edit_directory', emp.get('id'))]]"
+                    class="h-8 px-3 bg-amber-600 hover:bg-amber-700 text-white rounded-md text-xs font-semibold shadow-xs transition-all flex items-center gap-1">
+                    <span class="material-symbols-outlined text-[16px]">edit</span>
+                    Edit Record
+                </a>
+                <a href="[[=URL('employees/empployee_directory', vars={'action': 'delete', 'id': emp.get('id')})]]"
+                    onclick="return confirm('Are you sure you want to delete this employee?');"
+                    class="h-8 px-3 bg-rose-600 hover:bg-rose-700 text-white rounded-md text-xs font-semibold shadow-xs transition-all flex items-center gap-1">
+                    <span class="material-symbols-outlined text-[16px]">delete</span>
+                    Delete Record
+                </a>
+            </div>
+        </div>
+
+        <!-- DETAILS GRID SECTION -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+
+            <!-- PERSONAL DETAILS -->
+            <div class="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 p-4 space-y-3 shadow-xs">
+                <h3 class="text-xs font-bold uppercase tracking-wider text-primary pb-2 border-b border-slate-200 dark:border-slate-800 flex items-center gap-1.5">
+                    <span class="material-symbols-outlined text-[18px]">badge</span> Personal Details
+                </h3>
+                <div class="grid grid-cols-2 gap-3 text-xs">
+                    <div>
+                        <span class="text-slate-400 dark:text-slate-500 block text-[11px]">Full Name</span>
+                        <span class="font-semibold text-slate-800 dark:text-slate-200">[[= emp.get('emp_name') or '--' ]]</span>
+                    </div>
+                    <div>
+                        <span class="text-slate-400 dark:text-slate-500 block text-[11px]">Gender</span>
+                        <span class="font-semibold text-slate-800 dark:text-slate-200">[[= emp.get('gender') or '--' ]]</span>
+                    </div>
+                    <div>
+                        <span class="text-slate-400 dark:text-slate-500 block text-[11px]">Date of Birth (DOB)</span>
+                        <span class="font-semibold text-slate-800 dark:text-slate-200">[[= emp.get('dob') or '--' ]]</span>
+                    </div>
+                    <div>
+                        <span class="text-slate-400 dark:text-slate-500 block text-[11px]">Blood Group</span>
+                        <span class="font-semibold text-rose-600 dark:text-rose-400">[[= emp.get('blood_group') or '--' ]]</span>
+                    </div>
+                    <div>
+                        <span class="text-slate-400 dark:text-slate-500 block text-[11px]">NID Number</span>
+                        <span class="font-mono text-slate-800 dark:text-slate-200">[[= emp.get('nid_number') or '--' ]]</span>
+                    </div>
+                    <div>
+                        <span class="text-slate-400 dark:text-slate-500 block text-[11px]">Education Qualification</span>
+                        <span class="font-semibold text-slate-800 dark:text-slate-200">[[= emp.get('edu_qualification') or '--' ]]</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- OFFICIAL DETAILS -->
+            <div class="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 p-4 space-y-3 shadow-xs">
+                <h3 class="text-xs font-bold uppercase tracking-wider text-primary pb-2 border-b border-slate-200 dark:border-slate-800 flex items-center gap-1.5">
+                    <span class="material-symbols-outlined text-[18px]">domain</span> Official & Service Info
+                </h3>
+                <div class="grid grid-cols-2 gap-3 text-xs">
+                    <div>
+                        <span class="text-slate-400 dark:text-slate-500 block text-[11px]">Official ID</span>
+                        <span class="font-mono font-bold text-slate-900 dark:text-white">#[[= emp.get('emp_id') or '--' ]]</span>
+                    </div>
+                    <div>
+                        <span class="text-slate-400 dark:text-slate-500 block text-[11px]">Service Type</span>
+                        <span class="font-semibold text-slate-800 dark:text-slate-200">[[= emp.get('emp_type') or '--' ]]</span>
+                    </div>
+                    <div>
+                        <span class="text-slate-400 dark:text-slate-500 block text-[11px]">Department</span>
+                        <span class="font-semibold text-slate-800 dark:text-slate-200">[[= emp.get('emp_department') or '--' ]]</span>
+                    </div>
+                    <div>
+                        <span class="text-slate-400 dark:text-slate-500 block text-[11px]">Designation</span>
+                        <span class="font-semibold text-slate-800 dark:text-slate-200">[[= emp.get('emp_designation') or '--' ]]</span>
+                    </div>
+                    <div>
+                        <span class="text-slate-400 dark:text-slate-500 block text-[11px]">Grade</span>
+                        <span class="font-semibold text-slate-800 dark:text-slate-200">[[= emp.get('emp_grade') or '--' ]]</span>
+                    </div>
+                    <div>
+                        <span class="text-slate-400 dark:text-slate-500 block text-[11px]">Current Posting Place</span>
+                        <span class="font-semibold text-sky-600 dark:text-sky-400">[[= emp.get('current_posting_place') or 'Head Office' ]]</span>
+                    </div>
+                    <div>
+                        <span class="text-slate-400 dark:text-slate-500 block text-[11px]">Join Date</span>
+                        <span class="font-semibold text-slate-800 dark:text-slate-200">[[= emp.get('join_date') or '--' ]]</span>
+                    </div>
+                    <div>
+                        <span class="text-slate-400 dark:text-slate-500 block text-[11px]">Retirement Date</span>
+                        <span class="font-semibold text-slate-800 dark:text-slate-200">[[= emp.get('retirement_date') or '--' ]]</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- CONTACT & ADDRESS DETAILS -->
+            <div class="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 p-4 space-y-3 shadow-xs">
+                <h3 class="text-xs font-bold uppercase tracking-wider text-primary pb-2 border-b border-slate-200 dark:border-slate-800 flex items-center gap-1.5">
+                    <span class="material-symbols-outlined text-[18px]">home_pin</span> Contact & Address Info
+                </h3>
+                <div class="grid grid-cols-2 gap-3 text-xs">
+                    <div>
+                        <span class="text-slate-400 dark:text-slate-500 block text-[11px]">Mobile Number</span>
+                        <span class="font-mono font-semibold text-slate-800 dark:text-slate-200">[[= emp.get('mobile') or '--' ]]</span>
+                    </div>
+                    <div>
+                        <span class="text-slate-400 dark:text-slate-500 block text-[11px]">Email Address</span>
+                        <span class="font-semibold text-slate-800 dark:text-slate-200">[[= emp.get('email') or '--' ]]</span>
+                    </div>
+                    <div>
+                        <span class="text-slate-400 dark:text-slate-500 block text-[11px]">Home District</span>
+                        <span class="font-semibold text-slate-800 dark:text-slate-200">[[= emp.get('home_district') or '--' ]]</span>
+                    </div>
+                    <div>
+                        <span class="text-slate-400 dark:text-slate-500 block text-[11px]">Present Address</span>
+                        <span class="text-slate-800 dark:text-slate-200">[[= emp.get('present_address') or '--' ]]</span>
+                    </div>
+                    <div class="col-span-2">
+                        <span class="text-slate-400 dark:text-slate-500 block text-[11px]">Permanent Address</span>
+                        <span class="text-slate-800 dark:text-slate-200">[[= emp.get('permanent_address') or '--' ]]</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SYSTEM & REMARKS -->
+            <div class="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 p-4 space-y-3 shadow-xs">
+                <h3 class="text-xs font-bold uppercase tracking-wider text-primary pb-2 border-b border-slate-200 dark:border-slate-800 flex items-center gap-1.5">
+                    <span class="material-symbols-outlined text-[18px]">info</span> Remarks & Audit Info
+                </h3>
+                <div class="space-y-2 text-xs">
+                    <div>
+                        <span class="text-slate-400 dark:text-slate-500 block text-[11px]">Remarks / Note</span>
+                        <p class="text-slate-800 dark:text-slate-200 italic bg-slate-50 dark:bg-slate-800/40 p-2 rounded border border-slate-200/50 dark:border-slate-700/50">
+                            [[= emp.get('note') or 'No remarks recorded.' ]]
+                        </p>
+                    </div>
+                    <div class="grid grid-cols-2 gap-3 pt-1">
+                        <div>
+                            <span class="text-slate-400 dark:text-slate-500 block text-[11px]">Created On</span>
+                            <span class="text-slate-700 dark:text-slate-300 font-mono text-[11px]">[[= emp.get('created_on') or '--' ]]</span>
+                        </div>
+                        <div>
+                            <span class="text-slate-400 dark:text-slate-500 block text-[11px]">Last Updated</span>
+                            <span class="text-slate-700 dark:text-slate-300 font-mono text-[11px]">[[= emp.get('updated_on') or '--' ]]</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+    </div>
+</div>

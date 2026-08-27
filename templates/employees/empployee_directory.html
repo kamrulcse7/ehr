@@ -281,21 +281,21 @@
                             <td class="py-2 px-2 text-center w-px whitespace-nowrap">
                                 <div class="inline-flex items-center justify-center gap-0.5">
                                     <!-- View Button -->
-                                    <a href="[[=URL('employees/show', emp.get('id'))]]" title="View Details"
+                                    <a href="[[=URL('employees/show_directory', emp.get('id'))]]" title="View Details"
                                         class="p-1 rounded text-slate-400 hover:text-sky-600 hover:bg-sky-50 dark:hover:bg-sky-950/40 transition-colors">
                                         <span class="material-symbols-outlined text-[16px] block">visibility</span>
                                     </a>
 
                                     <!-- Edit Button -->
-                                    <a href="[[=URL('employees/edit', emp.get('id'))]]" title="Edit Record"
+                                    <a href="[[=URL('employees/edit_directory', emp.get('id'))]]" title="Edit Record"
                                         class="p-1 rounded text-slate-400 hover:text-amber-600 hover:bg-amber-50 dark:hover:bg-amber-950/40 transition-colors">
                                         <span class="material-symbols-outlined text-[16px] block">edit</span>
                                     </a>
 
                                     <!-- Delete Button -->
-                                    <a href="[[=URL('employees/delete', emp.get('id'))]]" 
+                                    <a href="[[=URL('employees/empployee_directory', vars={'action': 'delete', 'id': emp.get('id')})]]" 
                                     title="Delete Record"
-                                    onclick=""
+                                    onclick="return confirm('Are you sure you want to delete this employee?');"
                                     class="p-1 rounded text-slate-400 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/40 transition-colors">
                                         <span class="material-symbols-outlined text-[16px] block">delete</span>
                                     </a>
