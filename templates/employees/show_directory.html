@@ -159,6 +159,11 @@
                                     <h1 class="text-base font-extrabold text-slate-900 dark:text-white tracking-tight">
                                         [[= emp.get('emp_name', '--') ]]
                                     </h1>
+                                    [[ if not user_cid and emp.get('cid'): ]]
+                                    <span class="px-1.5 py-0.2 rounded text-[10px] font-bold bg-sky-100 text-sky-800 dark:bg-sky-950/60 dark:text-sky-400 font-mono shadow-2xs border border-sky-200/50 dark:border-sky-800/50">
+                                        [[= emp.get('cid') ]]
+                                    </span>
+                                    [[ pass ]]
 
                                     <!-- Status Badge -->
                                     [[ status = emp.get('status_type', 'ACTIVE') ]]

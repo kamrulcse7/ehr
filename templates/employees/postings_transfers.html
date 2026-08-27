@@ -242,10 +242,14 @@
                                     [[ pass ]]
 
                                     <div class="flex flex-col min-w-0">
-                                        <span class="font-bold text-slate-900 dark:text-white text-xs truncate">
-                                            [[= name_str or '--' ]]
-                                            [[ if not user_cid and item.get('cid'): ]]<span class="font-semibold text-sky-600 dark:text-sky-400">([[= item.get('cid') ]])</span>[[ pass ]]
-                                        </span>
+                                        <div class="font-bold text-slate-900 dark:text-white text-xs truncate flex items-center gap-1">
+                                            <span>[[= name_str or '--' ]]</span>
+                                            [[ if not user_cid and item.get('cid'): ]]
+                                            <span class="px-1.5 py-0.2 rounded text-[10px] font-bold bg-sky-100 text-sky-800 dark:bg-sky-950/60 dark:text-sky-400 font-mono inline-block shadow-2xs border border-sky-200/50 dark:border-sky-800/50">
+                                                [[= item.get('cid') ]]
+                                            </span>
+                                            [[ pass ]]
+                                        </div>
                                         <span class="font-mono text-[10px] text-slate-400 dark:text-slate-500">
                                             #[[= item.get('emp_id') ]]
                                         </span>

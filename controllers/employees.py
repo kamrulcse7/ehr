@@ -351,7 +351,9 @@ def edit_directory(emp_id=None):
                 val = str(val).strip() if val else None
                 return val if val != "" else None
 
-            cid = user_cid if user_cid else (clean_val(request.forms.get("cid")) or emp.get("cid"))
+            # Always preserve existing CID and Official ID (emp_id) on record edit
+            cid = emp.get("cid")
+            emp_id_code = emp.get("emp_id")
             emp_name = clean_val(request.forms.get("emp_name"))
             mobile = clean_val(request.forms.get("mobile"))
             email = clean_val(request.forms.get("email"))
@@ -361,7 +363,6 @@ def edit_directory(emp_id=None):
             blood_group = clean_val(request.forms.get("blood_group"))
             edu_qualification = clean_val(request.forms.get("edu_qualification"))
 
-            emp_id_code = clean_val(request.forms.get("emp_id")) or emp.get("emp_id")
             emp_type = clean_val(request.forms.get("emp_type")) or "PERMANENT"
             emp_department = clean_val(request.forms.get("emp_department"))
             emp_designation = clean_val(request.forms.get("emp_designation"))

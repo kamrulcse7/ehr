@@ -226,11 +226,14 @@
                                     [[ pass ]]
 
                                     <div class="flex flex-col min-w-0">
-                                        <span class="font-bold text-slate-900 dark:text-white text-xs truncate">
-                                            [[= emp.get('emp_name', '--') ]]
-                                            [[ if not user_cid and emp.get('cid'): ]]<span class="font-semibold text-sky-600 dark:text-sky-400">([[= emp.get('cid') ]])</span> 
+                                        <div class="font-bold text-slate-900 dark:text-white text-xs truncate flex items-center gap-1">
+                                            <span>[[= emp.get('emp_name', '--') ]]</span>
+                                            [[ if not user_cid and emp.get('cid'): ]]
+                                            <span class="px-1.5 py-0.2 rounded text-[10px] font-bold bg-sky-100 text-sky-800 dark:bg-sky-950/60 dark:text-sky-400 font-mono inline-block shadow-2xs border border-sky-200/50 dark:border-sky-800/50">
+                                                [[= emp.get('cid') ]]
+                                            </span>
                                             [[ pass ]]
-                                        </span>
+                                        </div>
                                         <span class="font-mono text-[10px] text-slate-400 dark:text-slate-500">
                                             #[[= emp.get('emp_id') ]] [[ if emp.get('blood_group'): ]]<span
                                                 class="text-rose-500 font-semibold">• [[= emp.get('blood_group')

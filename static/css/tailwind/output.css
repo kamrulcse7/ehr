@@ -2180,6 +2180,10 @@ html.dark body {
   border-color: rgb(226 232 240 / 0.4);
 }
 
+.border-sky-200\/50 {
+  border-color: rgb(186 230 253 / 0.5);
+}
+
 .border-t-white {
   --tw-border-opacity: 1;
   border-top-color: rgb(255 255 255 / var(--tw-border-opacity));
@@ -4337,6 +4341,10 @@ html.dark input:-webkit-autofill:active {
 .dark\:border-sky-800:is(.dark *) {
   --tw-border-opacity: 1;
   border-color: rgb(7 89 133 / var(--tw-border-opacity));
+}
+
+.dark\:border-sky-800\/50:is(.dark *) {
+  border-color: rgb(7 89 133 / 0.5);
 }
 
 .dark\:border-l-slate-600:is(.dark *) {

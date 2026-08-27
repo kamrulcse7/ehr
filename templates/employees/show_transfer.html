@@ -101,7 +101,14 @@
 
                     <div class="space-y-0.5">
                         <div class="text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500">Profile</div>
-                        <div class="text-sm font-bold text-slate-900 dark:text-white">[[= item.get('emp_name', 'N/A') ]]</div>
+                        <div class="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-1.5">
+                            <span>[[= item.get('emp_name', 'N/A') ]]</span>
+                            [[ if not user_cid and item.get('cid'): ]]
+                            <span class="px-1.5 py-0.2 rounded text-[10px] font-bold bg-sky-100 text-sky-800 dark:bg-sky-950/60 dark:text-sky-400 font-mono shadow-2xs border border-sky-200/50 dark:border-sky-800/50">
+                                [[= item.get('cid') ]]
+                            </span>
+                            [[ pass ]]
+                        </div>
                         <div class="flex items-center gap-2.5 text-xs text-slate-500 dark:text-slate-400 flex-wrap">
                             <span class="font-mono text-slate-400">ID: #[[= item.get('emp_id', 'N/A') ]]</span>
                             [[ if item.get('mobile'): ]]

@@ -39,9 +39,9 @@
                         [[ if not user_cid: ]]
                         <div>
                             <label
-                                class="block text-[11px] font-semibold text-slate-700 dark:text-slate-300 mb-1">Company ID (CID) <span class="text-rose-500">*</span></label>
-                            <input type="text" name="cid" value="[[=form_data.get('cid', '')]]" required placeholder="e.g. EON"
-                                class="w-full h-8 px-2.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-md text-xs text-slate-800 dark:text-slate-200 focus:outline-none focus:border-primary transition-all">
+                                class="block text-[11px] font-semibold text-slate-700 dark:text-slate-300 mb-1">Company ID (CID)</label>
+                            <input type="text" name="cid" value="[[=form_data.get('cid', '')]]" readonly
+                                class="w-full h-8 px-2.5 bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-md text-xs text-slate-500 dark:text-slate-400 font-mono cursor-not-allowed select-none">
                         </div>
                         [[ pass ]]
 
@@ -144,9 +144,9 @@
 
                         <div>
                             <label
-                                class="block text-[11px] font-semibold text-slate-700 dark:text-slate-300 mb-1">Official ID <span class="text-rose-500">*</span></label>
-                            <input type="text" name="emp_id" value="[[=form_data.get('emp_id', '')]]" required placeholder="EMP-00101"
-                                class="w-full h-8 px-2.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-md text-xs text-slate-800 dark:text-slate-200 focus:outline-none focus:border-primary transition-all font-mono">
+                                class="block text-[11px] font-semibold text-slate-700 dark:text-slate-300 mb-1">Official ID</label>
+                            <input type="text" name="emp_id" value="[[=form_data.get('emp_id', '')]]" readonly
+                                class="w-full h-8 px-2.5 bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-md text-xs text-slate-500 dark:text-slate-400 font-mono cursor-not-allowed select-none">
                         </div>
 
                         <div>
