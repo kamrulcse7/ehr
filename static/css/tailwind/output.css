@@ -2184,6 +2184,14 @@ html.dark body {
   border-color: rgb(186 230 253 / 0.5);
 }
 
+.border-emerald-500\/20 {
+  border-color: rgb(16 185 129 / 0.2);
+}
+
+.border-indigo-200\/50 {
+  border-color: rgb(199 210 254 / 0.5);
+}
+
 .border-t-white {
   --tw-border-opacity: 1;
   border-top-color: rgb(255 255 255 / var(--tw-border-opacity));
@@ -2503,6 +2511,10 @@ html.dark body {
   background-color: rgb(248 250 252 / 0.4);
 }
 
+.bg-emerald-500\/10 {
+  background-color: rgb(16 185 129 / 0.1);
+}
+
 .bg-gradient-to-br {
   background-image: linear-gradient(to bottom right, var(--tw-gradient-stops));
 }
@@ -2751,6 +2763,11 @@ html.dark body {
 .py-6 {
   padding-top: 1.5rem;
   padding-bottom: 1.5rem;
+}
+
+.py-8 {
+  padding-top: 2rem;
+  padding-bottom: 2rem;
 }
 
 .pb-1 {
@@ -3827,6 +3844,30 @@ html.dark input:-webkit-autofill:active {
   border-color: rgb(5 150 105 / var(--tw-border-opacity));
 }
 
+.hover\:border-amber-500\/40:hover {
+  border-color: rgb(245 158 11 / 0.4);
+}
+
+.hover\:border-emerald-500\/40:hover {
+  border-color: rgb(16 185 129 / 0.4);
+}
+
+.hover\:border-primary\/40:hover {
+  border-color: rgb(5 150 105 / 0.4);
+}
+
+.hover\:border-rose-500\/40:hover {
+  border-color: rgb(244 63 94 / 0.4);
+}
+
+.hover\:border-sky-500\/40:hover {
+  border-color: rgb(14 165 233 / 0.4);
+}
+
+.hover\:border-indigo-500\/40:hover {
+  border-color: rgb(99 102 241 / 0.4);
+}
+
 .hover\:bg-amber-50:hover {
   --tw-bg-opacity: 1;
   background-color: rgb(255 251 235 / var(--tw-bg-opacity));
@@ -3935,6 +3976,10 @@ html.dark input:-webkit-autofill:active {
 .hover\:bg-amber-600:hover {
   --tw-bg-opacity: 1;
   background-color: rgb(217 119 6 / var(--tw-bg-opacity));
+}
+
+.hover\:bg-slate-50\/80:hover {
+  background-color: rgb(248 250 252 / 0.8);
 }
 
 .hover\:from-primary-hover:hover {
@@ -4347,6 +4392,10 @@ html.dark input:-webkit-autofill:active {
   border-color: rgb(7 89 133 / 0.5);
 }
 
+.dark\:border-indigo-800\/50:is(.dark *) {
+  border-color: rgb(55 48 163 / 0.5);
+}
+
 .dark\:border-l-slate-600:is(.dark *) {
   --tw-border-opacity: 1;
   border-left-color: rgb(71 85 105 / var(--tw-border-opacity));
@@ -4584,6 +4633,10 @@ html.dark input:-webkit-autofill:active {
 
 .dark\:bg-slate-700\/70:is(.dark *) {
   background-color: rgb(51 65 85 / 0.7);
+}
+
+.dark\:bg-indigo-950\/40:is(.dark *) {
+  background-color: rgb(30 27 75 / 0.4);
 }
 
 .dark\:from-slate-800:is(.dark *) {

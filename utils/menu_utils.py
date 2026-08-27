@@ -81,8 +81,26 @@ def get_active_module_info(user_menu, current_path):
         return {"parent_title": None, "child_title": None}
 
     clean_path = str(current_path).strip().lower().strip('/')
-    path_segments = [s for s in clean_path.split('/') if s]
     
+    # 1. Direct Keyword Mappings for Sub-actions
+    if any(kw in clean_path for kw in ('transfer', 'posting')):
+        for parent in user_menu:
+            for child in parent.get('children', []):
+                c_route = str(child.get('route_path') or '').lower()
+                c_title = str(child.get('display_title') or '').lower()
+                if 'transfer' in c_route or 'posting' in c_route or 'transfer' in c_title or 'posting' in c_title:
+                    return {"parent_title": parent.get('display_title'), "child_title": child.get('display_title')}
+
+    if any(kw in clean_path for kw in ('directory', 'employee')):
+        for parent in user_menu:
+            for child in parent.get('children', []):
+                c_route = str(child.get('route_path') or '').lower()
+                c_title = str(child.get('display_title') or '').lower()
+                if 'directory' in c_route or 'directory' in c_title:
+                    return {"parent_title": parent.get('display_title'), "child_title": child.get('display_title')}
+
+    # 2. General Token Matching
+    path_segments = [s for s in clean_path.split('/') if s and not s.isdigit()]
     target_action = path_segments[-1] if path_segments else ""
 
     best_match = None
@@ -104,13 +122,12 @@ def get_active_module_info(user_menu, current_path):
 
             score = 0
 
-            # 1. Exact route match
+            # Exact route match
             if child_route and (child_route == clean_path or clean_path.endswith(child_route)):
                 score = 100
-            # 2. Action exact match with last segment of child route
+            # Action exact match
             elif last_child_seg and last_child_seg == target_action:
                 score = 85
-            # 3. Keyword / Token matching for sub-actions (e.g. add_directory matching directory)
             else:
                 action_tokens = [t for t in target_action.split('_') if len(t) > 3]
                 route_tokens = [t for t in last_child_seg.split('_') if len(t) > 3]
@@ -118,7 +135,6 @@ def get_active_module_info(user_menu, current_path):
 
                 all_child_tokens = set(route_tokens + module_tokens)
                 
-                # Check token containment (e.g. 'directory' in 'empployee_directory' or 'dir' in 'employee_dir')
                 matched_token = False
                 for act_tok in action_tokens:
                     for ch_tok in all_child_tokens:
@@ -142,7 +158,7 @@ def get_active_module_info(user_menu, current_path):
     if best_match and best_score > 0:
         return best_match
 
-    # Fallback to parent match if any parent route matches
+    # Fallback to parent match
     for parent in user_menu:
         parent_route = str(parent.get('route_path') or '').strip().lower().strip('/')
         if parent_route and parent_route in clean_path:

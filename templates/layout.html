@@ -1,4 +1,25 @@
 [[extend 'base.html']]
+<style>
+    .sidebar-mini {
+        width: 4rem !important;
+    }
+    .sidebar-mini .sidebar-text {
+        display: none !important;
+    }
+    .sidebar-mini .submenu-container {
+        display: none !important;
+        max-height: 0 !important;
+    }
+    .sidebar-mini .arrow-icon {
+        display: none !important;
+    }
+    .sidebar-mini .menu-item-wrapper button,
+    .sidebar-mini .menu-item-wrapper a {
+        justify-content: center !important;
+        padding-left: 0.5rem !important;
+        padding-right: 0.5rem !important;
+    }
+</style>
 <div class="fixed inset-0 w-screen h-screen flex overflow-hidden bg-slate-50 font-sans text-slate-800">
 
     <!-- Sidebar (Compact Width & Compact Styling) -->
@@ -27,34 +48,39 @@
         <!-- Navigation (Compact List & Lower Heights) -->
         <nav id="sidebar-menu" class="flex-1 px-2 py-2 flex flex-col gap-0.5 overflow-y-auto overflow-x-hidden">
 
+            [[ active_p_title = globals().get('active_parent_title') ]]
+            [[ active_c_title = globals().get('active_child_title') ]]
             [[ if globals().get('user_menu'): ]]
                 [[ for menu in user_menu: ]]
                     [[ if menu.get('children'): ]]
+                        [[ is_p_active = (active_p_title and active_p_title == menu.get('display_title')) ]]
                         <!-- Submenu Dropdown Header -->
                         <div class="menu-item-wrapper relative group">
                             <button data-title="[[=menu.get('display_title')]]"
-                                class="submenu-toggle w-full flex items-center gap-2.5 px-3 py-1.5 rounded-lg text-xs font-medium text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white transition-all duration-150 outline-none">
+                                class="submenu-toggle w-full flex items-center gap-2.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all duration-150 outline-none [[ if is_p_active: ]] bg-slate-200 dark:bg-slate-800 text-slate-900 dark:text-white font-bold [[ else: ]] text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white [[ pass ]]">
                                 <span
-                                    class="material-symbols-outlined text-slate-500 dark:text-slate-400 group-hover:text-primary text-[18px] shrink-0">[[=menu.get('icon') or 'folder']]</span>
+                                    class="material-symbols-outlined group-hover:text-primary text-[18px] shrink-0 [[ if is_p_active: ]] text-primary [[ else: ]] text-slate-500 dark:text-slate-400 [[ pass ]]">[[=menu.get('icon') or 'folder']]</span>
                                 <span class="sidebar-text truncate text-left flex-1" data-title="[[=menu.get('display_title')]]">[[=menu.get('display_title')]]</span>
                                 <span
-                                    class="material-symbols-outlined sidebar-text text-xs text-slate-400 transition-transform duration-200 arrow-icon">chevron_right</span>
+                                    class="material-symbols-outlined sidebar-text text-xs text-slate-400 transition-transform duration-200 arrow-icon [[ if is_p_active: ]] rotate-90 [[ pass ]]">chevron_right</span>
                             </button>
                             <div
-                                class="submenu-container max-h-0 overflow-hidden transition-all duration-300 ease-in-out bg-slate-50/50 dark:bg-slate-950/30 rounded-lg mt-0.5 pl-8 pr-1.5 flex flex-col gap-0.5">
+                                class="submenu-container max-h-0 overflow-hidden transition-all duration-300 ease-in-out bg-slate-50/50 dark:bg-slate-950/30 rounded-lg mt-0.5 pl-8 pr-1.5 flex flex-col gap-0.5 [[ if is_p_active: ]] active-menu-parent [[ pass ]]">
                                 [[ for child in menu.get('children'): ]]
+                                    [[ is_c_active = (active_c_title and active_c_title == child.get('display_title')) ]]
                                     <a data-title="[[=child.get('display_title')]]" href="[[=URL(child.get('route_path', '').lstrip('/')) if child.get('route_path') else '#']] "
-                                        class="block py-1 px-2.5 text-[11px] font-medium text-slate-600 dark:text-slate-400 hover:text-primary dark:hover:text-white transition-all duration-150">[[=child.get('display_title')]]</a>
+                                        class="block py-1 px-2.5 text-[11px] font-medium transition-all duration-150 [[ if is_c_active: ]] text-primary dark:text-white font-bold bg-primary/10 dark:bg-primary/20 pl-3 rounded-r-md border-l-2 border-primary is-active-child [[ else: ]] text-slate-600 dark:text-slate-400 hover:text-primary dark:hover:text-white [[ pass ]]">[[=child.get('display_title')]]</a>
                                 [[ pass ]]
                             </div>
                         </div>
                     [[ else: ]]
                         <!-- Direct Menu Link -->
+                        [[ is_direct_active = (active_p_title and active_p_title == menu.get('display_title')) ]]
                         <div class="menu-item-wrapper relative group">
                             <a data-title="[[=menu.get('display_title')]]" href="[[=URL(menu.get('route_path', '').lstrip('/')) if menu.get('route_path') else '#']] "
-                                class="menu-link flex items-center gap-2.5 px-3 py-1.5 rounded-lg text-xs font-medium text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white transition-all duration-150">
+                                class="menu-link flex items-center gap-2.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all duration-150 [[ if is_direct_active: ]] bg-slate-200 dark:bg-slate-800 text-slate-900 dark:text-white font-bold [[ else: ]] text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white [[ pass ]]">
                                 <span
-                                    class="material-symbols-outlined text-slate-500 dark:text-slate-400 group-hover:text-primary text-[18px] shrink-0">[[=menu.get('icon') or 'dashboard']]</span>
+                                    class="material-symbols-outlined group-hover:text-primary text-[18px] shrink-0 [[ if is_direct_active: ]] text-primary [[ else: ]] text-slate-500 dark:text-slate-400 [[ pass ]]">[[=menu.get('icon') or 'dashboard']]</span>
                                 <span class="sidebar-text truncate" data-title="[[=menu.get('display_title')]]">[[=menu.get('display_title')]]</span>
                             </a>
                         </div>
@@ -415,7 +441,14 @@
 
             const iconEl = btnOrLink.querySelector(".material-symbols-outlined");
             const iconName = iconEl ? iconEl.textContent.trim() : "folder";
-            const mainTitle = (btnOrLink.getAttribute("data-title") || btnOrLink.innerText || "").replace("chevron_right", "").trim();
+            const textSpan = btnOrLink.querySelector(".sidebar-text");
+            const mainTitle = (
+                btnOrLink.getAttribute("data-title") || 
+                (textSpan && textSpan.getAttribute("data-title")) ||
+                (textSpan && textSpan.textContent) ||
+                btnOrLink.textContent ||
+                ""
+            ).replace(/chevron_right/g, "").replace(/\s+/g, " ").trim();
 
             if (flyoutIcon) flyoutIcon.textContent = iconName;
             if (flyoutTitle) flyoutTitle.textContent = mainTitle;
@@ -427,7 +460,7 @@
                 const subHref = sub.getAttribute("href") || "#";
                 const helperAnchor = document.createElement('a');
                 helperAnchor.href = sub.href;
-                const isSubActive = currentPath === helperAnchor.pathname || window.location.href.includes(sub.href);
+                const isSubActive = sub.classList.contains("is-active-child") || currentPath === helperAnchor.pathname || window.location.href.includes(sub.href);
 
                 const a = document.createElement("a");
                 a.href = subHref;
@@ -567,6 +600,13 @@
         const currentPath = window.location.pathname;
         const menuLinks = document.querySelectorAll(".menu-link, .submenu-container a");
 
+        // First expand any server-designated active parent containers
+        document.querySelectorAll(".submenu-container.active-menu-parent").forEach(parentContainer => {
+            if (!sidebar.classList.contains("sidebar-mini")) {
+                parentContainer.style.maxHeight = parentContainer.scrollHeight + "px";
+            }
+        });
+
         menuLinks.forEach(link => {
             const linkHref = link.getAttribute("href");
             if (!linkHref || linkHref === "#") return;
@@ -585,10 +625,10 @@
                     }
 
                     const parentWrapper = parentContainer.closest(".menu-item-wrapper");
-                    const arrow = parentWrapper.querySelector(".arrow-icon");
+                    const arrow = parentWrapper?.querySelector(".arrow-icon");
                     if (arrow && !sidebar.classList.contains("sidebar-mini")) arrow.classList.add("rotate-90");
 
-                    const parentButton = parentWrapper.querySelector(".submenu-toggle");
+                    const parentButton = parentWrapper?.querySelector(".submenu-toggle");
                     if (parentButton) {
                         parentButton.classList.add("bg-slate-200", "dark:bg-slate-800", "text-slate-900", "dark:text-white", "font-bold");
                         parentButton.classList.remove("text-slate-700", "dark:text-slate-300");
@@ -602,15 +642,6 @@
 
                     link.classList.add("text-primary", "dark:text-white", "font-bold", "bg-primary/10", "dark:bg-primary/20", "pl-3", "rounded-r-md", "border-l-2", "border-primary");
                     link.classList.remove("text-slate-600", "dark:text-slate-400");
-                } else {
-                    link.classList.add("bg-slate-200", "dark:bg-slate-800", "text-slate-900", "dark:text-white", "font-bold");
-                    link.classList.remove("text-slate-700", "dark:text-slate-300");
-
-                    const icon = link.querySelector(".material-symbols-outlined");
-                    if (icon) {
-                        icon.classList.remove("text-slate-500", "dark:text-slate-400");
-                        icon.classList.add("text-primary");
-                    }
                 }
             }
         });
@@ -645,13 +676,20 @@
                     // Items WITHOUT submenus (like Dashboard) show simple tooltip!
                     if (isMini && hasSubmenus) return;
 
-                    const textEl = this.querySelector(".sidebar-text") || this;
-                    const isTruncated = textEl.scrollWidth > textEl.clientWidth;
+                    const textSpan = this.querySelector(".sidebar-text");
+                    const isTruncated = textSpan ? (textSpan.scrollWidth > textSpan.clientWidth) : false;
 
                     // If NOT in mini mode, only show tooltip if text is truncated
                     if (!isMini && !isTruncated) return;
 
-                    const fullText = (this.getAttribute("data-title") || textEl.getAttribute("data-title") || this.innerText || "").replace("chevron_right", "").trim();
+                    const fullText = (
+                        this.getAttribute("data-title") ||
+                        (textSpan && textSpan.getAttribute("data-title")) ||
+                        (textSpan && textSpan.textContent) ||
+                        this.textContent ||
+                        ""
+                    ).replace(/chevron_right/g, "").replace(/\s+/g, " ").trim();
+
                     if (!fullText) return;
 
                     const rect = this.getBoundingClientRect();
