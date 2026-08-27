@@ -128,13 +128,18 @@
                             <!-- Circular Avatar / Photo -->
                             <div class="relative shrink-0 group">
                                 [[ photo_raw = emp.get('photo_url') or '' ]]
-                                [[ photo_src = photo_raw if (photo_raw.startswith('http://') or photo_raw.startswith('https://') or photo_raw.startswith('/')) else URL('static/uploads/profile_images', photo_raw) if photo_raw else '' ]]
-                                [[ if photo_src: ]]
-                                <img src="[[= photo_src ]]" alt="[[=emp.get('emp_name')]]" onclick="openPhotoModal('[[= photo_src ]]')" title="Click to view full photo"
-                                    class="w-16 h-16 rounded-full object-cover border-2 border-slate-200 dark:border-slate-700 shadow-2xs ring-2 ring-emerald-500/20 cursor-pointer hover:opacity-90 hover:scale-105 transition-all">
-                                [[ else: ]]
+                                [[ photo_src = photo_raw if (photo_raw.startswith('http://') or photo_raw.startswith('https://') or photo_raw.startswith('/')) else URL('static/uploads/emp_images', photo_raw) if photo_raw else '' ]]
                                 [[ name = emp.get('emp_name', 'E').strip() ]]
                                 [[ initial = name[0].upper() if name else 'E' ]]
+
+                                [[ if photo_src: ]]
+                                <img src="[[= photo_src ]]" alt="[[=emp.get('emp_name')]]" onclick="openPhotoModal('[[= photo_src ]]')" title="Click to view full photo"
+                                    onerror="this.style.display='none'; if(this.nextElementSibling) this.nextElementSibling.style.display='flex';"
+                                    class="w-16 h-16 rounded-full object-cover border-2 border-slate-200 dark:border-slate-700 shadow-2xs ring-2 ring-emerald-500/20 cursor-pointer hover:opacity-90 hover:scale-105 transition-all">
+                                <div class="w-16 h-16 rounded-full bg-gradient-to-br from-emerald-600 to-teal-700 text-white font-extrabold text-xl items-center justify-center shrink-0 border-2 border-slate-200 dark:border-slate-700 shadow-2xs ring-2 ring-emerald-500/20 select-none hidden">
+                                    [[= initial ]]
+                                </div>
+                                [[ else: ]]
                                 <div class="w-16 h-16 rounded-full bg-gradient-to-br from-emerald-600 to-teal-700 text-white font-extrabold text-xl flex items-center justify-center shrink-0 border-2 border-slate-200 dark:border-slate-700 shadow-2xs ring-2 ring-emerald-500/20 select-none">
                                     [[= initial ]]
                                 </div>
@@ -585,13 +590,18 @@
                 <!-- Photo Avatar (Large Modern High-Visibility Size 96px) -->
                 <div class="-mt-12 z-10 relative shrink-0">
                     [[ card_photo_raw = emp.get('photo_url') or '' ]]
-                    [[ card_photo_src = card_photo_raw if (card_photo_raw.startswith('http://') or card_photo_raw.startswith('https://') or card_photo_raw.startswith('/')) else URL('static/uploads/profile_images', card_photo_raw) if card_photo_raw else '' ]]
-                    [[ if card_photo_src: ]]
-                    <img src="[[= card_photo_src ]]" alt="[[=emp.get('emp_name')]]" onclick="openPhotoModal('[[= card_photo_src ]]')" title="Click to view full photo"
-                        class="w-[96px] h-[96px] aspect-square rounded-full object-cover border-4 border-white shadow-2xl ring-2 ring-emerald-500/25 shrink-0 cursor-pointer hover:scale-105 transition-transform">
-                    [[ else: ]]
+                    [[ card_photo_src = card_photo_raw if (card_photo_raw.startswith('http://') or card_photo_raw.startswith('https://') or card_photo_raw.startswith('/')) else URL('static/uploads/emp_images', card_photo_raw) if card_photo_raw else '' ]]
                     [[ name = emp.get('emp_name', 'E').strip() ]]
                     [[ initial = name[0].upper() if name else 'E' ]]
+
+                    [[ if card_photo_src: ]]
+                    <img src="[[= card_photo_src ]]" alt="[[=emp.get('emp_name')]]" onclick="openPhotoModal('[[= card_photo_src ]]')" title="Click to view full photo"
+                        onerror="this.style.display='none'; if(this.nextElementSibling) this.nextElementSibling.style.display='flex';"
+                        class="w-[96px] h-[96px] aspect-square rounded-full object-cover border-4 border-white shadow-2xl ring-2 ring-emerald-500/25 shrink-0 cursor-pointer hover:scale-105 transition-transform">
+                    <div class="w-[96px] h-[96px] aspect-square rounded-full bg-gradient-to-br from-emerald-700 to-teal-800 text-white font-black text-3xl items-center justify-center border-4 border-white shadow-2xl ring-2 ring-emerald-500/25 shrink-0 select-none hidden">
+                        [[= initial ]]
+                    </div>
+                    [[ else: ]]
                     <div class="w-[96px] h-[96px] aspect-square rounded-full bg-gradient-to-br from-emerald-700 to-teal-800 text-white font-black text-3xl flex items-center justify-center border-4 border-white shadow-2xl ring-2 ring-emerald-500/25 shrink-0 select-none">
                         [[= initial ]]
                     </div>

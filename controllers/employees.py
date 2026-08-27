@@ -38,16 +38,33 @@ def empployee_directory():
             del_id = int(delete_id)
             del_where = ["id = %s"]
             del_params = [del_id]
-            res = db.executesql(f"SELECT id, emp_name FROM employees WHERE {' AND '.join(del_where)} LIMIT 1", del_params, as_dict=True)
+            if user_cid:
+                del_where.append("cid = %s")
+                del_params.append(user_cid)
+            res = db.executesql(f"SELECT id, emp_name, photo_url FROM employees WHERE {' AND '.join(del_where)} LIMIT 1", del_params, as_dict=True)
             if res:
-                emp_name = res[0]['emp_name']
+                emp = res[0]
+                emp_name = emp.get('emp_name', '')
+                photo_url = emp.get('photo_url')
+
+                # Delete profile photo file from server disk if stored locally
+                if photo_url and not (photo_url.startswith('http://') or photo_url.startswith('https://')):
+                    try:
+                        upload_dir = os.path.join(os.path.dirname(__file__), "..", "static", "uploads", "emp_images")
+                        file_path = os.path.join(upload_dir, photo_url)
+                        if os.path.exists(file_path):
+                            os.remove(file_path)
+                    except Exception as img_err:
+                        print("Failed to remove profile image file:", img_err)
+
                 db.executesql(f"DELETE FROM employees WHERE {' AND '.join(del_where)}", del_params)
                 db.commit()
-                flash.set(f"Deleted successfully!", "success")
+                flash.set("Deleted successfully!", "success")
             else:
                 flash.set("Record not found or access denied.", "danger")
         except Exception as e:
             flash.set(f"Failed to delete record: {str(e)}", "danger")
+        redirect(URL('employees/empployee_directory'))
 
     keywords = request.query.get("keywords", "").strip()
     department = request.query.get("department", "").strip()
@@ -365,16 +382,37 @@ def edit_directory(emp_id=None):
                     return dict(user_cid=user_cid, emp=emp, form_data=form_data)
 
             photo = request.files.get("emp_photo")
-            saved_filename = emp.get("photo_url")
+            old_photo = emp.get("photo_url")
+            remove_photo = request.forms.get("remove_photo") == "1"
+            saved_filename = old_photo
+            UPLOAD_DIR = os.path.join(os.path.dirname(__file__), "..", "static", "uploads", "emp_images")
 
-            if photo and photo.filename:
-                UPLOAD_DIR = os.path.join(os.path.dirname(__file__), "..", "static", "uploads", "profile_images")
+            if remove_photo:
+                saved_filename = None
+                if old_photo and not (old_photo.startswith('http://') or old_photo.startswith('https://')):
+                    try:
+                        old_file_path = os.path.join(UPLOAD_DIR, old_photo)
+                        if os.path.exists(old_file_path):
+                            os.remove(old_file_path)
+                    except Exception as old_img_err:
+                        print("Failed to remove old profile image:", old_img_err)
+
+            elif photo and photo.filename:
                 os.makedirs(UPLOAD_DIR, exist_ok=True)
                 ext = os.path.splitext(photo.filename)[1]
-                saved_filename = f"{emp_id_code}_{int(time.time())}{ext}"
+                saved_filename = f"{cid}_{emp_id_code}_{int(time.time())}{ext}"
                 file_path = os.path.join(UPLOAD_DIR, saved_filename)
                 with open(file_path, "wb") as f:
                     f.write(photo.file.read())
+
+                # Delete old photo file if replaced by a new upload
+                if old_photo and old_photo != saved_filename and not (old_photo.startswith('http://') or old_photo.startswith('https://')):
+                    try:
+                        old_file_path = os.path.join(UPLOAD_DIR, old_photo)
+                        if os.path.exists(old_file_path):
+                            os.remove(old_file_path)
+                    except Exception as old_img_err:
+                        print("Failed to remove old profile image:", old_img_err)
 
             user_id = session.user.get('user_id', '') if (session and session.user) else ''
 
@@ -398,7 +436,7 @@ def edit_directory(emp_id=None):
             )
             db.executesql(update_sql, values)
             db.commit()
-            flash.set("Employee details updated successfully!", "success")
+            flash.set("Updated successfully!", "success")
             redirect(URL("employees/empployee_directory"))
         except Exception as e:
             flash.set(f"Failed to update employee: {str(e)}", "danger")
@@ -469,10 +507,10 @@ def add_directory():
             saved_filename = None
 
             if photo and photo.filename:
-                UPLOAD_DIR = os.path.join(os.path.dirname(__file__), "..", "static", "uploads", "profile_images")
+                UPLOAD_DIR = os.path.join(os.path.dirname(__file__), "..", "static", "uploads", "emp_images")
                 os.makedirs(UPLOAD_DIR, exist_ok=True)
                 ext = os.path.splitext(photo.filename)[1]
-                saved_filename = f"{emp_id}_{int(time.time())}{ext}"
+                saved_filename = f"{cid}_{emp_id}_{int(time.time())}{ext}"
                 file_path = os.path.join(UPLOAD_DIR, saved_filename)
                 with open(file_path, "wb") as f:
                     f.write(photo.file.read())

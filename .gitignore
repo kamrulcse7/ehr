@@ -3,5 +3,5 @@ __pycache__
 *.env
 *.env.*
 env.*
-static/uploads/profile_images/*
+static/uploads/emp_images/*
 .vscode/*

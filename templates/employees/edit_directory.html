@@ -266,7 +266,12 @@
                                 <span class="text-[9px] text-slate-400 font-normal">(Max 120KB)</span>
                             </div>
 
-                            [[ photo_url = form_data.get('photo_url') ]]
+                            [[ photo_raw = form_data.get('photo_url') or '' ]]
+                            [[ photo_src = photo_raw if (photo_raw.startswith('http://') or photo_raw.startswith('https://') or photo_raw.startswith('/')) else URL('static/uploads/emp_images', photo_raw) if photo_raw else '' ]]
+
+                            <!-- Hidden Flag for Explicit Photo Removal -->
+                            <input type="hidden" name="remove_photo" id="removePhotoInput" value="0">
+
                             <div id="dropzone"
                                 class="relative flex-1 w-full min-h-[100px] border-2 border-dashed border-slate-200 dark:border-slate-800 hover:border-primary dark:hover:border-primary rounded-lg flex flex-col items-center justify-center bg-white dark:bg-slate-900 transition-all duration-200 group cursor-pointer shadow-2xs overflow-hidden">
 
@@ -277,7 +282,7 @@
 
                                 <!-- Placeholder State -->
                                 <div id="uploadPlaceholder"
-                                    class="[[= 'hidden' if photo_url else '' ]] flex flex-col items-center text-center space-y-1 p-2 pointer-events-none">
+                                    class="[[= 'hidden' if photo_src else '' ]] flex flex-col items-center text-center space-y-1 p-2 pointer-events-none">
                                     <div
                                         class="p-1 rounded-full bg-slate-50 dark:bg-slate-800 group-hover:bg-primary/10 transition-colors">
                                         <span
@@ -294,11 +299,12 @@
 
                                 <!-- Image Preview State -->
                                 <div id="imagePreviewContainer"
-                                    class="[[= '' if photo_url else 'hidden' ]] absolute inset-0 flex items-center justify-center bg-slate-50/90 dark:bg-slate-900/90 backdrop-blur-xs pointer-events-none z-20">
+                                    class="[[= '' if photo_src else 'hidden' ]] absolute inset-0 flex items-center justify-center bg-slate-50/90 dark:bg-slate-900/90 backdrop-blur-xs pointer-events-none z-20">
                                     <div
                                         class="relative p-0.5 bg-white dark:bg-slate-800 rounded-full shadow-sm border border-slate-500 dark:border-slate-700 pointer-events-auto">
 
-                                        <img id="imagePreview" src="[[= URL('static/uploads/profile_images', photo_url) if photo_url else '#' ]]" alt="Preview"
+                                        <img id="imagePreview" src="[[= photo_src or '#' ]]" alt="Preview"
+                                            onerror="handleImagePreviewError()"
                                             class="h-16 w-16 object-cover rounded-full border border-primary/20">
 
                                         <button type="button" onclick="clearSelectedImage(event)" title="Remove Image"
@@ -347,6 +353,7 @@
         const placeholder = document.getElementById('uploadPlaceholder');
         const previewContainer = document.getElementById('imagePreviewContainer');
         const previewImg = document.getElementById('imagePreview');
+        const removeInput = document.getElementById('removePhotoInput');
 
         errorEl.classList.add('hidden');
         errorEl.textContent = '';
@@ -365,6 +372,7 @@
                 previewImg.src = e.target.result;
                 placeholder.classList.add('hidden');
                 previewContainer.classList.remove('hidden');
+                if (removeInput) removeInput.value = '0';
             };
             reader.readAsDataURL(file);
         } else {
@@ -380,15 +388,24 @@
         resetImageField();
     }
 
+    function handleImagePreviewError() {
+        const placeholder = document.getElementById('uploadPlaceholder');
+        const previewContainer = document.getElementById('imagePreviewContainer');
+        if (previewContainer) previewContainer.classList.add('hidden');
+        if (placeholder) placeholder.classList.remove('hidden');
+    }
+
     function resetImageField() {
         const input = document.getElementById('empPhotoInput');
         const placeholder = document.getElementById('uploadPlaceholder');
         const previewContainer = document.getElementById('imagePreviewContainer');
         const previewImg = document.getElementById('imagePreview');
+        const removeInput = document.getElementById('removePhotoInput');
 
         if (input) input.value = '';
         if (previewImg) previewImg.src = '#';
         if (placeholder) placeholder.classList.remove('hidden');
         if (previewContainer) previewContainer.classList.add('hidden');
+        if (removeInput) removeInput.value = '1';
     }
 </script>
