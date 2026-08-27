@@ -2,8 +2,9 @@
 
 <div class="w-full space-y-4 text-slate-700 dark:text-slate-200">
     <div class="max-w-[1800px] mx-auto space-y-4">
+
         <!-- HEADER SECTION (Breadcrumb & Top Bar) -->
-        <div class="pb-2 border-b border-slate-200/80 dark:border-slate-800/80 flex items-center justify-between h-7">
+        <div class="pb-2 border-b border-slate-200/80 dark:border-slate-800/80 flex items-center justify-between h-7 print:hidden">
             <div class="flex items-center gap-0.5 text-xs font-medium">
                 <a href="[[=URL('employees/postings_transfers')]]" class="text-slate-400 dark:text-slate-500 hover:text-primary transition-colors">[[= globals().get('active_parent_title') or 'Employee Management' ]]</a>
                 <span class="material-symbols-outlined text-[12px] text-slate-400 dark:text-slate-600 select-none -mx-0.5">chevron_right</span>
@@ -13,11 +14,6 @@
             </div>
 
             <div class="flex items-center gap-2">
-                <a href="[[=URL('employees/edit_transfer', item.get('id'))]]"
-                    class="h-7 px-2.5 bg-amber-500 hover:bg-amber-600 text-white rounded-md text-xs font-semibold shadow-xs transition-all inline-flex items-center gap-1 shrink-0">
-                    <span class="material-symbols-outlined text-[15px]">edit</span>
-                    Edit Order
-                </a>
                 <a href="[[=URL('employees/postings_transfers')]]"
                     class="h-7 px-2.5 bg-slate-200 hover:bg-slate-300 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 rounded-md text-xs font-semibold transition-all inline-flex items-center gap-1 shrink-0">
                     <span class="material-symbols-outlined text-[15px]">arrow_back</span>
@@ -26,121 +22,155 @@
             </div>
         </div>
 
-        <!-- MAIN CARD -->
+        <!-- MAIN CARD CONTAINER -->
         <div class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-800/80 shadow-sm p-5 space-y-5">
-            <!-- TOP CARD: ORDER BANNER -->
-            <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 p-4 bg-slate-50 dark:bg-slate-800/50 rounded-xl border border-slate-200/60 dark:border-slate-800">
-                <div class="flex items-center gap-3">
-                    <div class="w-12 h-12 rounded-xl bg-primary/10 text-primary flex items-center justify-center shrink-0 border border-primary/20">
-                        <span class="material-symbols-outlined text-[24px]">swap_horiz</span>
-                    </div>
-                    <div>
-                        <div class="flex items-center gap-2">
-                            <h2 class="text-base font-bold text-slate-900 dark:text-white font-mono">
-                                [[= item.get('transfer_order_no', 'N/A') ]]
-                            </h2>
-                            [[ if not user_cid and item.get('cid'): ]]
-                            <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-sky-100 text-sky-800 dark:bg-sky-950/60 dark:text-sky-400">
-                                [[= item.get('cid') ]]
-                            </span>
-                            [[ pass ]]
+            
+            <!-- TOP SECTION: 2-COLUMN BALANCED GRID (ORDER DETAILS + EMPLOYEE INFO) -->
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                
+                <!-- ORDER DETAILS CARD -->
+                <div class="p-4 bg-slate-50/70 dark:bg-slate-800/40 rounded-xl border border-slate-200/60 dark:border-slate-800 flex items-start justify-between gap-3">
+                    <div class="flex items-start gap-3">
+                        <div class="w-10 h-10 rounded-lg bg-primary/10 text-primary flex items-center justify-center shrink-0 border border-primary/20 mt-0.5">
+                            <span class="material-symbols-outlined text-[22px]">swap_horiz</span>
                         </div>
-                        <p class="text-xs text-slate-400 dark:text-slate-500 mt-0.5">
-                            Transfer Type: <span class="font-semibold text-slate-700 dark:text-slate-300">[[= item.get('transfer_type', 'ADMINISTRATIVE') ]]</span>
-                        </p>
+                        <div class="space-y-1">
+                            <div class="flex items-center gap-1.5 flex-wrap">
+                                <span class="text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500">Order Number</span>
+                                [[ if not user_cid and item.get('cid'): ]]
+                                <span class="px-1.5 py-0.2 rounded text-[10px] font-bold bg-sky-100 text-sky-800 dark:bg-sky-950/60 dark:text-sky-400 font-mono">
+                                    [[= item.get('cid') ]]
+                                </span>
+                                [[ pass ]]
+                            </div>
+                            <h2 class="text-base font-bold text-slate-900 dark:text-white font-mono flex items-center gap-1.5">
+                                [[= item.get('transfer_order_no', 'N/A') ]]
+                                <button onclick="navigator.clipboard.writeText('[[= item.get('transfer_order_no', '') ]]');" type="button" title="Copy Order No" class="text-slate-400 hover:text-primary transition-colors cursor-pointer print:hidden">
+                                    <span class="material-symbols-outlined text-[15px]">content_copy</span>
+                                </button>
+                            </h2>
+                            <p class="text-xs text-slate-500 dark:text-slate-400">
+                                Transfer Type: <span class="font-bold text-slate-700 dark:text-slate-300">[[= item.get('transfer_type', 'ADMINISTRATIVE') ]]</span>
+                            </p>
+                        </div>
+                    </div>
+
+                    <div class="shrink-0">
+                        [[ status = str(item.get('joining_status', 'PENDING')).upper() ]]
+                        [[ if status in ['JOINED', 'COMPLETED', 'ACTIVE']: ]]
+                        <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold bg-emerald-50 text-emerald-700 dark:bg-emerald-950/50 dark:text-emerald-400 border border-emerald-200/60 dark:border-emerald-800/60">
+                            <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span> Joined / Completed
+                        </span>
+                        [[ elif status == 'RELEASED': ]]
+                        <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold bg-sky-50 text-sky-700 dark:bg-sky-950/50 dark:text-sky-400 border border-sky-200/60 dark:border-sky-800/60">
+                            <span class="w-1.5 h-1.5 rounded-full bg-sky-500 animate-pulse"></span> Released
+                        </span>
+                        [[ elif status == 'CANCELLED': ]]
+                        <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold bg-rose-50 text-rose-700 dark:bg-rose-950/50 dark:text-rose-400 border border-rose-200/60 dark:border-rose-800/60">
+                            <span class="w-1.5 h-1.5 rounded-full bg-rose-500"></span> Cancelled
+                        </span>
+                        [[ else: ]]
+                        <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold bg-amber-50 text-amber-700 dark:bg-amber-950/50 dark:text-amber-400 border border-amber-200/60 dark:border-amber-800/60">
+                            <span class="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse"></span> Pending
+                        </span>
+                        [[ pass ]]
                     </div>
                 </div>
 
-                <div>
-                    [[ status = str(item.get('joining_status', 'PENDING')).upper() ]]
-                    [[ if status in ['JOINED', 'COMPLETED', 'ACTIVE']: ]]
-                    <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-emerald-50 text-emerald-700 dark:bg-emerald-950/50 dark:text-emerald-400 border border-emerald-200/60 dark:border-emerald-800/60">
-                        <span class="w-2 h-2 rounded-full bg-emerald-500"></span> Joined / Completed
-                    </span>
-                    [[ elif status == 'RELEASED': ]]
-                    <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-sky-50 text-sky-700 dark:bg-sky-950/50 dark:text-sky-400 border border-sky-200/60 dark:border-sky-800/60">
-                        <span class="w-2 h-2 rounded-full bg-sky-500"></span> Released
-                    </span>
-                    [[ elif status == 'CANCELLED': ]]
-                    <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-rose-50 text-rose-700 dark:bg-rose-950/50 dark:text-rose-400 border border-rose-200/60 dark:border-rose-800/60">
-                        <span class="w-2 h-2 rounded-full bg-rose-500"></span> Cancelled
-                    </span>
-                    [[ else: ]]
-                    <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-amber-50 text-amber-700 dark:bg-amber-950/50 dark:text-amber-400 border border-amber-200/60 dark:border-amber-800/60">
-                        <span class="w-2 h-2 rounded-full bg-amber-500"></span> Pending
-                    </span>
-                    [[ pass ]]
-                </div>
-            </div>
-
-            <!-- SECTION 1: EMPLOYEE DETAILS -->
-            <div class="p-4 rounded-xl border border-slate-200/80 dark:border-slate-800 space-y-3">
-                <h3 class="text-xs font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 flex items-center gap-1.5 pb-2 border-b border-slate-100 dark:border-slate-800">
-                    <span class="material-symbols-outlined text-[16px] text-primary">person</span> Employee Information
-                </h3>
-                <div class="flex items-center gap-4">
+                <!-- EMPLOYEE INFO CARD -->
+                <div class="p-4 bg-slate-50/70 dark:bg-slate-800/40 rounded-xl border border-slate-200/60 dark:border-slate-800 flex items-center gap-3.5">
                     [[ photo_raw = item.get('photo_url') or '' ]]
                     [[ photo_src = photo_raw if (photo_raw.startswith('http://') or photo_raw.startswith('https://') or photo_raw.startswith('/')) else URL('static/uploads/emp_images', photo_raw) if photo_raw else '' ]]
                     [[ name = item.get('emp_name', 'E').strip() ]]
                     [[ initial = name[0].upper() if name else 'E' ]]
 
-                    [[ if photo_src: ]]
-                    <img src="[[= photo_src ]]" alt="[[= item.get('emp_name') ]]"
-                        onerror="this.style.display='none'; if(this.nextElementSibling) this.nextElementSibling.style.display='flex';"
-                        class="w-12 h-12 rounded-full object-cover border border-slate-200 dark:border-slate-700 shadow-2xs shrink-0">
-                    <div class="w-12 h-12 rounded-full bg-primary/10 text-primary font-bold text-sm items-center justify-center shrink-0 border border-primary/20 select-none hidden">
-                        [[= initial ]]
+                    <div class="w-11 h-11 max-w-[44px] max-h-[44px] min-w-[44px] min-h-[44px] rounded-full overflow-hidden border border-slate-200 dark:border-slate-700 shrink-0 bg-slate-100 dark:bg-slate-800 flex items-center justify-center shadow-2xs">
+                        [[ if photo_src: ]]
+                        <img src="[[= photo_src ]]" alt="[[= item.get('emp_name') ]]"
+                            onerror="this.style.display='none'; if(this.nextElementSibling) this.nextElementSibling.style.display='flex';"
+                            class="w-full h-full object-cover">
+                        <div class="w-full h-full bg-primary/10 text-primary font-bold text-sm items-center justify-center shrink-0 border border-primary/20 select-none hidden">
+                            [[= initial ]]
+                        </div>
+                        [[ else: ]]
+                        <div class="w-full h-full bg-primary/10 text-primary font-bold text-sm flex items-center justify-center shrink-0 border border-primary/20 select-none">
+                            [[= initial ]]
+                        </div>
+                        [[ pass ]]
                     </div>
-                    [[ else: ]]
-                    <div class="w-12 h-12 rounded-full bg-primary/10 text-primary font-bold text-sm flex items-center justify-center shrink-0 border border-primary/20 select-none">
-                        [[= initial ]]
-                    </div>
-                    [[ pass ]]
 
                     <div class="space-y-0.5">
+                        <div class="text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500">Profile</div>
                         <div class="text-sm font-bold text-slate-900 dark:text-white">[[= item.get('emp_name', 'N/A') ]]</div>
-                        <div class="text-xs text-slate-400 font-mono">Official ID: #[[= item.get('emp_id', 'N/A') ]]</div>
-                        <div class="text-xs text-slate-500 dark:text-slate-400">
-                            Mobile: [[= item.get('mobile', '--') ]] [[ if item.get('email'): ]]• [[= item.get('email') ]][[ pass ]]
+                        <div class="flex items-center gap-2.5 text-xs text-slate-500 dark:text-slate-400 flex-wrap">
+                            <span class="font-mono text-slate-400">ID: #[[= item.get('emp_id', 'N/A') ]]</span>
+                            [[ if item.get('mobile'): ]]
+                            <span>• [[= item.get('mobile') ]]</span>
+                            [[ pass ]]
+                            [[ if item.get('email'): ]]
+                            <span>• [[= item.get('email') ]]</span>
+                            [[ pass ]]
                         </div>
                     </div>
                 </div>
+
             </div>
 
-            <!-- SECTION 2: MOVEMENT DETAILS -->
+            <!-- SECTION 2: MOVEMENT DETAILS (PATHWAY WITH ARROW ➡️) -->
             <div class="p-4 rounded-xl border border-slate-200/80 dark:border-slate-800 space-y-3">
                 <h3 class="text-xs font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 flex items-center gap-1.5 pb-2 border-b border-slate-100 dark:border-slate-800">
                     <span class="material-symbols-outlined text-[16px] text-primary">alt_route</span> Relocation & Designation Movement
                 </h3>
 
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div class="grid grid-cols-1 md:grid-cols-12 gap-3 items-center">
                     <!-- FROM CARD -->
-                    <div class="p-3.5 bg-slate-50/70 dark:bg-slate-800/40 rounded-xl border border-slate-200/60 dark:border-slate-800/60 space-y-2">
-                        <div class="text-[10px] font-bold uppercase tracking-wider text-slate-400">PREVIOUS / CURRENT STATION (FROM)</div>
-                        <div class="text-sm font-bold text-slate-800 dark:text-slate-200">
+                    <div class="md:col-span-5 p-4 bg-slate-50/70 dark:bg-slate-800/40 rounded-xl border border-slate-200/60 dark:border-slate-800/60 space-y-2.5">
+                        <div class="text-[10px] font-bold uppercase tracking-wider text-slate-400">CURRENT STATION (FROM)</div>
+                        <div class="text-sm font-extrabold text-slate-800 dark:text-slate-200">
                             [[= item.get('from_posting_place', 'Head Office') ]]
                         </div>
-                        <div class="text-xs text-slate-500">
-                            Department: <span class="font-semibold text-slate-700 dark:text-slate-300">[[= item.get('from_department') or '--' ]]</span>
+                        <div class="grid grid-cols-3 gap-2 text-xs pt-1 border-t border-slate-200/60 dark:border-slate-700/60">
+                            <div>
+                                <span class="text-[10px] text-slate-400 block uppercase">Department</span>
+                                <span class="font-bold text-slate-700 dark:text-slate-300 block truncate">[[= item.get('from_department') or '--' ]]</span>
+                            </div>
+                            <div>
+                                <span class="text-[10px] text-slate-400 block uppercase">Designation</span>
+                                <span class="font-bold text-slate-700 dark:text-slate-300 block truncate">[[= item.get('from_designation') or '--' ]]</span>
+                            </div>
+                            <div>
+                                <span class="text-[10px] text-slate-400 block uppercase">Grade</span>
+                                <span class="font-mono font-bold text-slate-700 dark:text-slate-300 block truncate">[[= item.get('from_grade') or '--' ]]</span>
+                            </div>
                         </div>
-                        <div class="text-xs text-slate-500">
-                            Designation: <span class="font-semibold text-slate-700 dark:text-slate-300">[[= item.get('from_designation') or '--' ]]</span>
-                            [[ if item.get('from_grade'): ]]<span class="ml-1 text-[10px] font-mono bg-slate-200 dark:bg-slate-700 px-1.5 py-0.5 rounded">[[= item.get('from_grade') ]]</span>[[ pass ]]
+                    </div>
+
+                    <!-- ARROW CONNECTOR -->
+                    <div class="md:col-span-2 flex flex-col items-center justify-center py-1">
+                        <div class="w-9 h-9 rounded-full bg-primary/10 text-primary border border-primary/20 flex items-center justify-center shrink-0">
+                            <span class="material-symbols-outlined text-[20px] rotate-90 md:rotate-0">east</span>
                         </div>
                     </div>
 
                     <!-- TO CARD -->
-                    <div class="p-3.5 bg-emerald-50/40 dark:bg-emerald-950/20 rounded-xl border border-emerald-200/60 dark:border-emerald-900/60 space-y-2">
+                    <div class="md:col-span-5 p-4 bg-emerald-50/40 dark:bg-emerald-950/20 rounded-xl border border-emerald-200/60 dark:border-emerald-900/60 space-y-2.5">
                         <div class="text-[10px] font-bold uppercase tracking-wider text-emerald-600 dark:text-emerald-400">TARGET STATION (TO)</div>
-                        <div class="text-sm font-bold text-slate-900 dark:text-white">
+                        <div class="text-sm font-extrabold text-slate-900 dark:text-white">
                             [[= item.get('to_posting_place', '--') ]]
                         </div>
-                        <div class="text-xs text-slate-500">
-                            Department: <span class="font-semibold text-slate-700 dark:text-slate-300">[[= item.get('to_department') or '--' ]]</span>
-                        </div>
-                        <div class="text-xs text-slate-500">
-                            Designation: <span class="font-semibold text-slate-700 dark:text-slate-300">[[= item.get('to_designation') or '--' ]]</span>
-                            [[ if item.get('to_grade'): ]]<span class="ml-1 text-[10px] font-mono bg-emerald-100 dark:bg-emerald-900 text-emerald-800 dark:text-emerald-300 px-1.5 py-0.5 rounded">[[= item.get('to_grade') ]]</span>[[ pass ]]
+                        <div class="grid grid-cols-3 gap-2 text-xs pt-1 border-t border-emerald-200/60 dark:border-emerald-900/60">
+                            <div>
+                                <span class="text-[10px] text-emerald-600/80 dark:text-emerald-400/80 block uppercase">Department</span>
+                                <span class="font-bold text-slate-800 dark:text-slate-200 block truncate">[[= item.get('to_department') or '--' ]]</span>
+                            </div>
+                            <div>
+                                <span class="text-[10px] text-emerald-600/80 dark:text-emerald-400/80 block uppercase">Designation</span>
+                                <span class="font-bold text-slate-800 dark:text-slate-200 block truncate">[[= item.get('to_designation') or '--' ]]</span>
+                            </div>
+                            <div>
+                                <span class="text-[10px] text-emerald-600/80 dark:text-emerald-400/80 block uppercase">Grade</span>
+                                <span class="font-mono font-bold text-slate-800 dark:text-slate-200 block truncate">[[= item.get('to_grade') or '--' ]]</span>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -153,7 +183,7 @@
                     <h3 class="text-xs font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 flex items-center gap-1.5 pb-2 border-b border-slate-100 dark:border-slate-800">
                         <span class="material-symbols-outlined text-[16px] text-primary">calendar_today</span> Order & Joining Dates
                     </h3>
-                    <div class="grid grid-cols-3 gap-3 text-xs">
+                    <div class="grid grid-cols-3 gap-3 text-xs pt-1">
                         <div>
                             <span class="text-slate-400 font-medium block text-[10px] uppercase">Order Date</span>
                             <span class="font-bold text-slate-800 dark:text-slate-200">[[= item.get('order_date') or '--' ]]</span>
@@ -174,15 +204,15 @@
                     <h3 class="text-xs font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 flex items-center gap-1.5 pb-2 border-b border-slate-100 dark:border-slate-800">
                         <span class="material-symbols-outlined text-[16px] text-primary">notes</span> Reason & Remarks
                     </h3>
-                    <div class="space-y-2 text-xs">
+                    <div class="space-y-2 text-xs pt-1">
                         <div>
                             <span class="text-slate-400 font-medium block text-[10px] uppercase">Transfer Reason</span>
-                            <span class="text-slate-700 dark:text-slate-300">[[= item.get('transfer_reason') or 'Routine administrative transfer.' ]]</span>
+                            <span class="text-slate-700 dark:text-slate-300 font-medium">[[= item.get('transfer_reason') or 'Routine administrative transfer.' ]]</span>
                         </div>
                         [[ if item.get('note'): ]]
-                        <div>
-                            <span class="text-slate-400 font-medium block text-[10px] uppercase">Official Note</span>
-                            <span class="text-slate-700 dark:text-slate-300">[[= item.get('note') ]]</span>
+                        <div class="pt-1.5 border-t border-slate-100 dark:border-slate-800">
+                            <span class="text-slate-400 font-medium block text-[10px] uppercase">Official Note / Remarks</span>
+                            <span class="text-slate-700 dark:text-slate-300 font-medium">[[= item.get('note') ]]</span>
                         </div>
                         [[ pass ]]
                     </div>
@@ -192,3 +222,20 @@
         </div>
     </div>
 </div>
+
+<style>
+@media print {
+    body {
+        background: #ffffff !important;
+        color: #000000 !important;
+    }
+    .print\:hidden {
+        display: none !important;
+    }
+    .shadow-xs, .shadow-2xs, .shadow-sm, .shadow-md {
+        box-shadow: none !important;
+    }
+}
+</style>
+
+
