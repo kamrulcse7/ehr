@@ -6,26 +6,11 @@
         <!-- HEADER SECTION (Breadcrumb) -->
         <div class="pb-2 border-b border-slate-200/80 dark:border-slate-800/80 flex items-center justify-between h-7">
             <div class="flex items-center gap-0.5 text-xs font-medium">
-                [[ if globals().get('breadcrumbs'): ]]
-                    [[ for bc in breadcrumbs: ]]
-                        [[ if not bc.get('is_active'): ]]
-                            [[ if bc.get('url'): ]]
-                                <a href="[[=bc.get('url')]]" class="text-slate-400 dark:text-slate-500 hover:text-primary transition-colors">[[=bc.get('title')]]</a>
-                            [[ else: ]]
-                                <span class="text-slate-400 dark:text-slate-500">[[=bc.get('title')]]</span>
-                            [[ pass ]]
-                            <span class="material-symbols-outlined text-[12px] text-slate-400 dark:text-slate-600 select-none -mx-0.5">chevron_right</span>
-                        [[ else: ]]
-                            <span class="text-primary font-bold">[[=bc.get('title')]]</span>
-                        [[ pass ]]
-                    [[ pass ]]
-                [[ else: ]]
-                    <a href="[[=URL('employees/postings_transfers')]]" class="text-slate-400 dark:text-slate-500 hover:text-primary transition-colors">Officers & Staff</a>
-                    <span class="material-symbols-outlined text-[12px] text-slate-400 dark:text-slate-600 select-none -mx-0.5">chevron_right</span>
-                    <a href="[[=URL('employees/postings_transfers')]]" class="text-slate-400 dark:text-slate-500 hover:text-primary transition-colors">Postings & Transfers</a>
-                    <span class="material-symbols-outlined text-[12px] text-slate-400 dark:text-slate-600 select-none -mx-0.5">chevron_right</span>
-                    <span class="text-primary font-bold">Import</span>
-                [[ pass ]]
+                <a href="[[=URL('employees/postings_transfers')]]" class="text-slate-400 dark:text-slate-500 hover:text-primary transition-colors">[[= globals().get('active_parent_title') or 'Employee Management' ]]</a>
+                <span class="material-symbols-outlined text-[12px] text-slate-400 dark:text-slate-600 select-none -mx-0.5">chevron_right</span>
+                <a href="[[=URL('employees/postings_transfers')]]" class="text-slate-400 dark:text-slate-500 hover:text-primary transition-colors">[[= globals().get('active_child_title') or 'Postings & Transfers' ]]</a>
+                <span class="material-symbols-outlined text-[12px] text-slate-400 dark:text-slate-600 select-none -mx-0.5">chevron_right</span>
+                <span class="text-primary font-bold">Import Record</span>
             </div>
             <a href="[[=URL('employees/postings_transfers')]]"
                 class="h-7 px-2.5 bg-slate-200 hover:bg-slate-300 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 rounded-md text-xs font-semibold transition-all inline-flex items-center gap-1 shrink-0">
@@ -135,7 +120,11 @@
                             <span class="w-5 h-5 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center font-bold text-[10px] text-slate-600 dark:text-slate-400 shrink-0 mt-0.5">1</span>
                             <div>
                                 <span class="font-semibold text-slate-800 dark:text-slate-200">Required Fields:</span>
-                                <p class="text-slate-500 mt-0.5">Your CSV file <span class="font-bold text-rose-500">MUST</span> contain <code class="bg-slate-100 dark:bg-slate-850 px-1 py-0.5 rounded text-[10px]">Official ID</code>, <code class="bg-slate-100 dark:bg-slate-850 px-1 py-0.5 rounded text-[10px]">Transfer Order No</code>, and <code class="bg-slate-100 dark:bg-slate-850 px-1 py-0.5 rounded text-[10px]">To Posting</code>.</p>
+                                [[ if not user_cid: ]]
+                                <p class="text-slate-500 mt-0.5">As System Admin, your CSV file <span class="font-bold text-rose-500">MUST</span> contain <code class="bg-slate-100 dark:bg-slate-850 px-1 py-0.5 rounded text-[10px]">Company ID (CID)</code>, <code class="bg-slate-100 dark:bg-slate-850 px-1 py-0.5 rounded text-[10px]">Official ID</code>, <code class="bg-slate-100 dark:bg-slate-850 px-1 py-0.5 rounded text-[10px]">Transfer Order No</code>, <code class="bg-slate-100 dark:bg-slate-850 px-1 py-0.5 rounded text-[10px]">Order Date</code>, <code class="bg-slate-100 dark:bg-slate-850 px-1 py-0.5 rounded text-[10px]">Release Date</code>, <code class="bg-slate-100 dark:bg-slate-850 px-1 py-0.5 rounded text-[10px]">Expected Joining Date</code>, <code class="bg-slate-100 dark:bg-slate-850 px-1 py-0.5 rounded text-[10px]">To Posting Place</code>, <code class="bg-slate-100 dark:bg-slate-850 px-1 py-0.5 rounded text-[10px]">To Dept</code>, <code class="bg-slate-100 dark:bg-slate-850 px-1 py-0.5 rounded text-[10px]">To Designation</code>, and <code class="bg-slate-100 dark:bg-slate-850 px-1 py-0.5 rounded text-[10px]">To Grade</code>. Only Transfer Reason and Official Note are optional.</p>
+                                [[ else: ]]
+                                <p class="text-slate-500 mt-0.5">Your CSV file <span class="font-bold text-rose-500">MUST</span> contain <code class="bg-slate-100 dark:bg-slate-850 px-1 py-0.5 rounded text-[10px]">Official ID</code>, <code class="bg-slate-100 dark:bg-slate-850 px-1 py-0.5 rounded text-[10px]">Transfer Order No</code>, <code class="bg-slate-100 dark:bg-slate-850 px-1 py-0.5 rounded text-[10px]">Order Date</code>, <code class="bg-slate-100 dark:bg-slate-850 px-1 py-0.5 rounded text-[10px]">Release Date</code>, <code class="bg-slate-100 dark:bg-slate-850 px-1 py-0.5 rounded text-[10px]">Expected Joining Date</code>, <code class="bg-slate-100 dark:bg-slate-850 px-1 py-0.5 rounded text-[10px]">To Posting Place</code>, <code class="bg-slate-100 dark:bg-slate-850 px-1 py-0.5 rounded text-[10px]">To Dept</code>, <code class="bg-slate-100 dark:bg-slate-850 px-1 py-0.5 rounded text-[10px]">To Designation</code>, and <code class="bg-slate-100 dark:bg-slate-850 px-1 py-0.5 rounded text-[10px]">To Grade</code>. Only Transfer Reason and Official Note are optional.</p>
+                                [[ pass ]]
                             </div>
                         </div>
 
@@ -143,15 +132,15 @@
                             <span class="w-5 h-5 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center font-bold text-[10px] text-slate-600 dark:text-slate-400 shrink-0 mt-0.5">2</span>
                             <div>
                                 <span class="font-semibold text-slate-800 dark:text-slate-200">Automatic Mapping:</span>
-                                <p class="text-slate-500 mt-0.5">Headers match case-insensitively. Supported headers: "Official ID", "Transfer Order No", "Transfer Type", "From Posting", "To Posting", "From Department", "To Department", "Order Date", "Expected Joining Date", "Status", "Remarks".</p>
+                                <p class="text-slate-500 mt-0.5">Headers are matched case-insensitively. Feel free to use headers like "Official ID", "Transfer Order No", "From Branch", "To Branch", "Status", or their SQL column counterparts.</p>
                             </div>
                         </div>
 
                         <div class="flex items-start gap-2">
                             <span class="w-5 h-5 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center font-bold text-[10px] text-slate-600 dark:text-slate-400 shrink-0 mt-0.5">3</span>
                             <div>
-                                <span class="font-semibold text-slate-800 dark:text-slate-200">Transfer Types & Statuses:</span>
-                                <p class="text-slate-500 mt-0.5">Types: <code class="bg-slate-100 dark:bg-slate-850 px-1 py-0.5 rounded text-[10px]">ADMINISTRATIVE</code>, <code class="bg-slate-100 dark:bg-slate-850 px-1 py-0.5 rounded text-[10px]">ON_REQUEST</code>, <code class="bg-slate-100 dark:bg-slate-850 px-1 py-0.5 rounded text-[10px]">PROMOTION</code>. Statuses: <code class="bg-slate-100 dark:bg-slate-850 px-1 py-0.5 rounded text-[10px]">PENDING</code>, <code class="bg-slate-100 dark:bg-slate-850 px-1 py-0.5 rounded text-[10px]">RELEASED</code>, <code class="bg-slate-100 dark:bg-slate-850 px-1 py-0.5 rounded text-[10px]">JOINED</code>, <code class="bg-slate-100 dark:bg-slate-850 px-1 py-0.5 rounded text-[10px]">CANCELLED</code>.</p>
+                                <span class="font-semibold text-slate-800 dark:text-slate-200">Upsert Logic:</span>
+                                <p class="text-slate-500 mt-0.5">If the Transfer Order No already exists, the record will be updated. If it does not exist, a new record will be created.</p>
                             </div>
                         </div>
 
@@ -159,20 +148,32 @@
                             <span class="w-5 h-5 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center font-bold text-[10px] text-slate-600 dark:text-slate-400 shrink-0 mt-0.5">4</span>
                             <div>
                                 <span class="font-semibold text-slate-800 dark:text-slate-200">Date Formats:</span>
-                                <p class="text-slate-500 mt-0.5">Dates should be formatted as <code class="bg-slate-100 dark:bg-slate-850 px-1 py-0.5 rounded text-[10px]">YYYY-MM-DD</code> (e.g. 2026-08-01).</p>
+                                <p class="text-slate-500 mt-0.5">Dates should be formatted as <code class="bg-slate-100 dark:bg-slate-850 px-1 py-0.5 rounded text-[10px]">YYYY-MM-DD</code>. However, common formats like DD-MM-YYYY, DD/MM/YYYY, or MM/DD/YYYY are parsed automatically.</p>
                             </div>
                         </div>
 
                         <div class="flex items-start gap-2">
                             <span class="w-5 h-5 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center font-bold text-[10px] text-slate-600 dark:text-slate-400 shrink-0 mt-0.5">5</span>
                             <div>
-                                <span class="font-semibold text-slate-800 dark:text-slate-200">Import Limits:</span>
-                                <p class="text-slate-500 mt-0.5">CSV files must be under <span class="font-bold">2MB</span> in size and contain a maximum of <span class="font-bold">1,000 rows</span>.</p>
+                                <span class="font-semibold text-slate-800 dark:text-slate-200">Status Values:</span>
+                                <p class="text-slate-500 mt-0.5">Set the status as <code class="bg-slate-100 dark:bg-slate-850 px-1 py-0.5 rounded text-[10px]">PENDING</code>, <code class="bg-slate-100 dark:bg-slate-850 px-1 py-0.5 rounded text-[10px]">RELEASED</code>, <code class="bg-slate-100 dark:bg-slate-850 px-1 py-0.5 rounded text-[10px]">JOINED</code>, or <code class="bg-slate-100 dark:bg-slate-850 px-1 py-0.5 rounded text-[10px]">CANCELLED</code>.</p>
                             </div>
                         </div>
 
                         <div class="flex items-start gap-2">
                             <span class="w-5 h-5 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center font-bold text-[10px] text-slate-600 dark:text-slate-400 shrink-0 mt-0.5">6</span>
+                            <div>
+                                <span class="font-semibold text-slate-800 dark:text-slate-200">Import Limits:</span>
+                                [[ if not user_cid: ]]
+                                <p class="text-slate-500 mt-0.5">CSV files must be under <span class="font-bold">10MB</span> in size and contain a maximum of <span class="font-bold">10,000 rows</span>.</p>
+                                [[ else: ]]
+                                <p class="text-slate-500 mt-0.5">CSV files must be under <span class="font-bold">2MB</span> in size and contain a maximum of <span class="font-bold">1,000 rows</span>.</p>
+                                [[ pass ]]
+                            </div>
+                        </div>
+
+                        <div class="flex items-start gap-2">
+                            <span class="w-5 h-5 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center font-bold text-[10px] text-slate-600 dark:text-slate-400 shrink-0 mt-0.5">7</span>
                             <div>
                                 <span class="font-semibold text-slate-800 dark:text-slate-200">Excel Direct Copy-Paste:</span>
                                 <p class="text-slate-500 mt-0.5">Switch to the "Paste Raw Data" tab, copy the cells from Excel/Google Sheets (with headers), and paste them directly into the text box.</p>
@@ -225,7 +226,11 @@
                                 <span class="material-symbols-outlined text-[36px] text-slate-400 dark:text-slate-600 drop-icon">cloud_upload</span>
                                 <div class="text-center">
                                     <span class="text-xs font-semibold text-slate-700 dark:text-slate-300">Click to upload or drag & drop</span>
+                                    [[ if not user_cid: ]]
+                                    <p class="text-[10px] text-slate-400 dark:text-slate-500 mt-0.5">Only .csv files are supported (Max 10MB, 10,000 rows)</p>
+                                    [[ else: ]]
                                     <p class="text-[10px] text-slate-400 dark:text-slate-500 mt-0.5">Only .csv files are supported (Max 2MB, 1,000 rows)</p>
+                                    [[ pass ]]
                                 </div>
                                 <input type="file" name="csv_file" id="fileInput" accept=".csv" required class="hidden">
                             </div>
@@ -269,8 +274,13 @@
 
                         <div class="border-t border-slate-100 dark:border-slate-800 pt-3.5 space-y-2 flex flex-col flex-1">
                             <label class="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider">Paste Data Below:</label>
-                            <textarea name="csv_text" id="pasteTextArea" placeholder="Official ID&#9;Transfer Order No&#9;Transfer Type&#9;From Posting&#9;To Posting&#10;EMP-00101&#9;BADC/TR-2026/001&#9;ADMINISTRATIVE&#9;Head Office&#9;Bogura Regional Office"
+                            [[ if not user_cid: ]]
+                            <textarea name="csv_text" id="pasteTextArea" placeholder="Company ID&#9;Official ID&#9;Transfer Order No&#9;Transfer Type&#9;Order Date&#9;Release Date&#9;Expected Joining Date&#9;Joining Status&#9;To Posting Place&#9;To Dept&#9;To Designation&#9;To Grade&#9;Transfer Reason&#9;Official Note&#10;BADC&#9;EMP-00101&#9;TR-2026-001&#9;ADMINISTRATIVE&#9;2026-08-01&#9;2026-08-05&#9;2026-08-15&#9;JOINED&#9;Bogura Regional Office&#9;Irrigation Wing&#9;Senior Officer&#9;Grade-9&#9;Routine rotation&#9;Joined on time"
                                       class="w-full px-3 py-2 text-xs font-mono bg-slate-50 dark:bg-slate-950/60 border border-slate-200 dark:border-slate-800 rounded-lg focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary transition-all resize-y text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 flex-1"></textarea>
+                            [[ else: ]]
+                            <textarea name="csv_text" id="pasteTextArea" placeholder="Official ID&#9;Transfer Order No&#9;Transfer Type&#9;Order Date&#9;Release Date&#9;Expected Joining Date&#9;Joining Status&#9;To Posting Place&#9;To Dept&#9;To Designation&#9;To Grade&#9;Transfer Reason&#9;Official Note&#10;EMP-00101&#9;TR-2026-001&#9;ADMINISTRATIVE&#9;2026-08-01&#9;2026-08-05&#9;2026-08-15&#9;JOINED&#9;Bogura Regional Office&#9;Irrigation Wing&#9;Senior Officer&#9;Grade-9&#9;Routine rotation&#9;Joined on time"
+                                      class="w-full px-3 py-2 text-xs font-mono bg-slate-50 dark:bg-slate-950/60 border border-slate-200 dark:border-slate-800 rounded-lg focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary transition-all resize-y text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 flex-1"></textarea>
+                            [[ pass ]]
                             <div class="flex items-center justify-between text-[10px] text-slate-400 dark:text-slate-500 mt-1">
                                 <span>Tip: Delimiters like tabs (Excel format), commas, or semicolons are parsed automatically.</span>
                                 <span id="pasteStats" class="font-semibold text-right shrink-0">0 chars (0.0 KB) / 0 lines</span>

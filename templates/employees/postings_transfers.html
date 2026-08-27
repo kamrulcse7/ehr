@@ -5,9 +5,9 @@
         <!-- HEADER SECTION (Breadcrumb) -->
         <div class="pb-2 border-b border-slate-200/80 dark:border-slate-800/80 flex items-center justify-between h-7">
             <div class="flex items-center gap-0.5 text-xs font-medium">
-                <a href="[[=URL('employees/empployee_directory')]]" class="text-slate-400 dark:text-slate-500 hover:text-primary transition-colors">Officers & Staff</a>
+                <a href="[[=URL('employees/empployee_directory')]]" class="text-slate-400 dark:text-slate-500 hover:text-primary transition-colors">[[= globals().get('active_parent_title') or 'Employee Management' ]]</a>
                 <span class="material-symbols-outlined text-[12px] text-slate-400 dark:text-slate-600 select-none -mx-0.5">chevron_right</span>
-                <span class="text-primary font-bold">Postings & Transfers</span>
+                <span class="text-primary font-bold">[[= globals().get('active_child_title') or 'Employee Directory' ]]</span>
             </div>
         </div>
 
@@ -84,6 +84,16 @@
                 <form action="[[=URL('employees/postings_transfers')]]" method="GET" class="flex flex-wrap items-center gap-2 grow">
                     <input type="hidden" name="limit" value="[[= pagination['limit'] ]]">
 
+                    [[ if not user_cid: ]]
+                    <!-- CID Input Filter (Shown when CID is not bound in session) -->
+                    <div class="relative flex items-center w-full sm:w-28">
+                        <span class="material-symbols-outlined absolute left-1.5 top-1/2 -translate-y-1/2 text-slate-400 text-xs pointer-events-none z-10 leading-none">domain</span>
+                        <input type="text" name="cid" value="[[= request.query.get('cid', '') ]]"
+                            placeholder="CID..." autocomplete="off"
+                            class="w-full h-[28px] py-0 pl-8 pr-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-md text-[11px] font-medium text-slate-800 dark:text-slate-200 placeholder:text-slate-400 focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary transition-all leading-none">
+                    </div>
+                    [[ pass ]]
+
                     <!-- Search Input -->
                     <div class="relative flex items-center w-full sm:w-60">
                         <span
@@ -128,7 +138,7 @@
                     </button>
 
                     <!-- Reset Filter Button -->
-                    [[ if request.query.get('keywords') or request.query.get('transfer_type') or request.query.get('status_type'): ]]
+                    [[ if request.query.get('keywords') or request.query.get('transfer_type') or request.query.get('status_type') or request.query.get('cid'): ]]
                     <a href="[[=URL('employees/postings_transfers')]]" title="Clear Filters"
                         class="h-[28px] px-2 bg-rose-50 hover:bg-rose-100 dark:bg-rose-950/40 dark:hover:bg-rose-900/50 text-rose-600 dark:text-rose-400 border border-rose-200/60 dark:border-rose-800/60 rounded-md transition-all flex items-center justify-center shrink-0">
                         <span class="material-symbols-outlined text-[14px] leading-none">filter_list_off</span>
@@ -213,16 +223,28 @@
                         <tr class="hover:bg-slate-50/60 dark:hover:bg-slate-800/40 transition-colors">
                             <td class="py-2.5 px-4">
                                 <div class="flex items-center gap-3">
-                                    [[ name = item.get('emp_name', 'E').strip() ]]
-                                    [[ initial = name[0].upper() if name else 'E' ]]
-                                    <div
-                                        class="w-8 h-8 rounded-full bg-primary/10 text-primary font-bold text-xs flex items-center justify-center shrink-0 border border-primary/20 select-none">
+                                    [[ photo_raw = item.get('photo_url') or '' ]]
+                                    [[ photo_src = photo_raw if (photo_raw.startswith('http://') or photo_raw.startswith('https://') or photo_raw.startswith('/')) else URL('static/uploads/emp_images', photo_raw) if photo_raw else '' ]]
+                                    [[ name_str = str(item.get('emp_name') or '').strip() ]]
+                                    [[ initial = name_str[0].upper() if name_str else 'E' ]]
+
+                                    [[ if photo_src: ]]
+                                    <img src="[[= photo_src ]]" alt="[[= name_str or item.get('emp_id') ]]"
+                                        onerror="this.style.display='none'; if(this.nextElementSibling) this.nextElementSibling.style.display='flex';"
+                                        class="w-8 h-8 rounded-full object-cover border border-slate-200 dark:border-slate-700 shadow-2xs shrink-0">
+                                    <div class="w-8 h-8 rounded-full bg-primary/10 text-primary font-bold text-xs items-center justify-center shrink-0 border border-primary/20 select-none hidden">
                                         [[= initial ]]
                                     </div>
+                                    [[ else: ]]
+                                    <div class="w-8 h-8 rounded-full bg-primary/10 text-primary font-bold text-xs flex items-center justify-center shrink-0 border border-primary/20 select-none">
+                                        [[= initial ]]
+                                    </div>
+                                    [[ pass ]]
 
                                     <div class="flex flex-col min-w-0">
                                         <span class="font-bold text-slate-900 dark:text-white text-xs truncate">
-                                            [[= item.get('emp_name', '--') ]]
+                                            [[= name_str or '--' ]]
+                                            [[ if not user_cid and item.get('cid'): ]]<span class="font-semibold text-sky-600 dark:text-sky-400">([[= item.get('cid') ]])</span>[[ pass ]]
                                         </span>
                                         <span class="font-mono text-[10px] text-slate-400 dark:text-slate-500">
                                             #[[= item.get('emp_id') ]]
@@ -289,43 +311,24 @@
                             <td class="py-2 px-2 text-center w-px whitespace-nowrap">
                                 <div class="inline-flex items-center justify-center gap-0.5">
                                     <!-- View Button -->
-                                    <button type="button" 
-                                        onclick="showViewModal(
-                                            '[[= item.get('emp_name', '') ]]',
-                                            '[[= item.get('emp_id', '') ]]',
-                                            '[[= item.get('transfer_order_no', '') ]]',
-                                            '[[= item.get('transfer_type', '') ]]',
-                                            '[[= item.get('from_posting_place', '') ]]',
-                                            '[[= item.get('to_posting_place', '') ]]',
-                                            '[[= item.get('from_department', '') ]]',
-                                            '[[= item.get('to_department', '') ]]',
-                                            '[[= item.get('from_designation', '') ]]',
-                                            '[[= item.get('to_designation', '') ]]',
-                                            '[[= item.get('from_grade', '') ]]',
-                                            '[[= item.get('to_grade', '') ]]',
-                                            '[[= item.get('order_date', '') ]]',
-                                            '[[= item.get('release_date', '') ]]',
-                                            '[[= item.get('expected_joining_date', '') ]]',
-                                            '[[= item.get('actual_joining_date', '') ]]',
-                                            '[[= item.get('joining_status', '') ]]',
-                                            '[[= item.get('approved_by', '') ]]',
-                                            '[[= item.get('transfer_reason', '') ]]',
-                                            '[[= item.get('note', '') ]]',
-                                            '[[= item.get('attachment_url', '') ]]',
-                                            '[[= item.get('attachment_filename', '') ]]'
-                                        )"
-                                        title="View Details"
-                                        class="p-1 rounded text-slate-400 hover:text-sky-600 hover:bg-sky-50 dark:hover:bg-sky-950/40 transition-colors cursor-pointer">
+                                    <a href="[[=URL('employees/show_transfer', item.get('id'))]]" title="View Details"
+                                        class="p-1 rounded text-slate-400 hover:text-sky-600 hover:bg-sky-50 dark:hover:bg-sky-950/40 transition-colors">
                                         <span class="material-symbols-outlined text-[16px] block">visibility</span>
-                                    </button>
+                                    </a>
+
+                                    <!-- Edit Button -->
+                                    <a href="[[=URL('employees/edit_transfer', item.get('id'))]]" title="Edit Record"
+                                        class="p-1 rounded text-slate-400 hover:text-amber-600 hover:bg-amber-50 dark:hover:bg-amber-950/40 transition-colors">
+                                        <span class="material-symbols-outlined text-[16px] block">edit</span>
+                                    </a>
 
                                     <!-- Delete Button -->
-                                    <a href="[[=URL('employees/delete_transfer', item.get('id'))]]" 
-                                    title="Delete Record"
-                                    onclick="return confirm('Are you sure you want to delete this transfer order?');"
-                                    class="p-1 rounded text-slate-400 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/40 transition-colors">
+                                    <button type="button" 
+                                        title="Delete Record"
+                                        onclick="confirmDeleteTransfer('[[=URL('employees/postings_transfers', vars={'action': 'delete', 'id': item.get('id')})]]', '[[= item.get('emp_name', '') ]]', '[[= item.get('transfer_order_no', '') ]]')"
+                                        class="p-1 rounded text-slate-400 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/40 transition-colors cursor-pointer">
                                         <span class="material-symbols-outlined text-[16px] block">delete</span>
-                                    </a>
+                                    </button>
                                 </div>
                             </td>
                         </tr>
@@ -525,6 +528,23 @@
 </div>
 
 <script>
+    if (window.history.replaceState) {
+        window.history.replaceState(null, null, window.location.href);
+    }
+
+    function confirmDeleteTransfer(deleteUrl, empName, orderNo) {
+        showConfirmModal({
+            title: 'Delete Record',
+            message: `Are you sure you want to delete transfer order <strong>${orderNo || 'this record'}</strong> ${empName ? 'for ' + empName : ''}? This action is permanent and cannot be undone.`,
+            type: 'danger',
+            confirmText: 'Yes, Delete',
+            cancelText: 'Cancel',
+            onConfirm: function() {
+                window.location.href = deleteUrl;
+            }
+        });
+    }
+
     function toggleExportDropdown(event) {
         event.stopPropagation();
         const menu = document.getElementById('exportDropdownMenu');
@@ -540,42 +560,4 @@
             }
         }
     });
-
-    function showViewModal(name, id, orderNo, type, fromPlace, toPlace, fromDept, toDept, fromDesig, toDesig, fromGrade, toGrade, orderDate, releaseDate, expJoining, actJoining, status, approvedBy, reason, note, attachUrl, attachFile) {
-        document.getElementById('v_emp_name').innerText = name || 'N/A';
-        document.getElementById('v_emp_id').innerText = '#' + (id || '');
-        document.getElementById('v_order_no').innerText = orderNo || '--';
-        document.getElementById('v_type').innerText = type || 'ADMINISTRATIVE';
-        document.getElementById('v_status_badge').innerText = status || 'PENDING';
-        document.getElementById('v_approved_by').innerText = approvedBy || 'Admin Authority';
-
-        document.getElementById('v_from_place').innerText = fromPlace || 'Head Office';
-        document.getElementById('v_to_place').innerText = toPlace || '--';
-        
-        document.getElementById('v_from_dept_desig').innerText = (fromDesig || '--') + ' • ' + (fromDept || '--') + (fromGrade ? ' (' + fromGrade + ')' : '');
-        document.getElementById('v_to_dept_desig').innerText = (toDesig || '--') + ' • ' + (toDept || '--') + (toGrade ? ' (' + toGrade + ')' : '');
-
-        document.getElementById('v_order_date').innerText = orderDate || '--';
-        document.getElementById('v_release_date').innerText = releaseDate || '--';
-        document.getElementById('v_joining_date').innerText = expJoining || '--';
-        document.getElementById('v_actual_joining').innerText = actJoining || '--';
-
-        document.getElementById('v_reason').innerText = reason || 'None';
-        document.getElementById('v_note').innerText = note || 'None';
-
-        const attachContainer = document.getElementById('v_attachment_container');
-        if (attachUrl) {
-            document.getElementById('v_attachment_filename').innerText = attachFile || 'Order_Attachment.pdf';
-            document.getElementById('v_attachment_link').setAttribute('href', attachUrl);
-            attachContainer.classList.remove('hidden');
-        } else {
-            attachContainer.classList.add('hidden');
-        }
-
-        document.getElementById('transferViewModal').classList.remove('hidden');
-    }
-
-    function closeViewModal() {
-        document.getElementById('transferViewModal').classList.add('hidden');
-    }
 </script>
