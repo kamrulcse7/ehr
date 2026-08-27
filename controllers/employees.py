@@ -192,7 +192,7 @@ def empployee_directory():
     total_items = db.executesql(count_sql, params, as_dict=True)[0]['total']
 
     records_sql = f"""
-        SELECT e.id, e.cid, e.emp_id, e.emp_name, e.emp_designation, e.emp_grade, e.emp_department, e.emp_type, e.email,
+        SELECT e.id, e.cid, e.emp_id, e.emp_name, e.photo_url, e.emp_designation, e.emp_grade, e.emp_department, e.emp_type, e.email,
                e.current_branch_id, COALESCE(b.branch_name, e.current_branch_id, 'N/A') AS current_posting_place,
                e.mobile, e.home_district, e.status_type, e.blood_group 
         FROM employees e
@@ -255,9 +255,13 @@ def show_directory(emp_id=None):
 
     where_str = " AND ".join(where_clauses)
     sql = f"""
-        SELECT e.*, COALESCE(b.branch_name, e.current_branch_id, 'Head Office') AS current_posting_place
+        SELECT e.*, 
+               COALESCE(b.branch_name, e.current_branch_id, 'Head Office') AS current_posting_place,
+               COALESCE(c.company_name, c.legal_name, e.cid) AS company_name,
+               c.logo_url AS company_logo_url
         FROM employees e
         LEFT JOIN branches b ON e.current_branch_id = b.branch_id AND e.cid = b.cid
+        LEFT JOIN companies c ON e.cid = c.cid
         WHERE {where_str} LIMIT 1
     """
     res = db.executesql(sql, params, as_dict=True)
@@ -266,7 +270,30 @@ def show_directory(emp_id=None):
         redirect(URL("employees/empployee_directory"))
 
     emp = res[0]
-    return dict(emp=emp, user_cid=user_cid)
+
+    # Fetch Transfer History for this employee
+    transfers = []
+    try:
+        transfers_sql = """
+            SELECT t.*,
+                   COALESCE(fb.branch_name, t.from_branch_id) AS from_posting_place,
+                   COALESCE(tb.branch_name, t.to_branch_id) AS to_posting_place
+            FROM employee_transfers t
+            LEFT JOIN branches fb ON t.from_branch_id = fb.branch_id AND t.cid = fb.cid
+            LEFT JOIN branches tb ON t.to_branch_id = tb.branch_id AND t.cid = tb.cid
+            WHERE t.emp_id = %s
+        """
+        transfers_params = [emp['emp_id']]
+        if user_cid:
+            transfers_sql += " AND t.cid = %s"
+            transfers_params.append(user_cid)
+        transfers_sql += " ORDER BY t.order_date DESC, t.id DESC LIMIT 5"
+        transfers = db.executesql(transfers_sql, transfers_params, as_dict=True)
+    except Exception as e:
+        print(f"Error fetching transfers for employee details: {e}")
+        transfers = []
+
+    return dict(emp=emp, user_cid=user_cid, transfers=transfers)
 
 
 @action("employees/edit_directory/<emp_id:int>", method=["GET", "POST"])

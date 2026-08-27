@@ -207,12 +207,19 @@
                         <tr class="hover:bg-slate-50/60 dark:hover:bg-slate-800/40 transition-colors">
                             <td class="py-2.5 px-4">
                                 <div class="flex items-center gap-3">
+                                    [[ photo_raw = emp.get('photo_url') or '' ]]
+                                    [[ photo_src = photo_raw if (photo_raw.startswith('http://') or photo_raw.startswith('https://') or photo_raw.startswith('/')) else URL('static/uploads/profile_images', photo_raw) if photo_raw else '' ]]
+                                    [[ if photo_src: ]]
+                                    <img src="[[= photo_src ]]" alt="[[=emp.get('emp_name')]]"
+                                        class="w-8 h-8 rounded-full object-cover border border-slate-200 dark:border-slate-700 shadow-2xs shrink-0">
+                                    [[ else: ]]
                                     [[ name = emp.get('emp_name', 'E').strip() ]]
                                     [[ initial = name[0].upper() if name else 'E' ]]
                                     <div
                                         class="w-8 h-8 rounded-full bg-primary/10 text-primary font-bold text-xs flex items-center justify-center shrink-0 border border-primary/20 select-none">
                                         [[= initial ]]
                                     </div>
+                                    [[ pass ]]
 
                                     <div class="flex flex-col min-w-0">
                                         <span class="font-bold text-slate-900 dark:text-white text-xs truncate">
