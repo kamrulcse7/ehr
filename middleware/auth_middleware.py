@@ -45,9 +45,7 @@ def web_auth_required(handler):
             if "flash" not in response_dict:
                 response_dict["flash"] = flash
             if "user_menu" not in response_dict:
-                if "user_menu" not in session or not session.user_menu:
-                    session.user_menu = get_user_menu_tree(session.user)
-                response_dict["user_menu"] = session.user_menu
+                response_dict["user_menu"] = get_user_menu_tree(session.user)
 
             if "active_module_info" not in response_dict:
                 active_info = get_active_module_info(response_dict.get("user_menu"), request.path)

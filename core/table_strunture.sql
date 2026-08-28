@@ -326,20 +326,21 @@ INSERT INTO modules (module_id, module_name, parent_module_id, module_group, ico
 
 -- 2. Employee Management
 ('EMP_MGMT', 'Employee Management', NULL, 'HR', 'badge', 0, NULL, 2, 'ACTIVE'),
-('EMPLOYEE_DIR', 'Employee Directory', 'EMP_MGMT', 'HR', 'badge', 1, '/staff/directory', 1, 'ACTIVE'),
-('POSTING_TRANS', 'Postings & Transfers', 'EMP_MGMT', 'HR', 'swap_horiz', 1, '/staff/transfers', 2, 'ACTIVE'),
+('EMPLOYEE_DIR', 'Employee Directory', 'EMP_MGMT', 'HR', 'badge', 1, '/employees/empployee_directory', 1, 'ACTIVE'),
+('POSTING_TRANS', 'Postings & Transfers', 'EMP_MGMT', 'HR', 'swap_horiz', 1, '/employees/postings_transfers', 2, 'ACTIVE'),
 
--- 3. Access & Security
-('ACCESS_SECURITY', 'Access & Security', NULL, 'System', 'security', 0, NULL, 3, 'ACTIVE'),
-('USER_MGMT', 'Users Management', 'ACCESS_SECURITY', 'System', 'manage_accounts', 1, '/admin/users', 1, 'ACTIVE'),
-('ROLES_PERM', 'Roles & Permissions', 'ACCESS_SECURITY', 'System', 'key', 1, '/admin/roles', 2, 'ACTIVE'),
-('AUDIT_LOGS', 'Audit / Activity Logs', 'ACCESS_SECURITY', 'System', 'history', 1, '/admin/audit-logs', 3, 'ACTIVE'),
+-- 3. Administration
+('ADMINISTRATION', 'Administration', NULL, 'System', 'tune', 0, NULL, 3, 'ACTIVE'),
+('COMPANY_MGMT', 'Company Management', 'ADMINISTRATION', 'System', 'domain', 1, '/administration/companies', 1, 'ACTIVE'),
+('ROLES_PERM', 'Roles & Permissions', 'ADMINISTRATION', 'System', 'key', 1, '/administration/roles_permisions', 2, 'ACTIVE'),
+('USER_MGMT', 'User Management', 'ADMINISTRATION', 'System', 'manage_accounts', 1, '/administration/users', 3, 'ACTIVE'),
+('AUDIT_LOGS', 'Audit Logs', 'ADMINISTRATION', 'System', 'history', 1, '/administration/audit_logs', 4, 'ACTIVE'),
 
 -- 4. Reports & Analytics
 ('REPORTS_ANALYTICS', 'Reports & Analytics', NULL, 'Reports', 'analytics', 0, NULL, 4, 'ACTIVE'),
-('EMP_REPORTS', 'Employee Reports', 'REPORTS_ANALYTICS', 'Reports', 'description', 1, '/reports/employees', 1, 'ACTIVE'),
-('TRANSFER_LOGS', 'Movement / Transfer Logs', 'REPORTS_ANALYTICS', 'Reports', 'receipt_long', 1, '/reports/transfers', 2, 'ACTIVE'),
-('CUSTOM_REPORTS', 'Export / Custom Reports', 'REPORTS_ANALYTICS', 'Reports', 'download', 1, '/reports/custom', 3, 'ACTIVE');
+('EMP_REPORTS', 'Employee Reports', 'REPORTS_ANALYTICS', 'Reports', 'description', 1, '/reports/employee_reports', 1, 'ACTIVE'),
+('TRANSFER_LOGS', 'Movement & Transfer Logs', 'REPORTS_ANALYTICS', 'Reports', 'receipt_long', 1, '/reports/transfer_logs', 2, 'ACTIVE'),
+('CUSTOM_REPORTS', 'Custom Reports', 'REPORTS_ANALYTICS', 'Reports', 'download', 1, '/reports/custom_reports', 3, 'ACTIVE');
 
 -- 11. Company Module Subscriptions (BADC Subscribed Modules & Optional Custom Overrides)
 INSERT INTO company_modules (cid, module_id, custom_name, status_type, created_by) VALUES
@@ -347,7 +348,8 @@ INSERT INTO company_modules (cid, module_id, custom_name, status_type, created_b
 ('BADC', 'EMP_MGMT', NULL, 'ACTIVE', 'SYSTEM'),
 ('BADC', 'EMPLOYEE_DIR', 'Personnel Directory', 'ACTIVE', 'SYSTEM'), -- Custom name override for BADC
 ('BADC', 'POSTING_TRANS', NULL, 'ACTIVE', 'SYSTEM'),
-('BADC', 'ACCESS_SECURITY', NULL, 'ACTIVE', 'SYSTEM'),
+('BADC', 'ADMINISTRATION', NULL, 'ACTIVE', 'SYSTEM'),
+('BADC', 'COMPANY_MGMT', NULL, 'ACTIVE', 'SYSTEM'),
 ('BADC', 'USER_MGMT', NULL, 'ACTIVE', 'SYSTEM'),
 ('BADC', 'ROLES_PERM', NULL, 'ACTIVE', 'SYSTEM'),
 ('BADC', 'AUDIT_LOGS', NULL, 'ACTIVE', 'SYSTEM'),

@@ -1,11 +1,28 @@
+import time
+import copy
 from ..core.db import db
+
+_MENU_CACHE = {}
+_CACHE_TTL = 300  # 5 minutes RAM cache TTL
+
+def clear_menu_cache():
+    """Clear in-memory menu cache when permissions or modules change."""
+    global _MENU_CACHE
+    _MENU_CACHE = {}
 
 def get_user_menu_tree(user):
     if not user:
         return []
 
-    cid = user.get("cid")
-    role_id = user.get("user_role")
+    cid = user.get("cid") or ""
+    role_id = user.get("user_role") or ""
+    cache_key = (cid, role_id)
+    now = time.time()
+
+    if cache_key in _MENU_CACHE:
+        cached_time, cached_tree = _MENU_CACHE[cache_key]
+        if now - cached_time < _CACHE_TTL:
+            return copy.deepcopy(cached_tree)
 
     if role_id in ("SUPER_ADMIN", "SYSTEM_ADMIN"):
         if cid:
@@ -73,6 +90,7 @@ def get_user_menu_tree(user):
         elif not p_id:
             parents.append(item)
 
+    _MENU_CACHE[cache_key] = (now, copy.deepcopy(parents))
     return parents
 
 

@@ -1,0 +1,73 @@
+[[ extend 'layout.html' ]]
+
+<div class="w-full space-y-4 text-slate-700 dark:text-slate-200">
+    <div class="max-w-[1800px] mx-auto space-y-4">
+
+        <!-- HEADER SECTION (Breadcrumb) -->
+        <div class="pb-2 border-b border-slate-200/80 dark:border-slate-800/80 flex items-center justify-between h-7">
+            <div class="flex items-center gap-0.5 text-xs font-medium">
+                <a href="[[=URL('administration/companies')]]" class="text-slate-400 dark:text-slate-500 hover:text-primary transition-colors">Administration</a>
+                <span class="material-symbols-outlined text-[12px] text-slate-400 dark:text-slate-600 select-none -mx-0.5">chevron_right</span>
+                <span class="text-primary font-bold">Company Management</span>
+            </div>
+            <a href="[[=URL('administration/add_company')]]"
+                class="h-7 px-2.5 bg-primary hover:opacity-90 text-white rounded-md text-xs font-semibold shadow-xs transition-all inline-flex items-center gap-1 shrink-0">
+                <span class="material-symbols-outlined text-[15px]">domain_add</span>
+                Add New Company
+            </a>
+        </div>
+
+        <!-- MAIN CONTENT TABLE -->
+        <div class="bg-white dark:bg-slate-900 rounded-xl border border-slate-200/80 dark:border-slate-800/80 shadow-xs overflow-hidden">
+            <div class="p-4 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
+                <div class="flex items-center gap-2">
+                    <span class="material-symbols-outlined text-primary text-xl">domain</span>
+                    <h2 class="text-sm font-bold text-slate-800 dark:text-white">Registered Client Companies</h2>
+                </div>
+                <span class="text-xs font-semibold text-slate-400">Total: [[= len(companies) if companies else 0 ]] Companies</span>
+            </div>
+
+            <div class="overflow-x-auto">
+                <table class="w-full text-left text-xs text-slate-600 dark:text-slate-300">
+                    <thead class="bg-slate-50 dark:bg-slate-800/50 text-[11px] font-bold text-slate-500 uppercase border-b border-slate-200 dark:border-slate-800">
+                        <tr>
+                            <th class="py-2.5 px-4">CID</th>
+                            <th class="py-2.5 px-4">Company Name</th>
+                            <th class="py-2.5 px-4">Email</th>
+                            <th class="py-2.5 px-4">Mobile</th>
+                            <th class="py-2.5 px-4">Status</th>
+                            <th class="py-2.5 px-4 text-right">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-100 dark:divide-slate-800/60 font-medium">
+                        [[ if companies: ]]
+                            [[ for comp in companies: ]]
+                            <tr class="hover:bg-slate-50/50 dark:hover:bg-slate-800/40 transition-colors">
+                                <td class="py-2.5 px-4 font-mono font-bold text-sky-600 dark:text-sky-400">[[= comp.get('cid') ]]</td>
+                                <td class="py-2.5 px-4 font-semibold text-slate-900 dark:text-white">[[= comp.get('company_name') ]]</td>
+                                <td class="py-2.5 px-4">[[= comp.get('email') or '--' ]]</td>
+                                <td class="py-2.5 px-4">[[= comp.get('mobile') or '--' ]]</td>
+                                <td class="py-2.5 px-4">
+                                    <span class="px-2 py-0.5 rounded-full text-[10px] font-bold [[= 'bg-emerald-50 text-emerald-600 dark:bg-emerald-950/40 dark:text-emerald-400' if comp.get('status_type') == 'ACTIVE' else 'bg-rose-50 text-rose-600 dark:bg-rose-950/40 dark:text-rose-400' ]]">
+                                        [[= comp.get('status_type', 'ACTIVE') ]]
+                                    </span>
+                                </td>
+                                <td class="py-2.5 px-4 text-right space-x-1">
+                                    <a href="[[=URL('administration/edit_company')]]/[[= comp.get('id') ]]" class="p-1 rounded text-slate-400 hover:text-amber-600 hover:bg-amber-50 dark:hover:bg-amber-950/40 transition-colors inline-block" title="Edit Company">
+                                        <span class="material-symbols-outlined text-[16px] block">edit</span>
+                                    </a>
+                                </td>
+                            </tr>
+                            [[ pass ]]
+                        [[ else: ]]
+                            <tr>
+                                <td colspan="6" class="py-8 text-center text-slate-400">No client companies registered yet.</td>
+                            </tr>
+                        [[ pass ]]
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+    </div>
+</div>

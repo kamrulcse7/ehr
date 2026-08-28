@@ -576,11 +576,32 @@ def users():
     return dict(all_users=paginated_users, stats=stats, pagination=pagination)
 
 
-@action("administration/user_manage")
-@view_page("administration/user_manage.html")
+@action("administration/companies", method=["GET", "POST"])
+@view_page("administration/companies.html", title="Company Management | Administration")
 @web_auth_required
-def user_manage():
-    return dict()
+def companies():
+    user_cid = session.user.get("cid", "")
+    companies_list = db.executesql("SELECT * FROM companies ORDER BY id DESC", as_dict=True)
+    return dict(user_cid=user_cid, companies=companies_list)
+
+
+@action("administration/add_user", method=["GET", "POST"])
+@view_page("administration/add_user.html", title="Add New User | Administration")
+@web_auth_required
+def add_user():
+    user_cid = session.user.get("cid", "")
+    return dict(user_cid=user_cid)
+
+
+@action("administration/edit_user", method=["GET", "POST"])
+@action("administration/edit_user/<user_id>", method=["GET", "POST"])
+@view_page("administration/edit_user.html", title="Edit User | Administration")
+@web_auth_required
+def edit_user(user_id=None):
+    user_cid = session.user.get("cid", "")
+    if user_id is None:
+        user_id = request.query.get("id") or request.query.get("user_id")
+    return dict(user_cid=user_cid, user_id=user_id)
 
 
 

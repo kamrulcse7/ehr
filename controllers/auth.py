@@ -119,13 +119,7 @@ def login():
                     user.pop("user_pass", None)
                     session.user = user
                     session.userorized = True
-                    
-                    try:
-                        from ..utils.menu_utils import get_user_menu_tree
-                        session.user_menu = get_user_menu_tree(user)
-                    except Exception:
-                        session.user_menu = []
-                        
+
                     redirect(URL("dashboard"))
 
     return dict(error=error)
@@ -134,7 +128,6 @@ def login():
 @action.uses(session)
 def logout():
     session.clear()
-    session.user_menu = None
     try:
         response.delete_cookie(f"{settings.APP_NAME}_session")
     except Exception:
