@@ -1,73 +1,349 @@
 [[ extend 'layout.html' ]]
 
 <div class="w-full space-y-4 text-slate-700 dark:text-slate-200">
-    <div class="max-w-[1800px] mx-auto space-y-4">
-
+    <div class="w-full space-y-4">
         <!-- HEADER SECTION (Breadcrumb) -->
         <div class="pb-2 border-b border-slate-200/80 dark:border-slate-800/80 flex items-center justify-between h-7">
             <div class="flex items-center gap-0.5 text-xs font-medium">
-                <a href="[[=URL('administration/companies')]]" class="text-slate-400 dark:text-slate-500 hover:text-primary transition-colors">Administration</a>
+                <a href="[[=URL('administration/companies')]]" class="text-slate-400 dark:text-slate-500 hover:text-primary transition-colors">[[= globals().get('active_parent_title') or 'Administration' ]]</a>
                 <span class="material-symbols-outlined text-[12px] text-slate-400 dark:text-slate-600 select-none -mx-0.5">chevron_right</span>
-                <span class="text-primary font-bold">Company Management</span>
+                <span class="text-primary font-bold">[[= globals().get('active_child_title') or 'Company Management' ]]</span>
             </div>
-            <a href="[[=URL('administration/add_company')]]"
-                class="h-7 px-2.5 bg-primary hover:opacity-90 text-white rounded-md text-xs font-semibold shadow-xs transition-all inline-flex items-center gap-1 shrink-0">
-                <span class="material-symbols-outlined text-[15px]">domain_add</span>
-                Add New Company
-            </a>
         </div>
 
-        <!-- MAIN CONTENT TABLE -->
-        <div class="bg-white dark:bg-slate-900 rounded-xl border border-slate-200/80 dark:border-slate-800/80 shadow-xs overflow-hidden">
-            <div class="p-4 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
-                <div class="flex items-center gap-2">
-                    <span class="material-symbols-outlined text-primary text-xl">domain</span>
-                    <h2 class="text-sm font-bold text-slate-800 dark:text-white">Registered Client Companies</h2>
+        <!-- SUMMARY STATS CARDS -->
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3.5">
+            <!-- TOTAL COMPANIES -->
+            <div class="bg-white dark:bg-slate-900 rounded-xl border border-slate-200/80 dark:border-slate-800/80 p-3.5 flex items-center gap-3 shadow-sm">
+                <div class="w-10 h-10 rounded-lg bg-primary/10 text-primary flex items-center justify-center shrink-0">
+                    <span class="material-symbols-outlined text-[20px]">domain</span>
                 </div>
-                <span class="text-xs font-semibold text-slate-400">Total: [[= len(companies) if companies else 0 ]] Companies</span>
+                <div>
+                    <div class="text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500">TOTAL</div>
+                    <div class="text-lg font-bold text-slate-900 dark:text-white mt-0.5">[[= stats.get('total', 0) ]]</div>
+                </div>
             </div>
 
-            <div class="overflow-x-auto">
-                <table class="w-full text-left text-xs text-slate-600 dark:text-slate-300">
-                    <thead class="bg-slate-50 dark:bg-slate-800/50 text-[11px] font-bold text-slate-500 uppercase border-b border-slate-200 dark:border-slate-800">
-                        <tr>
-                            <th class="py-2.5 px-4">CID</th>
-                            <th class="py-2.5 px-4">Company Name</th>
-                            <th class="py-2.5 px-4">Email</th>
-                            <th class="py-2.5 px-4">Mobile</th>
-                            <th class="py-2.5 px-4">Status</th>
-                            <th class="py-2.5 px-4 text-right">Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody class="divide-y divide-slate-100 dark:divide-slate-800/60 font-medium">
-                        [[ if companies: ]]
-                            [[ for comp in companies: ]]
-                            <tr class="hover:bg-slate-50/50 dark:hover:bg-slate-800/40 transition-colors">
-                                <td class="py-2.5 px-4 font-mono font-bold text-sky-600 dark:text-sky-400">[[= comp.get('cid') ]]</td>
-                                <td class="py-2.5 px-4 font-semibold text-slate-900 dark:text-white">[[= comp.get('company_name') ]]</td>
-                                <td class="py-2.5 px-4">[[= comp.get('email') or '--' ]]</td>
-                                <td class="py-2.5 px-4">[[= comp.get('mobile') or '--' ]]</td>
-                                <td class="py-2.5 px-4">
-                                    <span class="px-2 py-0.5 rounded-full text-[10px] font-bold [[= 'bg-emerald-50 text-emerald-600 dark:bg-emerald-950/40 dark:text-emerald-400' if comp.get('status_type') == 'ACTIVE' else 'bg-rose-50 text-rose-600 dark:bg-rose-950/40 dark:text-rose-400' ]]">
-                                        [[= comp.get('status_type', 'ACTIVE') ]]
-                                    </span>
-                                </td>
-                                <td class="py-2.5 px-4 text-right space-x-1">
-                                    <a href="[[=URL('administration/edit_company')]]/[[= comp.get('id') ]]" class="p-1 rounded text-slate-400 hover:text-amber-600 hover:bg-amber-50 dark:hover:bg-amber-950/40 transition-colors inline-block" title="Edit Company">
-                                        <span class="material-symbols-outlined text-[16px] block">edit</span>
-                                    </a>
-                                </td>
-                            </tr>
-                            [[ pass ]]
-                        [[ else: ]]
-                            <tr>
-                                <td colspan="6" class="py-8 text-center text-slate-400">No client companies registered yet.</td>
-                            </tr>
-                        [[ pass ]]
-                    </tbody>
-                </table>
+            <!-- ACTIVE CLIENTS -->
+            <div class="bg-white dark:bg-slate-900 rounded-xl border border-slate-200/80 dark:border-slate-800/80 p-3.5 flex items-center gap-3 shadow-sm">
+                <div class="w-10 h-10 rounded-lg bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shrink-0">
+                    <span class="material-symbols-outlined text-[20px]">check_circle</span>
+                </div>
+                <div>
+                    <div class="text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500">ACTIVE</div>
+                    <div class="text-lg font-bold text-slate-900 dark:text-white mt-0.5">[[= stats.get('active', 0) ]]</div>
+                </div>
+            </div>
+
+            <!-- INACTIVE / SUSPENDED -->
+            <div class="bg-white dark:bg-slate-900 rounded-xl border border-slate-200/80 dark:border-slate-800/80 p-3.5 flex items-center gap-3 shadow-sm">
+                <div class="w-10 h-10 rounded-lg bg-rose-50 dark:bg-rose-950/40 text-rose-500 dark:text-rose-400 flex items-center justify-center shrink-0">
+                    <span class="material-symbols-outlined text-[20px]">block</span>
+                </div>
+                <div>
+                    <div class="text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500">INACTIVE</div>
+                    <div class="text-lg font-bold text-slate-900 dark:text-white mt-0.5">[[= stats.get('inactive', 0) ]]</div>
+                </div>
             </div>
         </div>
 
+        <!-- MAIN TABLE CONTAINER -->
+        <div class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-800/80 shadow-sm overflow-hidden p-4 space-y-3.5">
+
+            <!-- ACTION & FILTER ROW -->
+            <div class="flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-2.5 bg-slate-50/70 dark:bg-slate-800/40 p-2 rounded-xl border border-slate-200/60 dark:border-slate-800/60">
+
+                <!-- LEFT SIDE: FILTER FORM -->
+                <form action="[[=URL('administration/companies')]]" method="GET" class="flex flex-wrap items-center gap-2 grow">
+                    <input type="hidden" name="limit" value="[[= pagination['limit'] ]]">
+
+
+
+                    <!-- Search Input -->
+                    <div class="relative flex items-center w-full sm:w-60">
+                        <span class="material-symbols-outlined absolute left-2 top-1/2 -translate-y-1/2 text-slate-400 text-[15px] pointer-events-none z-10 leading-none">search</span>
+                        <input type="text" name="keywords" value="[[= request.query.get('keywords', '') ]]"
+                            placeholder="Search CID, Company Name, Mobile..." autocomplete="off"
+                            class="w-full h-[28px] py-0 pl-7 pr-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-md text-[11px] font-medium text-slate-800 dark:text-slate-200 placeholder:text-slate-400 focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary transition-all leading-none">
+                    </div>
+
+                    <!-- Status Filter -->
+                    <div class="relative flex items-center w-32">
+                        <select name="status"
+                            class="w-full h-[28px] py-0 pl-2.5 pr-7 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-md text-[11px] font-medium text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary transition-all cursor-pointer appearance-none leading-none">
+                            <option value="">All Status</option>
+                            <option value="ACTIVE" [[='selected' if request.query.get('status')=='ACTIVE' else '' ]]>Active</option>
+                            <option value="INACTIVE" [[='selected' if request.query.get('status')=='INACTIVE' else '' ]]>Inactive</option>
+                        </select>
+                        <span class="material-symbols-outlined absolute right-1.5 top-1/2 -translate-y-1/2 text-slate-400 text-[14px] pointer-events-none z-10 leading-none">expand_more</span>
+                    </div>
+
+                    <!-- Filter Action Button -->
+                    <button type="submit"
+                        class="h-[28px] px-3 bg-slate-800 hover:bg-slate-900 dark:bg-slate-700 dark:hover:bg-slate-600 text-white rounded-md text-[11px] font-semibold shadow-xs transition-all inline-flex items-center justify-center gap-1 shrink-0">
+                        <span class="material-symbols-outlined text-[14px] leading-none">filter_list</span>
+                        <span class="leading-none">Filter</span>
+                    </button>
+
+                    <!-- Reset Filter Button -->
+                    [[ if request.query.get('keywords') or request.query.get('status'): ]]
+                    <a href="[[=URL('administration/companies')]]" title="Clear Filters"
+                        class="h-[28px] px-2 bg-rose-50 hover:bg-rose-100 dark:bg-rose-950/40 dark:hover:bg-rose-900/50 text-rose-600 dark:text-rose-400 border border-rose-200/60 dark:border-rose-800/60 rounded-md transition-all inline-flex items-center justify-center shrink-0">
+                        <span class="material-symbols-outlined text-[14px] leading-none">filter_list_off</span>
+                    </a>
+                    [[ pass ]]
+                </form>
+
+                <!-- RIGHT SIDE: EXPORT & ADD ACTIONS -->
+                <div class="flex items-center gap-1.5 border-t lg:border-t-0 pt-2 lg:pt-0 border-slate-200/60 dark:border-slate-700/60 shrink-0">
+                    <!-- EXPORT DROPDOWN CONTAINER -->
+                    <div class="relative flex items-center shrink-0">
+                        <button type="button"
+                            id="exportDropdownBtn"
+                            onclick="toggleExportDropdown(event)"
+                            class="h-[28px] px-2.5 bg-white hover:bg-slate-50 dark:bg-slate-900 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700 rounded-md text-[11px] font-semibold transition-all inline-flex items-center justify-center gap-1 cursor-pointer">
+                            <span class="material-symbols-outlined text-[15px] text-emerald-600 dark:text-emerald-400 shrink-0">download</span>
+                            <span class="leading-none">Export</span>
+                            <span class="material-symbols-outlined text-[14px] text-slate-400 shrink-0">expand_more</span>
+                        </button>
+
+                        <div id="exportDropdownMenu"
+                            class="hidden absolute right-0 top-full mt-1 w-36 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg shadow-lg z-50 py-1 text-xs">
+                            <a href="[[=URL('administration/companies', vars=request.query | {'export': 'xlsx'})]]" 
+                                class="flex items-center gap-2 px-3 py-1.5 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200">
+                                <span class="material-symbols-outlined text-[16px] text-emerald-600 shrink-0">table_view</span>
+                                <span>Excel (.xls)</span>
+                            </a>
+                            <a href="[[=URL('administration/companies', vars=request.query | {'export': 'csv'})]]" 
+                                class="flex items-center gap-2 px-3 py-1.5 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200">
+                                <span class="material-symbols-outlined text-[16px] text-amber-600 shrink-0">csv</span>
+                                <span>CSV File</span>
+                            </a>
+                        </div>
+                    </div>
+
+                    <!-- IMPORT BUTTON -->
+                    <a href="[[=URL('administration/import_companies')]]" title="Import companies via Excel/CSV"
+                        class="h-[28px] px-2.5 bg-white hover:bg-slate-100 dark:bg-slate-900 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700 rounded-md text-[11px] font-semibold transition-all inline-flex items-center justify-center gap-1 shadow-2xs shrink-0 cursor-pointer">
+                        <span class="material-symbols-outlined text-[15px] text-sky-600 dark:text-sky-400 shrink-0 select-none">upload</span>
+                        <span class="hidden sm:inline leading-none">Import</span>
+                    </a>
+
+                    <!-- ADD NEW COMPANY BUTTON -->
+                    <a href="[[=URL('administration/add_company')]]"
+                        class="h-[28px] px-3 bg-primary hover:opacity-90 active:scale-[0.98] text-white rounded-md font-semibold text-[11px] shadow-xs transition-all flex items-center justify-center gap-1 shrink-0">
+                        <span class="material-symbols-outlined text-[15px] shrink-0 select-none">domain_add</span>
+                        <span class="leading-none">Add New</span>
+                    </a>
+                </div>
+
+            </div>
+
+            <!-- DATA TABLE -->
+            <div class="border border-slate-200/80 dark:border-slate-800/80 rounded-xl overflow-hidden">
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left text-xs border-collapse">
+                        <thead>
+                            <tr class="bg-slate-50/80 dark:bg-slate-800/50 text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider border-b border-slate-200/80 dark:border-slate-800/80">
+                                <th class="py-2.5 px-4">COMPANY DETAILS</th>
+                                <th class="py-2.5 px-4">CONTACT EMAIL</th>
+                                <th class="py-2.5 px-4">PHONE NUMBER</th>
+                                <th class="py-2.5 px-4">STATUS</th>
+                                <th class="py-2.5 px-4 text-center w-px whitespace-nowrap">ACTION</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-100 dark:divide-slate-800/60 font-medium">
+                            [[ if not companies: ]]
+                            <tr>
+                                <td colspan="5" class="text-center py-6 text-slate-400">No records found matching your criteria.</td>
+                            </tr>
+                            [[ else: ]]
+                            [[ for comp in companies: ]]
+                                <tr class="hover:bg-slate-50/60 dark:hover:bg-slate-800/40 transition-colors border-b border-slate-100 dark:border-slate-800/50">
+                                    
+                                    <!-- COMPANY DETAILS -->
+                                    <td class="py-2.5 px-4">
+                                        <div class="flex items-center gap-2.5">
+                                            [[ logo = comp.get('logo_url') or '' ]]
+                                            [[ if logo: ]]
+                                            <img src="[[= logo ]]" alt="[[= comp.get('company_name') ]]"
+                                                onerror="this.style.display='none'; if(this.nextElementSibling) this.nextElementSibling.style.display='flex';"
+                                                class="w-8 h-8 rounded-xl object-cover border border-slate-200 dark:border-slate-700 shrink-0">
+                                            <div class="w-8 h-8 rounded-xl bg-primary/10 text-primary font-bold text-xs items-center justify-center shrink-0 border border-primary/20 select-none hidden">
+                                                [[= (comp.get('company_name') or comp.get('legal_name') or 'C')[0].upper() ]]
+                                            </div>
+                                            [[ else: ]]
+                                            <div class="w-8 h-8 rounded-xl bg-primary/10 text-primary font-bold text-xs flex items-center justify-center shrink-0 border border-primary/20 select-none">
+                                                [[= (comp.get('company_name') or comp.get('legal_name') or 'C')[0].upper() ]]
+                                            </div>
+                                            [[ pass ]]
+                                            <div>
+                                                <div class="font-bold text-slate-800 dark:text-slate-200 leading-tight flex items-center gap-1.5">
+                                                    <span>[[= comp.get('company_name') or comp.get('legal_name') or '--' ]]</span>
+                                                    <span class="font-mono font-bold text-sky-700 dark:text-sky-400 bg-sky-100 dark:bg-sky-950/60 px-1.5 py-0.2 rounded text-[10px] border border-sky-200/50 dark:border-sky-800/50">
+                                                        [[= comp.get('cid') ]]
+                                                    </span>
+                                                </div>
+                                                <div class="text-[10px] text-slate-400 dark:text-slate-500 mt-0.5">
+                                                    [[= comp.get('legal_name') if comp.get('legal_name') and comp.get('legal_name') != comp.get('company_name') else (comp.get('city') or comp.get('country') or comp.get('website') or '--') ]]
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </td>
+
+                                    <!-- CONTACT EMAIL -->
+                                    <td class="py-2.5 px-4 text-slate-600 dark:text-slate-300">
+                                        [[= comp.get('email') or '--' ]]
+                                    </td>
+
+                                    <!-- PHONE NUMBER -->
+                                    <td class="py-2.5 px-4 text-slate-600 dark:text-slate-300">
+                                        [[= comp.get('phone') or '--' ]]
+                                    </td>
+
+                                    <!-- STATUS -->
+                                    <td class="py-2.5 px-4">
+                                        [[ status = comp.get('status_type', 'ACTIVE') ]]
+                                        [[ if status == 'ACTIVE': ]]
+                                        <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-700 dark:bg-emerald-950/50 dark:text-emerald-400">
+                                            <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> Active
+                                        </span>
+                                        [[ else: ]]
+                                        <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-rose-50 text-rose-600 dark:bg-rose-950/50 dark:text-rose-400">
+                                            <span class="w-1.5 h-1.5 rounded-full bg-rose-500"></span> Inactive
+                                        </span>
+                                        [[ pass ]]
+                                    </td>
+
+                                    <!-- ACTION -->
+                                    <td class="py-2 px-2 text-center w-px whitespace-nowrap">
+                                        <div class="inline-flex items-center justify-center gap-0.5">
+                                            <!-- View Button -->
+                                            <a href="[[=URL('administration/company_view')]]/[[= comp.get('id') ]]" title="View Details"
+                                                class="p-1 rounded text-slate-400 hover:text-sky-600 hover:bg-sky-50 dark:hover:bg-sky-950/40 transition-colors">
+                                                <span class="material-symbols-outlined text-[16px] block">visibility</span>
+                                            </a>
+
+                                            <!-- Edit Button -->
+                                            <a href="[[=URL('administration/edit_company')]]/[[= comp.get('id') ]]" title="Edit Record"
+                                                class="p-1 rounded text-slate-400 hover:text-amber-600 hover:bg-amber-50 dark:hover:bg-amber-950/40 transition-colors">
+                                                <span class="material-symbols-outlined text-[16px] block">edit</span>
+                                            </a>
+
+                                            <!-- Delete Button -->
+                                            <a href="[[=URL('administration/company_delete')]]/[[= comp.get('id') ]]"
+                                                onclick="return confirm('Are you sure you want to delete this company?');"
+                                                title="Delete Company"
+                                                class="p-1 rounded text-slate-400 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/40 transition-colors">
+                                                <span class="material-symbols-outlined text-[16px] block">delete</span>
+                                            </a>
+                                        </div>
+                                    </td>
+                                </tr>
+                                [[ pass ]]
+                                [[ pass ]]
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- PAGINATION FOOTER -->
+            <div class="flex flex-col sm:flex-row items-center justify-between gap-3 pt-2 border-t border-slate-100 dark:border-slate-800/80 text-xs text-slate-500 dark:text-slate-400">
+
+                <!-- LEFT: Per Page Limits & Count Info -->
+                <div class="flex items-center gap-3">
+                    <div class="flex items-center gap-1.5">
+                        <span>Show</span>
+                        <select onchange="location = this.value;"
+                            class="h-7 pl-2 pr-6 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-md text-xs font-semibold text-slate-700 dark:text-slate-200 focus:outline-none focus:ring-1 focus:ring-primary cursor-pointer">
+                            [[ current_limit = pagination['limit'] ]]
+                            [[ for l in [10, 25, 50, 100]: ]]
+                            <option value="[[= URL('administration/companies', vars=request.query | {'limit': l, 'page': 1}) ]]"
+                                [[='selected' if l==current_limit else '' ]]>
+                                [[= l ]]
+                            </option>
+                            [[ pass ]]
+                        </select>
+                        <span>per page</span>
+                    </div>
+
+                    <span class="text-slate-300 dark:text-slate-700">|</span>
+
+                    <div>
+                        Showing <span class="font-bold text-slate-700 dark:text-slate-200">[[= pagination['start_item'] ]]</span>
+                        - <span class="font-bold text-slate-700 dark:text-slate-200">[[= pagination['end_item'] ]]</span>
+                        of <span class="font-bold text-slate-700 dark:text-slate-200">[[= pagination['total_items'] ]]</span> records
+                    </div>
+                </div>
+
+                <!-- RIGHT: Dynamic Page Numbers -->
+                <div class="flex items-center gap-1 select-none">
+                    [[ if pagination['current_page'] > 1: ]]
+                    <a href="[[= URL('administration/companies', vars=request.query | {'page': pagination['current_page'] - 1}) ]]"
+                        class="w-7 h-7 rounded-lg border border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 flex items-center justify-center transition-colors text-slate-600 dark:text-slate-300">
+                        <span class="material-symbols-outlined text-[14px]">chevron_left</span>
+                    </a>
+                    [[ else: ]]
+                    <button class="w-7 h-7 rounded-lg border border-slate-200/50 dark:border-slate-800/50 flex items-center justify-center text-slate-300 dark:text-slate-700 cursor-not-allowed" disabled>
+                        <span class="material-symbols-outlined text-[14px]">chevron_left</span>
+                    </button>
+                    [[ pass ]]
+
+                    [[
+                    current = pagination['current_page']
+                    total = pagination['total_pages']
+                    window = 1
+                    left_side = current - window
+                    right_side = current + window
+                    ]]
+
+                    [[ for p in range(1, total + 1): ]]
+                        [[ if p == 1 or p == total or (p >= left_side and p <= right_side): ]]
+                            [[ if p == current: ]]
+                            <span class="w-7 h-7 rounded-lg bg-primary text-white font-bold flex items-center justify-center shadow-2xs">
+                                [[= p ]]</span>
+                            [[ else: ]]
+                            <a href="[[= URL('administration/companies', vars=request.query | {'page': p}) ]]"
+                                class="w-7 h-7 rounded-lg border border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 font-medium flex items-center justify-center text-slate-600 dark:text-slate-300 transition-colors">
+                                [[= p ]]
+                            </a>
+                            [[ pass ]]
+                        [[ elif p == left_side - 1 or p == right_side + 1: ]]
+                            <span class="w-7 h-7 flex items-center justify-center text-slate-400 font-bold">...</span>
+                        [[ pass ]]
+                    [[ pass ]]
+
+                    [[ if pagination['current_page'] < pagination['total_pages']: ]]
+                    <a href="[[= URL('administration/companies', vars=request.query | {'page': pagination['current_page'] + 1}) ]]"
+                        class="w-7 h-7 rounded-lg border border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 flex items-center justify-center transition-colors text-slate-600 dark:text-slate-300">
+                        <span class="material-symbols-outlined text-[14px]">chevron_right</span>
+                    </a>
+                    [[ else: ]]
+                    <button class="w-7 h-7 rounded-lg border border-slate-200/50 dark:border-slate-800/50 flex items-center justify-center text-slate-300 dark:text-slate-700 cursor-not-allowed" disabled>
+                        <span class="material-symbols-outlined text-[14px]">chevron_right</span>
+                    </button>
+                    [[ pass ]]
+                </div>
+            </div>
+
+        </div>
     </div>
 </div>
+
+<script>
+    function toggleExportDropdown(event) {
+        event.stopPropagation();
+        const menu = document.getElementById('exportDropdownMenu');
+        if (menu) menu.classList.toggle('hidden');
+    }
+
+    document.addEventListener('click', function(event) {
+        const menu = document.getElementById('exportDropdownMenu');
+        const btn = document.getElementById('exportDropdownBtn');
+        if (menu && !menu.classList.contains('hidden')) {
+            if (!menu.contains(event.target) && !btn.contains(event.target)) {
+                menu.classList.add('hidden');
+            }
+        }
+    });
+</script>

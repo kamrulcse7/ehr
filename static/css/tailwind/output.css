@@ -1593,6 +1593,10 @@ html.dark body {
   border-top-width: 1px;
 }
 
+.border-l {
+  border-left-width: 1px;
+}
+
 .border-dashed {
   border-style: dashed;
 }
@@ -2223,6 +2227,11 @@ html.dark body {
   padding-bottom: 2rem;
 }
 
+.py-12 {
+  padding-top: 3rem;
+  padding-bottom: 3rem;
+}
+
 .pb-1 {
   padding-bottom: 0.25rem;
 }
@@ -2451,6 +2460,11 @@ html.dark body {
 .text-xs {
   font-size: 0.75rem;
   line-height: 1rem;
+}
+
+.text-4xl {
+  font-size: 2.25rem;
+  line-height: 2.5rem;
 }
 
 .font-black {
@@ -3257,6 +3271,10 @@ html.dark input:-webkit-autofill:active {
   background-color: rgb(255 255 255 / 0.2);
 }
 
+.hover\:bg-primary\/10:hover {
+  background-color: rgb(5 150 105 / 0.1);
+}
+
 .hover\:from-primary-hover:hover {
   --tw-gradient-from: #047857 var(--tw-gradient-from-position);
   --tw-gradient-to: rgb(4 120 87 / 0) var(--tw-gradient-to-position);
@@ -3417,6 +3435,10 @@ html.dark input:-webkit-autofill:active {
 .group:focus-within .group-focus-within\:text-primary {
   --tw-text-opacity: 1;
   color: rgb(5 150 105 / var(--tw-text-opacity));
+}
+
+.group:hover .group-hover\:block {
+  display: block;
 }
 
 .group:hover .group-hover\:translate-x-0\.5 {
@@ -4122,6 +4144,10 @@ html.dark input:-webkit-autofill:active {
     width: auto;
   }
 
+  .sm\:w-64 {
+    width: 16rem;
+  }
+
   .sm\:max-w-\[360px\] {
     max-width: 360px;
   }
@@ -4137,6 +4163,10 @@ html.dark input:-webkit-autofill:active {
 
   .sm\:grid-cols-2 {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .sm\:grid-cols-3 {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 
   .sm\:flex-row {

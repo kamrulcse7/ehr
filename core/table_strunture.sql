@@ -326,7 +326,7 @@ INSERT INTO modules (module_id, module_name, parent_module_id, module_group, ico
 
 -- 2. Employee Management
 ('EMP_MGMT', 'Employee Management', NULL, 'HR', 'badge', 0, NULL, 2, 'ACTIVE'),
-('EMPLOYEE_DIR', 'Employee Directory', 'EMP_MGMT', 'HR', 'badge', 1, '/employees/empployee_directory', 1, 'ACTIVE'),
+('EMPLOYEE_DIR', 'Employee Directory', 'EMP_MGMT', 'HR', 'badge', 1, '/employees/employee_directory', 1, 'ACTIVE'),
 ('POSTING_TRANS', 'Postings & Transfers', 'EMP_MGMT', 'HR', 'swap_horiz', 1, '/employees/postings_transfers', 2, 'ACTIVE'),
 
 -- 3. Administration

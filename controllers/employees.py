@@ -26,10 +26,10 @@ def parse_date(date_str):
     return None
 
 
-@action("employees/empployee_directory")
-@view_page("employees/empployee_directory.html", title="Personnel Directory")
+@action("employees/employee_directory")
+@view_page("employees/employee_directory.html", title="Personnel Directory")
 @web_auth_required
-def empployee_directory():
+def employee_directory():
     user_cid = session.user.get("cid", "")
     action_type = request.query.get("action", "").strip()
     delete_id = request.query.get("id") or request.query.get("delete_id")
@@ -64,7 +64,7 @@ def empployee_directory():
                 flash.set("Record not found or access denied.", "danger")
         except Exception as e:
             flash.set(f"Failed to delete record: {str(e)}", "danger")
-        redirect(URL('employees/empployee_directory'))
+        redirect(URL('employees/employee_directory'))
 
     keywords = request.query.get("keywords", "").strip()
     department = request.query.get("department", "").strip()
@@ -261,7 +261,7 @@ def show_directory(emp_id=None):
 
     if not emp_id:
         flash.set("Invalid Employee ID specified.", "danger")
-        redirect(URL("employees/empployee_directory"))
+        redirect(URL("employees/employee_directory"))
 
     where_clauses = ["e.id = %s"]
     params = [emp_id]
@@ -284,7 +284,7 @@ def show_directory(emp_id=None):
     res = db.executesql(sql, params, as_dict=True)
     if not res:
         flash.set("Employee record not found.", "danger")
-        redirect(URL("employees/empployee_directory"))
+        redirect(URL("employees/employee_directory"))
 
     emp = res[0]
 
@@ -327,7 +327,7 @@ def edit_directory(emp_id=None):
 
     if not emp_id:
         flash.set("Invalid Employee ID specified.", "danger")
-        redirect(URL("employees/empployee_directory"))
+        redirect(URL("employees/employee_directory"))
 
     where_clauses = ["id = %s"]
     params = [emp_id]
@@ -338,7 +338,7 @@ def edit_directory(emp_id=None):
     res = db.executesql(f"SELECT * FROM employees WHERE {' AND '.join(where_clauses)} LIMIT 1", params, as_dict=True)
     if not res:
         flash.set("Employee record not found.", "danger")
-        redirect(URL("employees/empployee_directory"))
+        redirect(URL("employees/employee_directory"))
 
     emp = res[0]
     form_data = dict(emp)
@@ -440,7 +440,7 @@ def edit_directory(emp_id=None):
             db.executesql(update_sql, values)
             db.commit()
             flash.set("Updated successfully!", "success")
-            redirect(URL("employees/empployee_directory"))
+            redirect(URL("employees/employee_directory"))
         except Exception as e:
             if new_file_path and os.path.exists(new_file_path):
                 try:

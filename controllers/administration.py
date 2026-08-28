@@ -203,7 +203,126 @@ all_roles = [
         ],
     },
 ]
+
+
+
+@action("administration/companies", method=["GET", "POST"])
+@view_page("administration/companies.html", title="Company Management | Administration")
+@web_auth_required
+def companies():
+    user_cid = session.user.get("cid", "")
     
+    # 1. Fetch Summary Stats
+    stats_sql = """
+    SELECT 
+        COUNT(*) AS total,
+        SUM(CASE WHEN status_type = 'ACTIVE' THEN 1 ELSE 0 END) AS active,
+        SUM(CASE WHEN status_type != 'ACTIVE' THEN 1 ELSE 0 END) AS inactive
+    FROM companies;
+    """
+    stats_rows = db.executesql(stats_sql, as_dict=True)
+    stats = stats_rows[0] if stats_rows else {"total": 0, "active": 0, "inactive": 0}
+
+    # 2. Filter & Search Parameters
+    keywords = (request.query.get("keywords") or "").strip()
+    status = (request.query.get("status") or "").strip()
+    export_fmt = (request.query.get("export") or "").strip()
+
+    where_clauses = ["1=1"]
+    placeholders = []
+
+    if keywords:
+        where_clauses.append("(cid LIKE %s OR company_name LIKE %s OR legal_name LIKE %s OR email LIKE %s OR phone LIKE %s OR city LIKE %s)")
+        search_term = f"%{keywords}%"
+        placeholders.extend([search_term, search_term, search_term, search_term, search_term, search_term])
+
+    if status:
+        where_clauses.append("status_type = %s")
+        placeholders.append(status)
+
+    where_sql = " AND ".join(where_clauses)
+
+    # 3. Export CSV/Excel
+    if export_fmt in ("csv", "xlsx"):
+        export_sql = f"""
+        SELECT 
+            cid, company_name, legal_name, email, phone, website,
+            address_line1, address_line2, city, state, country, postal_code,
+            timezone, language_code, fiscal_year_start_month, status_type, note,
+            created_on, created_by
+        FROM companies 
+        WHERE {where_sql} 
+        ORDER BY id DESC
+        """
+        export_rows = db.executesql(export_sql, placeholders=placeholders, as_dict=True)
+        
+        output = io.StringIO()
+        writer = csv.writer(output)
+        writer.writerow([
+            "CID", "Company Name", "Legal Name", "Email", "Phone", "Website",
+            "Address Line 1", "Address Line 2", "City", "State", "Country", "Postal Code",
+            "Timezone", "Language Code", "Fiscal Year Start Month", "Status", "Note / Remarks",
+            "Created On", "Created By"
+        ])
+        for r in export_rows:
+            writer.writerow([
+                r.get("cid"), r.get("company_name"), r.get("legal_name"), r.get("email"), r.get("phone"), r.get("website"),
+                r.get("address_line1"), r.get("address_line2"), r.get("city"), r.get("state"), r.get("country"), r.get("postal_code"),
+                r.get("timezone"), r.get("language_code"), r.get("fiscal_year_start_month"), r.get("status_type"), r.get("note"),
+                r.get("created_on"), r.get("created_by")
+            ])
+        
+        filename = f"Companies_Export_{datetime.now().strftime('%Y%m%d_%H%M%S')}.csv"
+        response.headers["Content-Type"] = "text/csv; charset=utf-8"
+        response.headers["Content-Disposition"] = f'attachment; filename="{filename}"'
+        return output.getvalue()
+
+    # 4. Pagination
+    try:
+        page = max(1, int(request.query.get("page", 1)))
+    except (ValueError, TypeError):
+        page = 1
+
+    try:
+        limit = int(request.query.get("limit", 10))
+        if limit not in [10, 25, 50, 100]:
+            limit = 10
+    except (ValueError, TypeError):
+        limit = 10
+
+    count_sql = f"SELECT COUNT(*) as cnt FROM companies WHERE {where_sql}"
+    total_count_rows = db.executesql(count_sql, placeholders=placeholders, as_dict=True)
+    total_filtered = total_count_rows[0]["cnt"] if total_count_rows else 0
+
+    total_pages = max(1, math.ceil(total_filtered / limit))
+    if page > total_pages:
+        page = total_pages
+
+    offset = (page - 1) * limit
+
+    data_sql = f"SELECT * FROM companies WHERE {where_sql} ORDER BY id DESC LIMIT %s OFFSET %s"
+    query_params = placeholders + [limit, offset]
+    paginated_companies = db.executesql(data_sql, placeholders=query_params, as_dict=True)
+
+    start_idx = offset
+    end_idx = start_idx + len(paginated_companies)
+
+    pagination = {
+        "current_page": page,
+        "limit": limit,
+        "total_pages": total_pages,
+        "total_items": total_filtered,
+        "start_item": start_idx + 1 if total_filtered > 0 else 0,
+        "end_item": end_idx,
+    }
+
+    return dict(
+        user_cid=user_cid,
+        companies=paginated_companies,
+        stats=stats,
+        pagination=pagination,
+    )
+
 
 @action("administration/roles_permisions")
 @view_page("administration/roles_permisions.html")
@@ -574,15 +693,6 @@ def users():
     }
 
     return dict(all_users=paginated_users, stats=stats, pagination=pagination)
-
-
-@action("administration/companies", method=["GET", "POST"])
-@view_page("administration/companies.html", title="Company Management | Administration")
-@web_auth_required
-def companies():
-    user_cid = session.user.get("cid", "")
-    companies_list = db.executesql("SELECT * FROM companies ORDER BY id DESC", as_dict=True)
-    return dict(user_cid=user_cid, companies=companies_list)
 
 
 @action("administration/add_user", method=["GET", "POST"])
