@@ -103,31 +103,47 @@
                             class="w-full h-[28px] py-0 pl-7 pr-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-md text-[11px] font-medium text-slate-800 dark:text-slate-200 placeholder:text-slate-400 focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary transition-all leading-none">
                     </div>
 
-                    <!-- Transfer Type Filter -->
-                    <div class="relative flex items-center w-32">
-                        <select name="transfer_type"
-                            class="w-full h-[28px] py-0 pl-2.5 pr-7 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-md text-[11px] font-medium text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary transition-all cursor-pointer appearance-none leading-none">
-                            <option value="">All Types</option>
-                            <option value="ADMINISTRATIVE" [[='selected' if request.query.get('transfer_type')=='ADMINISTRATIVE' else '' ]]>Administrative</option>
-                            <option value="ON_REQUEST" [[='selected' if request.query.get('transfer_type')=='ON_REQUEST' else '' ]]>On Request</option>
-                            <option value="PROMOTION" [[='selected' if request.query.get('transfer_type')=='PROMOTION' else '' ]]>Promotion</option>
-                            <option value="DEPUTATION" [[='selected' if request.query.get('transfer_type')=='DEPUTATION' else '' ]]>Deputation</option>
-                            <option value="MUTUAL" [[='selected' if request.query.get('transfer_type')=='MUTUAL' else '' ]]>Mutual</option>
-                        </select>
-                        <span class="material-symbols-outlined absolute right-1.5 top-1/2 -translate-y-1/2 text-slate-400 text-[14px] pointer-events-none z-10 leading-none">expand_more</span>
+                    <!-- Custom Transfer Type Filter Dropdown -->
+                    <div class="relative custom-dropdown-container w-36">
+                        [[ cur_ttype = request.query.get('transfer_type') or '' ]]
+                        [[ display_ttype = 'Administrative' if cur_ttype == 'ADMINISTRATIVE' else 'On Request' if cur_ttype == 'ON_REQUEST' else 'Promotion' if cur_ttype == 'PROMOTION' else 'Deputation' if cur_ttype == 'DEPUTATION' else 'Mutual' if cur_ttype == 'MUTUAL' else 'All Types' ]]
+                        <input type="hidden" name="transfer_type" id="transfer_type_hidden_input" value="[[= cur_ttype ]]">
+
+                        <button type="button" onclick="toggleCustomDropdown('transfer_type', false)"
+                            class="w-full h-[28px] py-0 pl-2.5 pr-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-md text-[11px] font-medium text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary transition-all flex items-center justify-between cursor-pointer leading-none">
+                            <span id="transfer_type_selected_text" class="truncate">[[= display_ttype ]]</span>
+                            <span class="material-symbols-outlined text-slate-400 text-[14px] shrink-0 transition-transform duration-200 custom-dropdown-arrow" id="transfer_type_arrow_icon">expand_more</span>
+                        </button>
+
+                        <div id="transfer_type_dropdown_menu" class="custom-dropdown-menu hidden absolute left-0 right-0 top-full mt-1 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl shadow-xl z-50 p-1.5 space-y-0.5 min-w-[130px]">
+                            <button type="button" onclick="selectCustomOption('transfer_type', '', 'All Types')" class="transfer_type-option-item w-full text-left px-2.5 py-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 font-medium text-xs transition-colors">All Types</button>
+                            <button type="button" onclick="selectCustomOption('transfer_type', 'ADMINISTRATIVE', 'Administrative')" class="transfer_type-option-item w-full text-left px-2.5 py-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 font-medium text-xs transition-colors">Administrative</button>
+                            <button type="button" onclick="selectCustomOption('transfer_type', 'ON_REQUEST', 'On Request')" class="transfer_type-option-item w-full text-left px-2.5 py-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 font-medium text-xs transition-colors">On Request</button>
+                            <button type="button" onclick="selectCustomOption('transfer_type', 'PROMOTION', 'Promotion')" class="transfer_type-option-item w-full text-left px-2.5 py-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 font-medium text-xs transition-colors">Promotion</button>
+                            <button type="button" onclick="selectCustomOption('transfer_type', 'DEPUTATION', 'Deputation')" class="transfer_type-option-item w-full text-left px-2.5 py-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 font-medium text-xs transition-colors">Deputation</button>
+                            <button type="button" onclick="selectCustomOption('transfer_type', 'MUTUAL', 'Mutual')" class="transfer_type-option-item w-full text-left px-2.5 py-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 font-medium text-xs transition-colors">Mutual</button>
+                        </div>
                     </div>
 
-                    <!-- Status Filter -->
-                    <div class="relative flex items-center w-32">
-                        <select name="status_type"
-                            class="w-full h-[28px] py-0 pl-2.5 pr-7 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-md text-[11px] font-medium text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary transition-all cursor-pointer appearance-none leading-none">
-                            <option value="">All Status</option>
-                            <option value="JOINED" [[='selected' if request.query.get('status_type')=='JOINED' else '' ]]>Joined</option>
-                            <option value="PENDING" [[='selected' if request.query.get('status_type')=='PENDING' else '' ]]>Pending</option>
-                            <option value="RELEASED" [[='selected' if request.query.get('status_type')=='RELEASED' else '' ]]>Released</option>
-                            <option value="CANCELLED" [[='selected' if request.query.get('status_type')=='CANCELLED' else '' ]]>Cancelled</option>
-                        </select>
-                        <span class="material-symbols-outlined absolute right-1.5 top-1/2 -translate-y-1/2 text-slate-400 text-[14px] pointer-events-none z-10 leading-none">expand_more</span>
+                    <!-- Custom Status Filter Dropdown -->
+                    <div class="relative custom-dropdown-container w-32">
+                        [[ cur_status = request.query.get('status_type') or '' ]]
+                        [[ display_status = 'Joined' if cur_status == 'JOINED' else 'Pending' if cur_status == 'PENDING' else 'Released' if cur_status == 'RELEASED' else 'Cancelled' if cur_status == 'CANCELLED' else 'All Status' ]]
+                        <input type="hidden" name="status_type" id="status_type_hidden_input" value="[[= cur_status ]]">
+
+                        <button type="button" onclick="toggleCustomDropdown('status_type', false)"
+                            class="w-full h-[28px] py-0 pl-2.5 pr-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-md text-[11px] font-medium text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary transition-all flex items-center justify-between cursor-pointer leading-none">
+                            <span id="status_type_selected_text" class="truncate">[[= display_status ]]</span>
+                            <span class="material-symbols-outlined text-slate-400 text-[14px] shrink-0 transition-transform duration-200 custom-dropdown-arrow" id="status_type_arrow_icon">expand_more</span>
+                        </button>
+
+                        <div id="status_type_dropdown_menu" class="custom-dropdown-menu hidden absolute left-0 right-0 top-full mt-1 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl shadow-xl z-50 p-1.5 space-y-0.5 min-w-[120px]">
+                            <button type="button" onclick="selectCustomOption('status_type', '', 'All Status')" class="status_type-option-item w-full text-left px-2.5 py-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 font-medium text-xs transition-colors">All Status</button>
+                            <button type="button" onclick="selectCustomOption('status_type', 'JOINED', 'Joined')" class="status_type-option-item w-full text-left px-2.5 py-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 font-medium text-xs transition-colors">Joined</button>
+                            <button type="button" onclick="selectCustomOption('status_type', 'PENDING', 'Pending')" class="status_type-option-item w-full text-left px-2.5 py-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 font-medium text-xs transition-colors">Pending</button>
+                            <button type="button" onclick="selectCustomOption('status_type', 'RELEASED', 'Released')" class="status_type-option-item w-full text-left px-2.5 py-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 font-medium text-xs transition-colors">Released</button>
+                            <button type="button" onclick="selectCustomOption('status_type', 'CANCELLED', 'Cancelled')" class="status_type-option-item w-full text-left px-2.5 py-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 font-medium text-xs transition-colors">Cancelled</button>
+                        </div>
                     </div>
 
                     <!-- Filter Action Button -->
@@ -536,6 +552,44 @@
         window.history.replaceState(null, null, window.location.href);
     }
 
+    function toggleCustomDropdown(id, hasSearch) {
+        const menu = document.getElementById(id + '_dropdown_menu');
+        const arrow = document.getElementById(id + '_arrow_icon');
+        if (!menu) return;
+
+        document.querySelectorAll('.custom-dropdown-menu').forEach(m => {
+            if (m.id !== id + '_dropdown_menu') {
+                m.classList.add('hidden');
+                const otherId = m.id.replace('_dropdown_menu', '');
+                const otherArrow = document.getElementById(otherId + '_arrow_icon');
+                if (otherArrow) otherArrow.classList.remove('rotate-180');
+            }
+        });
+
+        const isHidden = menu.classList.contains('hidden');
+        if (isHidden) {
+            menu.classList.remove('hidden');
+            if (arrow) arrow.classList.add('rotate-180');
+        } else {
+            closeCustomDropdown(id);
+        }
+    }
+
+    function closeCustomDropdown(id) {
+        const menu = document.getElementById(id + '_dropdown_menu');
+        const arrow = document.getElementById(id + '_arrow_icon');
+        if (menu) menu.classList.add('hidden');
+        if (arrow) arrow.classList.remove('rotate-180');
+    }
+
+    function selectCustomOption(id, val, label) {
+        const hiddenInput = document.getElementById(id + '_hidden_input');
+        const textSpan = document.getElementById(id + '_selected_text');
+        if (hiddenInput) hiddenInput.value = val;
+        if (textSpan) textSpan.textContent = label;
+        closeCustomDropdown(id);
+    }
+
     function confirmDeleteTransfer(deleteUrl, empName, orderNo) {
         showConfirmModal({
             title: 'Delete Record',
@@ -556,6 +610,11 @@
     }
 
     document.addEventListener('click', function(event) {
+        if (!event.target.closest('.custom-dropdown-container')) {
+            document.querySelectorAll('.custom-dropdown-menu').forEach(m => m.classList.add('hidden'));
+            document.querySelectorAll('.custom-dropdown-arrow').forEach(a => a.classList.remove('rotate-180'));
+        }
+
         const menu = document.getElementById('exportDropdownMenu');
         const btn = document.getElementById('exportDropdownBtn');
         if (menu && !menu.classList.contains('hidden')) {

@@ -1254,6 +1254,10 @@ html.dark body {
   min-width: 120px;
 }
 
+.min-w-\[130px\] {
+  min-width: 130px;
+}
+
 .max-w-\[1600px\] {
   max-width: 1600px;
 }

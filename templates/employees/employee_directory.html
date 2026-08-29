@@ -99,18 +99,24 @@
                             class="w-full h-[28px] py-0 pl-7 pr-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-md text-[11px] font-medium text-slate-800 dark:text-slate-200 placeholder:text-slate-400 focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary transition-all leading-none">
                     </div>
 
-                    <!-- Status Filter -->
-                    <div class="relative flex items-center w-32">
-                        <select name="status"
-                            class="w-full h-[28px] py-0 pl-2.5 pr-7 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-md text-[11px] font-medium text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary transition-all cursor-pointer appearance-none leading-none">
-                            <option value="">All Status</option>
-                            <option value="ACTIVE" [[='selected' if request.query.get('status')=='ACTIVE' else '' ]]>
-                                Active</option>
-                            <option value="PROBATIONARY" [[='selected' if request.query.get('status')=='PROBATIONARY' else '' ]]>Probationary</option>
-                            <option value="INACTIVE" [[='selected' if request.query.get('status')=='INACTIVE' else ''
-                                ]]>Inactive</option>
-                        </select>
-                        <span class="material-symbols-outlined absolute right-1.5 top-1/2 -translate-y-1/2 text-slate-400 text-[14px] pointer-events-none z-10 leading-none">expand_more</span>
+                    <!-- Custom Status Filter Dropdown -->
+                    <div class="relative custom-dropdown-container w-32">
+                        [[ cur_status = request.query.get('status') or '' ]]
+                        [[ display_status = 'Active' if cur_status == 'ACTIVE' else 'Probationary' if cur_status == 'PROBATIONARY' else 'Inactive' if cur_status == 'INACTIVE' else 'All Status' ]]
+                        <input type="hidden" name="status" id="status_hidden_input" value="[[= cur_status ]]">
+
+                        <button type="button" onclick="toggleCustomDropdown('status', false)"
+                            class="w-full h-[28px] py-0 pl-2.5 pr-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-md text-[11px] font-medium text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary transition-all flex items-center justify-between cursor-pointer leading-none">
+                            <span id="status_selected_text" class="truncate">[[= display_status ]]</span>
+                            <span class="material-symbols-outlined text-slate-400 text-[14px] shrink-0 transition-transform duration-200 custom-dropdown-arrow" id="status_arrow_icon">expand_more</span>
+                        </button>
+
+                        <div id="status_dropdown_menu" class="custom-dropdown-menu hidden absolute left-0 right-0 top-full mt-1 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl shadow-xl z-50 p-1.5 space-y-0.5 min-w-[120px]">
+                            <button type="button" onclick="selectCustomOption('status', '', 'All Status')" class="status-option-item w-full text-left px-2.5 py-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 font-medium text-xs transition-colors">All Status</button>
+                            <button type="button" onclick="selectCustomOption('status', 'ACTIVE', 'Active')" class="status-option-item w-full text-left px-2.5 py-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 font-medium text-xs transition-colors">Active</button>
+                            <button type="button" onclick="selectCustomOption('status', 'PROBATIONARY', 'Probationary')" class="status-option-item w-full text-left px-2.5 py-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 font-medium text-xs transition-colors">Probationary</button>
+                            <button type="button" onclick="selectCustomOption('status', 'INACTIVE', 'Inactive')" class="status-option-item w-full text-left px-2.5 py-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 font-medium text-xs transition-colors">Inactive</button>
+                        </div>
                     </div>
 
                     <!-- Filter Action Button -->
@@ -414,6 +420,44 @@
         window.history.replaceState(null, null, window.location.href);
     }
 
+    function toggleCustomDropdown(id, hasSearch) {
+        const menu = document.getElementById(id + '_dropdown_menu');
+        const arrow = document.getElementById(id + '_arrow_icon');
+        if (!menu) return;
+
+        document.querySelectorAll('.custom-dropdown-menu').forEach(m => {
+            if (m.id !== id + '_dropdown_menu') {
+                m.classList.add('hidden');
+                const otherId = m.id.replace('_dropdown_menu', '');
+                const otherArrow = document.getElementById(otherId + '_arrow_icon');
+                if (otherArrow) otherArrow.classList.remove('rotate-180');
+            }
+        });
+
+        const isHidden = menu.classList.contains('hidden');
+        if (isHidden) {
+            menu.classList.remove('hidden');
+            if (arrow) arrow.classList.add('rotate-180');
+        } else {
+            closeCustomDropdown(id);
+        }
+    }
+
+    function closeCustomDropdown(id) {
+        const menu = document.getElementById(id + '_dropdown_menu');
+        const arrow = document.getElementById(id + '_arrow_icon');
+        if (menu) menu.classList.add('hidden');
+        if (arrow) arrow.classList.remove('rotate-180');
+    }
+
+    function selectCustomOption(id, val, label) {
+        const hiddenInput = document.getElementById(id + '_hidden_input');
+        const textSpan = document.getElementById(id + '_selected_text');
+        if (hiddenInput) hiddenInput.value = val;
+        if (textSpan) textSpan.textContent = label;
+        closeCustomDropdown(id);
+    }
+
     function confirmDeleteEmployee(deleteUrl, empName, empId) {
         showConfirmModal({
             title: 'Delete Record',
@@ -434,6 +478,11 @@
     }
 
     document.addEventListener('click', function(event) {
+        if (!event.target.closest('.custom-dropdown-container')) {
+            document.querySelectorAll('.custom-dropdown-menu').forEach(m => m.classList.add('hidden'));
+            document.querySelectorAll('.custom-dropdown-arrow').forEach(a => a.classList.remove('rotate-180'));
+        }
+
         const menu = document.getElementById('exportDropdownMenu');
         const btn = document.getElementById('exportDropdownBtn');
         if (menu && !menu.classList.contains('hidden')) {

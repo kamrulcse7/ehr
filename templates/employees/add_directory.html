@@ -81,33 +81,53 @@
                                 class="w-full h-8 px-2.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-md text-xs text-slate-800 dark:text-slate-200 focus:outline-none focus:border-primary transition-all">
                         </div>
 
-                        <div>
-                            <label
-                                class="block text-[11px] font-semibold text-slate-700 dark:text-slate-300 mb-1">Gender  <span class="text-rose-500">*</span></label>
-                            <select name="gender" required
-                                class="w-full h-8 px-2.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-md text-xs text-slate-800 dark:text-slate-200 focus:outline-none focus:border-primary transition-all cursor-pointer">
-                                <option value="">Select Gender</option>
-                                <option value="MALE" [[= 'selected' if form_data.get('gender') == 'MALE' else '' ]]>Male</option>
-                                <option value="FEMALE" [[= 'selected' if form_data.get('gender') == 'FEMALE' else '' ]]>Female</option>
-                                <option value="OTHER" [[= 'selected' if form_data.get('gender') == 'OTHER' else '' ]]>Other</option>
-                            </select>
+                        <!-- Gender Custom Dropdown -->
+                        <div class="relative w-full custom-dropdown-container">
+                            [[ cur_gender = form_data.get('gender') or '' ]]
+                            [[ display_gender = 'Male' if cur_gender == 'MALE' else 'Female' if cur_gender == 'FEMALE' else 'Other' if cur_gender == 'OTHER' else 'Select Gender' ]]
+                            <label class="block text-[11px] font-semibold text-slate-700 dark:text-slate-300 mb-1">Gender <span class="text-rose-500">*</span></label>
+                            
+                            <input type="hidden" name="gender" id="gender_hidden_input" value="[[= cur_gender ]]" required>
+                            
+                            <button type="button" onclick="toggleCustomDropdown('gender', false)"
+                                class="w-full h-8 px-2.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-md text-xs text-slate-800 dark:text-slate-200 focus:outline-none focus:border-primary transition-all flex items-center justify-between cursor-pointer">
+                                <span id="gender_selected_text" class="truncate">[[= display_gender ]]</span>
+                                <span class="material-symbols-outlined text-slate-400 text-[18px] shrink-0 transition-transform duration-200 custom-dropdown-arrow" id="gender_arrow_icon">expand_more</span>
+                            </button>
+
+                            <div id="gender_dropdown_menu" class="custom-dropdown-menu hidden absolute left-0 right-0 top-full mt-1 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl shadow-xl z-50 p-1.5 space-y-0.5 min-w-[120px]">
+                                <button type="button" onclick="selectCustomOption('gender', '', 'Select Gender')" class="gender-option-item w-full text-left px-2.5 py-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 font-medium text-xs transition-colors">Select Gender</button>
+                                <button type="button" onclick="selectCustomOption('gender', 'MALE', 'Male')" class="gender-option-item w-full text-left px-2.5 py-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 font-medium text-xs transition-colors">Male</button>
+                                <button type="button" onclick="selectCustomOption('gender', 'FEMALE', 'Female')" class="gender-option-item w-full text-left px-2.5 py-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 font-medium text-xs transition-colors">Female</button>
+                                <button type="button" onclick="selectCustomOption('gender', 'OTHER', 'Other')" class="gender-option-item w-full text-left px-2.5 py-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 font-medium text-xs transition-colors">Other</button>
+                            </div>
                         </div>
 
-                        <div>
-                            <label class="block text-[11px] font-semibold text-slate-700 dark:text-slate-300 mb-1">Blood
-                                Group</label>
-                            <select name="blood_group"
-                                class="w-full h-8 px-2.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-md text-xs text-slate-800 dark:text-slate-200 focus:outline-none focus:border-primary transition-all cursor-pointer">
-                                <option value="">Select Group</option>
-                                <option value="A+" [[= 'selected' if form_data.get('blood_group') == 'A+' else '' ]]>A+</option>
-                                <option value="A-" [[= 'selected' if form_data.get('blood_group') == 'A-' else '' ]]>A-</option>
-                                <option value="B+" [[= 'selected' if form_data.get('blood_group') == 'B+' else '' ]]>B+</option>
-                                <option value="B-" [[= 'selected' if form_data.get('blood_group') == 'B-' else '' ]]>B-</option>
-                                <option value="O+" [[= 'selected' if form_data.get('blood_group') == 'O+' else '' ]]>O+</option>
-                                <option value="O-" [[= 'selected' if form_data.get('blood_group') == 'O-' else '' ]]>O-</option>
-                                <option value="AB+" [[= 'selected' if form_data.get('blood_group') == 'AB+' else '' ]]>AB+</option>
-                                <option value="AB-" [[= 'selected' if form_data.get('blood_group') == 'AB-' else '' ]]>AB-</option>
-                            </select>
+                        <!-- Blood Group Custom Dropdown -->
+                        <div class="relative w-full custom-dropdown-container">
+                            [[ cur_bg = form_data.get('blood_group') or '' ]]
+                            [[ display_bg = cur_bg if cur_bg else 'Select Group' ]]
+                            <label class="block text-[11px] font-semibold text-slate-700 dark:text-slate-300 mb-1">Blood Group</label>
+                            
+                            <input type="hidden" name="blood_group" id="blood_group_hidden_input" value="[[= cur_bg ]]">
+                            
+                            <button type="button" onclick="toggleCustomDropdown('blood_group', false)"
+                                class="w-full h-8 px-2.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-md text-xs text-slate-800 dark:text-slate-200 focus:outline-none focus:border-primary transition-all flex items-center justify-between cursor-pointer">
+                                <span id="blood_group_selected_text" class="truncate">[[= display_bg ]]</span>
+                                <span class="material-symbols-outlined text-slate-400 text-[18px] shrink-0 transition-transform duration-200 custom-dropdown-arrow" id="blood_group_arrow_icon">expand_more</span>
+                            </button>
+
+                            <div id="blood_group_dropdown_menu" class="custom-dropdown-menu hidden absolute left-0 right-0 top-full mt-1 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl shadow-xl z-50 p-1.5 space-y-0.5 min-w-[120px] max-h-48 overflow-y-auto">
+                                <button type="button" onclick="selectCustomOption('blood_group', '', 'Select Group')" class="blood_group-option-item w-full text-left px-2.5 py-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 font-medium text-xs transition-colors">Select Group</button>
+                                <button type="button" onclick="selectCustomOption('blood_group', 'A+', 'A+')" class="blood_group-option-item w-full text-left px-2.5 py-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 font-medium text-xs transition-colors">A+</button>
+                                <button type="button" onclick="selectCustomOption('blood_group', 'A-', 'A-')" class="blood_group-option-item w-full text-left px-2.5 py-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 font-medium text-xs transition-colors">A-</button>
+                                <button type="button" onclick="selectCustomOption('blood_group', 'B+', 'B+')" class="blood_group-option-item w-full text-left px-2.5 py-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 font-medium text-xs transition-colors">B+</button>
+                                <button type="button" onclick="selectCustomOption('blood_group', 'B-', 'B-')" class="blood_group-option-item w-full text-left px-2.5 py-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 font-medium text-xs transition-colors">B-</button>
+                                <button type="button" onclick="selectCustomOption('blood_group', 'O+', 'O+')" class="blood_group-option-item w-full text-left px-2.5 py-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 font-medium text-xs transition-colors">O+</button>
+                                <button type="button" onclick="selectCustomOption('blood_group', 'O-', 'O-')" class="blood_group-option-item w-full text-left px-2.5 py-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 font-medium text-xs transition-colors">O-</button>
+                                <button type="button" onclick="selectCustomOption('blood_group', 'AB+', 'AB+')" class="blood_group-option-item w-full text-left px-2.5 py-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 font-medium text-xs transition-colors">AB+</button>
+                                <button type="button" onclick="selectCustomOption('blood_group', 'AB-', 'AB-')" class="blood_group-option-item w-full text-left px-2.5 py-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 font-medium text-xs transition-colors">AB-</button>
+                            </div>
                         </div>
 
                         <div>
@@ -138,17 +158,25 @@
                                 class="w-full h-8 px-2.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-md text-xs text-slate-800 dark:text-slate-200 focus:outline-none focus:border-primary transition-all">
                         </div>
 
-                        <div>
-                            <label
-                                class="block text-[11px] font-semibold text-slate-700 dark:text-slate-300 mb-1">Service
-                                Type <span class="text-rose-500">*</span></label>
-                            <select name="emp_type" required
-                                class="w-full h-8 px-2.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-md text-xs text-slate-800 dark:text-slate-200 focus:outline-none focus:border-primary transition-all cursor-pointer">
-                                <option value="PERMANENT" [[= 'selected' if form_data.get('emp_type', 'PERMANENT') == 'PERMANENT' else '' ]]>PERMANENT</option>
-                                <option value="PROBATIONARY" [[= 'selected' if form_data.get('emp_type') == 'PROBATIONARY' else '' ]]>PROBATIONARY</option>
-                                <option value="TEMPORARY" [[= 'selected' if form_data.get('emp_type') == 'TEMPORARY' else '' ]]>TEMPORARY</option>
-                                <option value="CONTRACTUAL" [[= 'selected' if form_data.get('emp_type') == 'CONTRACTUAL' else '' ]]>CONTRACTUAL</option>
-                            </select>
+                        <!-- Service Type Custom Dropdown -->
+                        <div class="relative w-full custom-dropdown-container">
+                            [[ cur_emptype = form_data.get('emp_type') or 'PERMANENT' ]]
+                            <label class="block text-[11px] font-semibold text-slate-700 dark:text-slate-300 mb-1">Service Type <span class="text-rose-500">*</span></label>
+                            
+                            <input type="hidden" name="emp_type" id="emp_type_hidden_input" value="[[= cur_emptype ]]" required>
+                            
+                            <button type="button" onclick="toggleCustomDropdown('emp_type', false)"
+                                class="w-full h-8 px-2.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-md text-xs text-slate-800 dark:text-slate-200 focus:outline-none focus:border-primary transition-all flex items-center justify-between cursor-pointer">
+                                <span id="emp_type_selected_text" class="truncate font-semibold">[[= cur_emptype ]]</span>
+                                <span class="material-symbols-outlined text-slate-400 text-[18px] shrink-0 transition-transform duration-200 custom-dropdown-arrow" id="emp_type_arrow_icon">expand_more</span>
+                            </button>
+
+                            <div id="emp_type_dropdown_menu" class="custom-dropdown-menu hidden absolute left-0 right-0 top-full mt-1 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl shadow-xl z-50 p-1.5 space-y-0.5 min-w-[120px]">
+                                <button type="button" onclick="selectCustomOption('emp_type', 'PERMANENT', 'PERMANENT')" class="emp_type-option-item w-full text-left px-2.5 py-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 font-semibold text-xs transition-colors">PERMANENT</button>
+                                <button type="button" onclick="selectCustomOption('emp_type', 'PROBATIONARY', 'PROBATIONARY')" class="emp_type-option-item w-full text-left px-2.5 py-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 font-semibold text-xs transition-colors">PROBATIONARY</button>
+                                <button type="button" onclick="selectCustomOption('emp_type', 'TEMPORARY', 'TEMPORARY')" class="emp_type-option-item w-full text-left px-2.5 py-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 font-semibold text-xs transition-colors">TEMPORARY</button>
+                                <button type="button" onclick="selectCustomOption('emp_type', 'CONTRACTUAL', 'CONTRACTUAL')" class="emp_type-option-item w-full text-left px-2.5 py-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 font-semibold text-xs transition-colors">CONTRACTUAL</button>
+                            </div>
                         </div>
 
                         <div>
@@ -414,6 +442,51 @@
             sessionStorage.removeItem('pending_emp_photo_name');
         } catch (err) {}
     }
+
+    function toggleCustomDropdown(id, hasSearch) {
+        const menu = document.getElementById(id + '_dropdown_menu');
+        const arrow = document.getElementById(id + '_arrow_icon');
+        if (!menu) return;
+
+        document.querySelectorAll('.custom-dropdown-menu').forEach(m => {
+            if (m.id !== id + '_dropdown_menu') {
+                m.classList.add('hidden');
+                const otherId = m.id.replace('_dropdown_menu', '');
+                const otherArrow = document.getElementById(otherId + '_arrow_icon');
+                if (otherArrow) otherArrow.classList.remove('rotate-180');
+            }
+        });
+
+        const isHidden = menu.classList.contains('hidden');
+        if (isHidden) {
+            menu.classList.remove('hidden');
+            if (arrow) arrow.classList.add('rotate-180');
+        } else {
+            closeCustomDropdown(id);
+        }
+    }
+
+    function closeCustomDropdown(id) {
+        const menu = document.getElementById(id + '_dropdown_menu');
+        const arrow = document.getElementById(id + '_arrow_icon');
+        if (menu) menu.classList.add('hidden');
+        if (arrow) arrow.classList.remove('rotate-180');
+    }
+
+    function selectCustomOption(id, val, label) {
+        const hiddenInput = document.getElementById(id + '_hidden_input');
+        const textSpan = document.getElementById(id + '_selected_text');
+        if (hiddenInput) hiddenInput.value = val;
+        if (textSpan) textSpan.textContent = label;
+        closeCustomDropdown(id);
+    }
+
+    document.addEventListener('click', function(e) {
+        if (!e.target.closest('.custom-dropdown-container')) {
+            document.querySelectorAll('.custom-dropdown-menu').forEach(m => m.classList.add('hidden'));
+            document.querySelectorAll('.custom-dropdown-arrow').forEach(a => a.classList.remove('rotate-180'));
+        }
+    });
 
     document.addEventListener('DOMContentLoaded', function () {
         restorePendingImage();
