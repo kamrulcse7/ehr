@@ -10,7 +10,7 @@
                 <span class="material-symbols-outlined text-[12px] text-slate-400 dark:text-slate-600 select-none -mx-0.5">chevron_right</span>
                 <a href="[[=URL('administration/companies')]]" class="text-slate-400 dark:text-slate-500 hover:text-primary transition-colors">Company Management</a>
                 <span class="material-symbols-outlined text-[12px] text-slate-400 dark:text-slate-600 select-none -mx-0.5">chevron_right</span>
-                <span class="text-primary font-bold">Edit Company</span>
+                <span class="text-primary font-bold">[[= 'Edit Company' if company else 'Add Company' ]]</span>
             </div>
             <a href="[[=URL('administration/companies')]]"
                 class="h-7 px-2.5 bg-slate-200 hover:bg-slate-300 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 rounded-md text-xs font-semibold transition-all inline-flex items-center gap-1 shrink-0">
@@ -20,7 +20,7 @@
         </div>
 
         <!-- FORM START -->
-        <form action="[[=URL('administration/edit_company')]]/[[= company.get('id') ]]" method="POST" enctype="multipart/form-data" autocomplete="off" class="space-y-4">
+        <form action="[[= URL('administration/company_manage/' + str(company.get('id'))) if company else URL('administration/company_manage') ]]" method="POST" enctype="multipart/form-data" autocomplete="off" class="space-y-4">
 
             <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
 
@@ -39,7 +39,7 @@
                         <div class="flex flex-col sm:flex-row gap-4 items-start">
                             <!-- Compact Logo Upload Box (Aligned Flush with Text Inputs) -->
                             <div class="shrink-0 w-full sm:w-32">
-                                [[ cur_logo_raw = company.get('logo_url') or '' ]]
+                                [[ cur_logo_raw = (company.get('logo_url') if company else '') or '' ]]
                                 [[ cur_logo = cur_logo_raw if (cur_logo_raw.startswith('http://') or cur_logo_raw.startswith('https://') or cur_logo_raw.startswith('/ehr/')) else URL(cur_logo_raw[1:]) if cur_logo_raw.startswith('/static/') else URL(cur_logo_raw) if cur_logo_raw.startswith('static/') else URL('static/' + cur_logo_raw) if cur_logo_raw.startswith('uploads/') else URL('static' + cur_logo_raw) if cur_logo_raw.startswith('/uploads/') else cur_logo_raw ]]
                                 <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 mb-1">
                                     Company Logo
@@ -79,11 +79,17 @@
                                     <!-- Company Reference ID (CID) - Compact Width -->
                                     <div class="w-full sm:w-44 shrink-0">
                                         <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 mb-1">
-                                            Company ID (CID)
+                                            Company ID (CID) [[ if not company: ]]<span class="text-rose-500">*</span>[[ pass ]]
                                         </label>
+                                        [[ if company: ]]
                                         <input type="text" value="[[= company.get('cid') or '' ]]" disabled
-                                            class="w-full px-3 py-2 bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-bold text-sky-600 dark:text-sky-400 uppercase cursor-not-allowed">
+                                            class="w-full px-3 py-2 bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-bold text-sky-600 dark:text-sky-400 uppercase cursor-not-allowed select-none">
                                         <span class="text-[10px] text-slate-400 mt-0.5 block truncate">Cannot be changed</span>
+                                        [[ else: ]]
+                                        <input type="text" name="cid" value="[[= form_data.get('cid') or '' ]]" placeholder="e.g. EON, AIBL" required autocomplete="new-password" readonly onfocus="this.removeAttribute('readonly');"
+                                            class="w-full px-3 py-2 bg-slate-50/50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-semibold text-slate-800 dark:text-slate-200 uppercase focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all">
+                                        <span class="text-[10px] text-slate-400 mt-0.5 block truncate">Unique uppercase ID</span>
+                                        [[ pass ]]
                                     </div>
 
                                     <!-- Display Company Name - Takes Remaining Width -->
@@ -91,7 +97,7 @@
                                         <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 mb-1">
                                             Company Display Name <span class="text-rose-500">*</span>
                                         </label>
-                                        <input type="text" name="company_name" value="[[= form_data.get('company_name') or company.get('company_name') or '' ]]" placeholder="e.g. Eon Systems" required autocomplete="new-password" readonly onfocus="this.removeAttribute('readonly');"
+                                        <input type="text" name="company_name" value="[[= form_data.get('company_name') or (company.get('company_name') if company else '') or '' ]]" placeholder="e.g. Eon Systems" required autocomplete="new-password" readonly onfocus="this.removeAttribute('readonly');"
                                             class="w-full px-3 py-2 bg-slate-50/50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-semibold text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all">
                                         <span class="text-[10px] text-slate-400 mt-0.5 block">Public display name</span>
                                     </div>
@@ -102,7 +108,7 @@
                                     <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 mb-1">
                                         Registered Legal Name
                                     </label>
-                                    <input type="text" name="legal_name" value="[[= form_data.get('legal_name') or company.get('legal_name') or '' ]]" placeholder="e.g. Eon Systems Bangladesh Limited" autocomplete="new-password" readonly onfocus="this.removeAttribute('readonly');"
+                                    <input type="text" name="legal_name" value="[[= form_data.get('legal_name') or (company.get('legal_name') if company else '') or '' ]]" placeholder="e.g. Eon Systems Bangladesh Limited" autocomplete="new-password" readonly onfocus="this.removeAttribute('readonly');"
                                         class="w-full px-3 py-2 bg-slate-50/50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-medium text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all">
                                 </div>
                             </div>
@@ -122,7 +128,7 @@
                                 <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 mb-1">
                                     Primary Email
                                 </label>
-                                <input type="email" name="email" value="[[= form_data.get('email') or company.get('email') or '' ]]" placeholder="info@company.com" autocomplete="new-password" readonly onfocus="this.removeAttribute('readonly');"
+                                <input type="email" name="email" value="[[= form_data.get('email') or (company.get('email') if company else '') or '' ]]" placeholder="info@company.com" autocomplete="new-password" readonly onfocus="this.removeAttribute('readonly');"
                                     class="w-full px-3 py-2 bg-slate-50/50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-medium text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all">
                             </div>
 
@@ -131,7 +137,7 @@
                                 <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 mb-1">
                                     Phone Number
                                 </label>
-                                <input type="tel" name="phone" value="[[= form_data.get('phone') or company.get('phone') or '' ]]" placeholder="+880 1700-000000" autocomplete="new-password" readonly onfocus="this.removeAttribute('readonly');"
+                                <input type="tel" name="phone" value="[[= form_data.get('phone') or (company.get('phone') if company else '') or '' ]]" placeholder="+880 1700-000000" autocomplete="new-password" readonly onfocus="this.removeAttribute('readonly');"
                                     class="w-full px-3 py-2 bg-slate-50/50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-medium text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all">
                             </div>
 
@@ -140,7 +146,7 @@
                                 <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 mb-1">
                                     Website URL
                                 </label>
-                                <input type="url" name="website" value="[[= form_data.get('website') or company.get('website') or '' ]]" placeholder="https://www.company.com" autocomplete="new-password" readonly onfocus="this.removeAttribute('readonly');"
+                                <input type="url" name="website" value="[[= form_data.get('website') or (company.get('website') if company else '') or '' ]]" placeholder="https://www.company.com" autocomplete="new-password" readonly onfocus="this.removeAttribute('readonly');"
                                     class="w-full px-3 py-2 bg-slate-50/50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-medium text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all">
                             </div>
                         </div>
@@ -158,7 +164,7 @@
                                 <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 mb-1">
                                     Address Line 1
                                 </label>
-                                <input type="text" name="address_line1" value="[[= form_data.get('address_line1') or company.get('address_line1') or '' ]]" placeholder="Street Address, Building, Suite" autocomplete="new-password" readonly onfocus="this.removeAttribute('readonly');"
+                                <input type="text" name="address_line1" value="[[= form_data.get('address_line1') or (company.get('address_line1') if company else '') or '' ]]" placeholder="Street Address, Building, Suite" autocomplete="new-password" readonly onfocus="this.removeAttribute('readonly');"
                                     class="w-full px-3 py-2 bg-slate-50/50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-medium text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all">
                             </div>
 
@@ -166,7 +172,7 @@
                                 <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 mb-1">
                                     Address Line 2
                                 </label>
-                                <input type="text" name="address_line2" value="[[= form_data.get('address_line2') or company.get('address_line2') or '' ]]" placeholder="Area, Landmark" autocomplete="new-password" readonly onfocus="this.removeAttribute('readonly');"
+                                <input type="text" name="address_line2" value="[[= form_data.get('address_line2') or (company.get('address_line2') if company else '') or '' ]]" placeholder="Area, Landmark" autocomplete="new-password" readonly onfocus="this.removeAttribute('readonly');"
                                     class="w-full px-3 py-2 bg-slate-50/50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-medium text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all">
                             </div>
 
@@ -174,7 +180,7 @@
                                 <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 mb-1">
                                     City
                                 </label>
-                                <input type="text" name="city" value="[[= form_data.get('city') or company.get('city') or '' ]]" placeholder="e.g. Dhaka" autocomplete="new-password" readonly onfocus="this.removeAttribute('readonly');"
+                                <input type="text" name="city" value="[[= form_data.get('city') or (company.get('city') if company else '') or '' ]]" placeholder="e.g. Dhaka" autocomplete="new-password" readonly onfocus="this.removeAttribute('readonly');"
                                     class="w-full px-3 py-2 bg-slate-50/50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-medium text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all">
                             </div>
 
@@ -182,7 +188,7 @@
                                 <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 mb-1">
                                     State / Division
                                 </label>
-                                <input type="text" name="state" value="[[= form_data.get('state') or company.get('state') or '' ]]" placeholder="e.g. Dhaka" autocomplete="new-password" readonly onfocus="this.removeAttribute('readonly');"
+                                <input type="text" name="state" value="[[= form_data.get('state') or (company.get('state') if company else '') or '' ]]" placeholder="e.g. Dhaka" autocomplete="new-password" readonly onfocus="this.removeAttribute('readonly');"
                                     class="w-full px-3 py-2 bg-slate-50/50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-medium text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all">
                             </div>
 
@@ -190,7 +196,7 @@
                                 <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 mb-1">
                                     Country
                                 </label>
-                                <input type="text" name="country" value="[[= form_data.get('country') or company.get('country') or 'Bangladesh' ]]" placeholder="e.g. Bangladesh" autocomplete="new-password" readonly onfocus="this.removeAttribute('readonly');"
+                                <input type="text" name="country" value="[[= form_data.get('country') or (company.get('country') if company else '') or 'Bangladesh' ]]" placeholder="e.g. Bangladesh" autocomplete="new-password" readonly onfocus="this.removeAttribute('readonly');"
                                     class="w-full px-3 py-2 bg-slate-50/50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-medium text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all">
                             </div>
 
@@ -198,7 +204,7 @@
                                 <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 mb-1">
                                     Postal / ZIP Code
                                 </label>
-                                <input type="text" name="postal_code" value="[[= form_data.get('postal_code') or company.get('postal_code') or '' ]]" placeholder="e.g. 1205" autocomplete="new-password" readonly onfocus="this.removeAttribute('readonly');"
+                                <input type="text" name="postal_code" value="[[= form_data.get('postal_code') or (company.get('postal_code') if company else '') or '' ]]" placeholder="e.g. 1205" autocomplete="new-password" readonly onfocus="this.removeAttribute('readonly');"
                                     class="w-full px-3 py-2 bg-slate-50/50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-medium text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all">
                             </div>
                         </div>
@@ -218,7 +224,7 @@
 
                         <!-- Status Type (Custom Dropdown without Search) -->
                         <div class="relative w-full custom-dropdown-container">
-                            [[ cur_status = form_data.get('status_type') or company.get('status_type') or 'ACTIVE' ]]
+                            [[ cur_status = form_data.get('status_type') or (company.get('status_type') if company else '') or 'ACTIVE' ]]
                             <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 mb-1">
                                 Status <span class="text-rose-500">*</span>
                             </label>
@@ -239,7 +245,7 @@
 
                         <!-- Timezone (Custom Bounded & Searchable Dropdown) -->
                         <div class="relative w-full custom-dropdown-container" id="custom_tz_container">
-                            [[ cur_tz = form_data.get('timezone') or company.get('timezone') or 'UTC+06:00' ]]
+                            [[ cur_tz = form_data.get('timezone') or (company.get('timezone') if company else '') or 'UTC+06:00' ]]
                             [[ tz_label_map = {'UTC-10:00': 'UTC-10:00 (Honolulu)', 'UTC-09:00': 'UTC-09:00 (Anchorage)', 'UTC-08:00': 'UTC-08:00 (Los Angeles)', 'UTC-07:00': 'UTC-07:00 (Denver)', 'UTC-06:00': 'UTC-06:00 (Chicago / Mexico)', 'UTC-05:00': 'UTC-05:00 (New York / Toronto)', 'UTC-04:00': 'UTC-04:00 (Santiago)', 'UTC-03:00': 'UTC-03:00 (Buenos Aires / Rio)', 'UTC-02:00': 'UTC-02:00 (Mid-Atlantic)', 'UTC-01:00': 'UTC-01:00 (Azores)', 'UTC+00:00': 'UTC+00:00 (GMT / London)', 'UTC+01:00': 'UTC+01:00 (Berlin / Paris)', 'UTC+02:00': 'UTC+02:00 (Cairo / Athens)', 'UTC+03:00': 'UTC+03:00 (Riyadh / Moscow)', 'UTC+03:30': 'UTC+03:30 (Tehran)', 'UTC+04:00': 'UTC+04:00 (Dubai / Muscat)', 'UTC+04:30': 'UTC+04:30 (Kabul)', 'UTC+05:00': 'UTC+05:00 (Karachi / Tashkent)', 'UTC+05:30': 'UTC+05:30 (Kolkata / Mumbai)', 'UTC+05:45': 'UTC+05:45 (Kathmandu)', 'UTC+06:00': 'UTC+06:00 (Dhaka)', 'Asia/Dhaka': 'UTC+06:00 (Dhaka)', 'UTC+06:30': 'UTC+06:30 (Yangon)', 'UTC+07:00': 'UTC+07:00 (Bangkok / Jakarta)', 'UTC+08:00': 'UTC+08:00 (Singapore / Beijing)', 'UTC+09:00': 'UTC+09:00 (Tokyo / Seoul)', 'UTC+09:30': 'UTC+09:30 (Adelaide)', 'UTC+10:00': 'UTC+10:00 (Sydney / Melbourne)', 'UTC+11:00': 'UTC+11:00 (Solomon Is.)', 'UTC+12:00': 'UTC+12:00 (Auckland / Fiji)'} ]]
                             [[ display_tz = tz_label_map.get(cur_tz, cur_tz) ]]
 
@@ -301,7 +307,7 @@
 
                         <!-- Fiscal Year Start Month (Custom Dropdown without Search) -->
                         <div class="relative w-full custom-dropdown-container">
-                            [[ cur_fiscal = str(form_data.get('fiscal_year_start_month') or company.get('fiscal_year_start_month') or '1') ]]
+                            [[ cur_fiscal = str(form_data.get('fiscal_year_start_month') or (company.get('fiscal_year_start_month') if company else '') or '1') ]]
                             [[ months_map = {'1': 'January (Month 1)', '2': 'February (Month 2)', '3': 'March (Month 3)', '4': 'April (Month 4)', '5': 'May (Month 5)', '6': 'June (Month 6)', '7': 'July (Month 7)', '8': 'August (Month 8)', '9': 'September (Month 9)', '10': 'October (Month 10)', '11': 'November (Month 11)', '12': 'December (Month 12)'} ]]
                             [[ display_fiscal = months_map.get(cur_fiscal, 'January (Month 1)') ]]
 
@@ -345,7 +351,7 @@
 
                         <div>
                             <textarea name="note" rows="3" placeholder="Add optional details or remarks..."
-                                class="w-full px-3 py-2 bg-slate-50/50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-medium text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all">[[= form_data.get('note') or company.get('note') or '' ]]</textarea>
+                                class="w-full px-3 py-2 bg-slate-50/50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-medium text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all">[[= form_data.get('note') or (company.get('note') if company else '') or '' ]]</textarea>
                         </div>
                     </div>
 
@@ -358,7 +364,7 @@
                         <button type="submit" id="submitBtn"
                             class="h-7 px-3.5 bg-primary hover:opacity-90 active:scale-[0.98] text-white rounded-md text-xs font-semibold shadow-xs transition-all flex items-center gap-1 justify-center cursor-pointer">
                             <span class="material-symbols-outlined text-[15px]">save</span>
-                            Save Changes
+                            <span>[[= 'Update' if company else 'Save' ]]</span>
                         </button>
                     </div>
 
@@ -370,104 +376,3 @@
 
     </div>
 </div>
-
-<script>
-function previewCardImage(input, imgId, containerId) {
-    if (input.files && input.files[0]) {
-        const file = input.files[0];
-        if (file.size > 120 * 1024) {
-            alert("Company Logo image size exceeds 120KB limit. Please select a smaller image file.");
-            input.value = "";
-            return;
-        }
-        const removeInput = document.getElementById('remove_logo_input');
-        if (removeInput) removeInput.value = '0';
-
-        const reader = new FileReader();
-        reader.onload = function(e) {
-            const img = document.getElementById(imgId);
-            const container = document.getElementById(containerId);
-            if (img) img.src = e.target.result;
-            if (container) container.classList.remove('hidden');
-        };
-        reader.readAsDataURL(file);
-    }
-}
-
-function clearCardImage(inputId, imgId, containerId) {
-    const input = document.getElementById(inputId);
-    const img = document.getElementById(imgId);
-    const container = document.getElementById(containerId);
-    const removeInput = document.getElementById('remove_logo_input');
-    if (input) input.value = '';
-    if (img) img.src = '#';
-    if (container) container.classList.add('hidden');
-    if (removeInput) removeInput.value = '1';
-}
-
-function toggleCustomDropdown(id, hasSearch) {
-    const menu = document.getElementById(id + '_dropdown_menu');
-    const arrow = document.getElementById(id + '_arrow_icon');
-    if (!menu) return;
-
-    document.querySelectorAll('.custom-dropdown-menu').forEach(m => {
-        if (m.id !== id + '_dropdown_menu') {
-            m.classList.add('hidden');
-            const otherId = m.id.replace('_dropdown_menu', '');
-            const otherArrow = document.getElementById(otherId + '_arrow_icon');
-            if (otherArrow) otherArrow.classList.remove('rotate-180');
-        }
-    });
-
-    const isHidden = menu.classList.contains('hidden');
-    if (isHidden) {
-        menu.classList.remove('hidden');
-        if (arrow) arrow.classList.add('rotate-180');
-        if (hasSearch) {
-            const searchInput = document.getElementById(id + '_search_input');
-            if (searchInput) {
-                searchInput.value = '';
-                filterCustomOptions(id, '');
-                setTimeout(() => searchInput.focus(), 50);
-            }
-        }
-    } else {
-        closeCustomDropdown(id);
-    }
-}
-
-function closeCustomDropdown(id) {
-    const menu = document.getElementById(id + '_dropdown_menu');
-    const arrow = document.getElementById(id + '_arrow_icon');
-    if (menu) menu.classList.add('hidden');
-    if (arrow) arrow.classList.remove('rotate-180');
-}
-
-function selectCustomOption(id, val, label) {
-    const hiddenInput = document.getElementById(id + '_hidden_input');
-    const textSpan = document.getElementById(id + '_selected_text');
-    if (hiddenInput) hiddenInput.value = val;
-    if (textSpan) textSpan.textContent = label;
-    closeCustomDropdown(id);
-}
-
-function filterCustomOptions(id, query) {
-    const q = query.toLowerCase().trim();
-    const items = document.querySelectorAll('.' + id + '-option-item');
-    items.forEach(item => {
-        const text = item.textContent.toLowerCase();
-        if (!q || text.includes(q)) {
-            item.classList.remove('hidden');
-        } else {
-            item.classList.add('hidden');
-        }
-    });
-}
-
-document.addEventListener('click', function(e) {
-    if (!e.target.closest('.custom-dropdown-container')) {
-        document.querySelectorAll('.custom-dropdown-menu').forEach(m => m.classList.add('hidden'));
-        document.querySelectorAll('.custom-dropdown-arrow').forEach(a => a.classList.remove('rotate-180'));
-    }
-});
-</script>

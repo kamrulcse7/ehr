@@ -204,7 +204,7 @@
                         <span class="hidden sm:inline leading-none">Import</span>
                     </a>
 
-                    <a href="[[=URL('employees/add_transfer')]]"
+                    <a href="[[=URL('employees/transfer_manage')]]"
                         class="h-[28px] px-3 bg-primary hover:opacity-90 active:scale-[0.98] text-white rounded-md font-semibold text-[11px] shadow-xs transition-all flex items-center justify-center gap-1 shrink-0">
                         <span class="material-symbols-outlined text-[15px] shrink-0 select-none">swap_horiz</span>
                         <span class="leading-none">Add New</span>
@@ -337,7 +337,7 @@
                                     </a>
 
                                     <!-- Edit Button -->
-                                    <a href="[[=URL('employees/edit_transfer', item.get('id'))]]" title="Edit Record"
+                                    <a href="[[=URL('employees/transfer_manage', item.get('id'))]]" title="Edit Record"
                                         class="p-1 rounded text-slate-400 hover:text-amber-600 hover:bg-amber-50 dark:hover:bg-amber-950/40 transition-colors">
                                         <span class="material-symbols-outlined text-[16px] block">edit</span>
                                     </a>

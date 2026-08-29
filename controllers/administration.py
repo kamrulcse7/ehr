@@ -387,116 +387,26 @@ def companies():
         pagination=pagination,
     )
 
+@action("administration/company_manage/<company_id:int>", method=["GET", "POST"])
+@action("administration/company_manage", method=["GET", "POST"])
 @action("administration/add_company", method=["GET", "POST"])
-@view_page("administration/add_company.html", title="Add New Company | Administration")
-@web_auth_required
-def add_company():
-    form_data = {}
-
-    if request.method == "POST":
-        form_data = dict(request.forms)
-        def clean_val(val):
-            val = str(val).strip() if val else None
-            return val if val != "" else None
-
-        cid = clean_val(request.forms.get("cid"))
-        company_name = clean_val(request.forms.get("company_name"))
-        legal_name = clean_val(request.forms.get("legal_name"))
-        email = clean_val(request.forms.get("email"))
-        phone = clean_val(request.forms.get("phone"))
-        website = clean_val(request.forms.get("website"))
-        address_line1 = clean_val(request.forms.get("address_line1"))
-        address_line2 = clean_val(request.forms.get("address_line2"))
-        city = clean_val(request.forms.get("city"))
-        state = clean_val(request.forms.get("state"))
-        country = clean_val(request.forms.get("country")) or "Bangladesh"
-        postal_code = clean_val(request.forms.get("postal_code"))
-        timezone = clean_val(request.forms.get("timezone")) or "UTC+06:00"
-        language_code = clean_val(request.forms.get("language_code")) or "en"
-        
-        try:
-            fiscal_year_start_month = int(request.forms.get("fiscal_year_start_month") or 1)
-        except (ValueError, TypeError):
-            fiscal_year_start_month = 1
-
-        favicon_url = clean_val(request.forms.get("favicon_url"))
-        logo_url = clean_val(request.forms.get("logo_url"))
-        banner_url = clean_val(request.forms.get("banner_url"))
-
-        status_type = clean_val(request.forms.get("status_type")) or "ACTIVE"
-        note = clean_val(request.forms.get("note"))
-
-        if not cid:
-            flash.set("Company ID (CID) is required.", "danger")
-            return dict(form_data=form_data)
-
-        if not company_name:
-            flash.set("Company Name is required.", "danger")
-            return dict(form_data=form_data)
-
-        # Check duplicate CID
-        comp_check = db.executesql("SELECT id FROM companies WHERE LOWER(cid) = LOWER(%s) LIMIT 1", [cid])
-        if comp_check:
-            flash.set(f"Company ID '{cid}' already exists.", "danger")
-            return dict(form_data=form_data)
-
-        # Handle File Upload for Company Logo
-        logo_file = request.files.get("logo_file")
-        logo_url = _save_company_branding_file(logo_file, "logo", cid)
-        favicon_url = None
-        banner_url = None
-
-        try:
-            insert_sql = """
-            INSERT INTO companies (
-                cid, company_name, legal_name, email, phone, website,
-                address_line1, address_line2, city, state, country, postal_code,
-                timezone, language_code, fiscal_year_start_month,
-                favicon_url, logo_url, banner_url, status_type, note,
-                created_on, created_by
-            ) VALUES (
-                %s, %s, %s, %s, %s, %s,
-                %s, %s, %s, %s, %s, %s,
-                %s, %s, %s,
-                %s, %s, %s, %s, %s,
-                NOW(), %s
-            )
-            """
-            created_by = session.user.get("username") or session.user.get("user_id") or "SYSTEM"
-            db.executesql(insert_sql, [
-                cid.upper(), company_name, legal_name, email, phone, website,
-                address_line1, address_line2, city, state, country, postal_code,
-                timezone, language_code, fiscal_year_start_month,
-                favicon_url, logo_url, banner_url, status_type, note,
-                created_by
-            ])
-            flash.set(f"Company '{company_name}' ({cid.upper()}) added successfully!", "success")
-            redirect(URL("administration/companies"))
-        except Exception as e:
-            flash.set(f"Database error adding company: {str(e)}", "danger")
-            return dict(form_data=form_data)
-
-    return dict(form_data=form_data)
-
 @action("administration/edit_company/<company_id:int>", method=["GET", "POST"])
 @action("administration/edit_company", method=["GET", "POST"])
-@view_page("administration/edit_company.html", title="Edit Company | Administration")
+@view_page("administration/company_manage.html", title="Company Management | Administration")
 @web_auth_required
-def edit_company(company_id=None):
+def company_manage(company_id=None):
     if company_id is None:
         company_id = request.query.get("id") or request.query.get("company_id")
-    
-    if not company_id:
-        flash.set("No company specified for editing.", "danger")
-        redirect(URL("administration/companies"))
 
-    comp_rows = db.executesql("SELECT * FROM companies WHERE id = %s LIMIT 1", [company_id], as_dict=True)
-    if not comp_rows:
-        flash.set("Company record not found.", "danger")
-        redirect(URL("administration/companies"))
+    company = None
+    if company_id:
+        comp_rows = db.executesql("SELECT * FROM companies WHERE id = %s LIMIT 1", [company_id], as_dict=True)
+        if not comp_rows:
+            flash.set("Company record not found.", "danger")
+            redirect(URL("administration/companies"))
+        company = comp_rows[0]
 
-    company = comp_rows[0]
-    form_data = dict(company)
+    form_data = dict(company) if company else {}
 
     if request.method == "POST":
         form_data = dict(request.forms)
@@ -516,7 +426,7 @@ def edit_company(company_id=None):
         country = clean_val(request.forms.get("country")) or "Bangladesh"
         postal_code = clean_val(request.forms.get("postal_code"))
         timezone = clean_val(request.forms.get("timezone")) or "UTC+06:00"
-        language_code = clean_val(request.forms.get("language_code")) or company.get("language_code") or "en"
+        language_code = clean_val(request.forms.get("language_code")) or (company.get("language_code") if company else "en") or "en"
         
         try:
             fiscal_year_start_month = int(request.forms.get("fiscal_year_start_month") or 1)
@@ -526,55 +436,106 @@ def edit_company(company_id=None):
         status_type = clean_val(request.forms.get("status_type")) or "ACTIVE"
         note = clean_val(request.forms.get("note"))
 
-        if not company_name:
-            flash.set("Company Name is required.", "danger")
-            return dict(company=company, form_data=form_data)
+        if company:
+            # Edit existing company
+            if not company_name:
+                flash.set("Company Name is required.", "danger")
+                return dict(company=company, form_data=form_data)
 
-        # Handle File Upload for Company Logo
-        cid = company.get("cid", "comp")
-        logo_file = request.files.get("logo_file")
-        remove_logo = request.forms.get("remove_logo") == "1"
-        old_logo_url = company.get("logo_url")
+            cid = company.get("cid", "comp")
+            logo_file = request.files.get("logo_file")
+            remove_logo = request.forms.get("remove_logo") == "1"
+            old_logo_url = company.get("logo_url")
 
-        uploaded_logo = _save_company_branding_file(logo_file, "logo", cid)
+            uploaded_logo = _save_company_branding_file(logo_file, "logo", cid)
 
-        if uploaded_logo:
-            logo_url = uploaded_logo
-            if old_logo_url and old_logo_url != uploaded_logo:
-                _delete_company_branding_file(old_logo_url)
-        elif remove_logo:
-            logo_url = None
-            if old_logo_url:
-                _delete_company_branding_file(old_logo_url)
+            if uploaded_logo:
+                logo_url = uploaded_logo
+                if old_logo_url and old_logo_url != uploaded_logo:
+                    _delete_company_branding_file(old_logo_url)
+            elif remove_logo:
+                logo_url = None
+                if old_logo_url:
+                    _delete_company_branding_file(old_logo_url)
+            else:
+                logo_url = old_logo_url
+
+            favicon_url = company.get("favicon_url")
+            banner_url = company.get("banner_url")
+
+            try:
+                update_sql = """
+                UPDATE companies SET
+                    company_name = %s, legal_name = %s, email = %s, phone = %s, website = %s,
+                    address_line1 = %s, address_line2 = %s, city = %s, state = %s, country = %s, postal_code = %s,
+                    timezone = %s, language_code = %s, fiscal_year_start_month = %s,
+                    favicon_url = %s, logo_url = %s, banner_url = %s, status_type = %s, note = %s,
+                    updated_on = NOW(), updated_by = %s
+                WHERE id = %s
+                """
+                updated_by = session.user.get("username") or session.user.get("user_id") or "SYSTEM"
+                db.executesql(update_sql, [
+                    company_name, legal_name, email, phone, website,
+                    address_line1, address_line2, city, state, country, postal_code,
+                    timezone, language_code, fiscal_year_start_month,
+                    favicon_url, logo_url, banner_url, status_type, note,
+                    updated_by, company_id
+                ])
+                flash.set(f"Company '{company_name}' updated successfully!", "success")
+                redirect(URL("administration/companies"))
+            except Exception as e:
+                flash.set(f"Database error updating company: {str(e)}", "danger")
+                return dict(company=company, form_data=form_data)
         else:
-            logo_url = old_logo_url
+            # Add new company
+            cid = clean_val(request.forms.get("cid"))
+            if not cid:
+                flash.set("Company ID (CID) is required.", "danger")
+                return dict(company=None, form_data=form_data)
 
-        favicon_url = company.get("favicon_url")
-        banner_url = company.get("banner_url")
+            if not company_name:
+                flash.set("Company Name is required.", "danger")
+                return dict(company=None, form_data=form_data)
 
-        try:
-            update_sql = """
-            UPDATE companies SET
-                company_name = %s, legal_name = %s, email = %s, phone = %s, website = %s,
-                address_line1 = %s, address_line2 = %s, city = %s, state = %s, country = %s, postal_code = %s,
-                timezone = %s, language_code = %s, fiscal_year_start_month = %s,
-                favicon_url = %s, logo_url = %s, banner_url = %s, status_type = %s, note = %s,
-                updated_on = NOW(), updated_by = %s
-            WHERE id = %s
-            """
-            updated_by = session.user.get("username") or session.user.get("user_id") or "SYSTEM"
-            db.executesql(update_sql, [
-                company_name, legal_name, email, phone, website,
-                address_line1, address_line2, city, state, country, postal_code,
-                timezone, language_code, fiscal_year_start_month,
-                favicon_url, logo_url, banner_url, status_type, note,
-                updated_by, company_id
-            ])
-            flash.set(f"Company '{company_name}' updated successfully!", "success")
-            redirect(URL("administration/companies"))
-        except Exception as e:
-            flash.set(f"Database error updating company: {str(e)}", "danger")
-            return dict(company=company, form_data=form_data)
+            comp_check = db.executesql("SELECT id FROM companies WHERE LOWER(cid) = LOWER(%s) LIMIT 1", [cid])
+            if comp_check:
+                flash.set(f"Company ID '{cid}' already exists.", "danger")
+                return dict(company=None, form_data=form_data)
+
+            logo_file = request.files.get("logo_file")
+            logo_url = _save_company_branding_file(logo_file, "logo", cid)
+            favicon_url = None
+            banner_url = None
+
+            try:
+                insert_sql = """
+                INSERT INTO companies (
+                    cid, company_name, legal_name, email, phone, website,
+                    address_line1, address_line2, city, state, country, postal_code,
+                    timezone, language_code, fiscal_year_start_month,
+                    favicon_url, logo_url, banner_url, status_type, note,
+                    created_on, created_by
+                ) VALUES (
+                    %s, %s, %s, %s, %s, %s,
+                    %s, %s, %s, %s, %s, %s,
+                    %s, %s, %s,
+                    %s, %s, %s, %s, %s,
+                    NOW(), %s
+                )
+                """
+                created_by = session.user.get("username") or session.user.get("user_id") or "SYSTEM"
+                db.executesql(insert_sql, [
+                    cid.upper(), company_name, legal_name, email, phone, website,
+                    address_line1, address_line2, city, state, country, postal_code,
+                    timezone, language_code, fiscal_year_start_month,
+                    favicon_url, logo_url, banner_url, status_type, note,
+                    created_by
+                ])
+                flash.set(f"Company '{company_name}' ({cid.upper()}) added successfully!", "success")
+                redirect(URL("administration/companies"))
+            except Exception as e:
+                flash.set(f"Database error adding company: {str(e)}", "danger")
+                return dict(company=None, form_data=form_data)
 
     return dict(company=company, form_data=form_data)
 

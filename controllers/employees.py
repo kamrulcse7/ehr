@@ -313,11 +313,14 @@ def show_directory(emp_id=None):
     return dict(emp=emp, user_cid=user_cid, transfers=transfers)
 
 
+@action("employees/directory_manage/<emp_id:int>", method=["GET", "POST"])
+@action("employees/directory_manage", method=["GET", "POST"])
+@action("employees/add_directory", method=["GET", "POST"])
 @action("employees/edit_directory/<emp_id:int>", method=["GET", "POST"])
 @action("employees/edit_directory", method=["GET", "POST"])
-@view_page("employees/edit_directory.html", title="Edit Employee")
+@view_page("employees/directory_manage.html", title="Employee Directory Manage")
 @web_auth_required
-def edit_directory(emp_id=None):
+def directory_manage(emp_id=None):
     user_cid = session.user.get("cid", "")
     if emp_id is None:
         try:
@@ -325,23 +328,22 @@ def edit_directory(emp_id=None):
         except (TypeError, ValueError):
             emp_id = None
 
-    if not emp_id:
-        flash.set("Invalid Employee ID specified.", "danger")
-        redirect(URL("employees/employee_directory"))
+    emp = None
+    form_data = {}
 
-    where_clauses = ["id = %s"]
-    params = [emp_id]
-    if user_cid:
-        where_clauses.append("cid = %s")
-        params.append(user_cid)
+    if emp_id:
+        where_clauses = ["id = %s"]
+        params = [emp_id]
+        if user_cid:
+            where_clauses.append("cid = %s")
+            params.append(user_cid)
 
-    res = db.executesql(f"SELECT * FROM employees WHERE {' AND '.join(where_clauses)} LIMIT 1", params, as_dict=True)
-    if not res:
-        flash.set("Employee record not found.", "danger")
-        redirect(URL("employees/employee_directory"))
-
-    emp = res[0]
-    form_data = dict(emp)
+        res = db.executesql(f"SELECT * FROM employees WHERE {' AND '.join(where_clauses)} LIMIT 1", params, as_dict=True)
+        if not res:
+            flash.set("Employee record not found.", "danger")
+            redirect(URL("employees/employee_directory"))
+        emp = res[0]
+        form_data = dict(emp)
 
     if request.method == "POST":
         post_data = dict(request.forms)
@@ -351,219 +353,181 @@ def edit_directory(emp_id=None):
                 val = str(val).strip() if val else None
                 return val if val != "" else None
 
-            # Always preserve existing CID and Official ID (emp_id) on record edit
-            cid = emp.get("cid")
-            emp_id_code = emp.get("emp_id")
-            emp_name = clean_val(request.forms.get("emp_name"))
-            mobile = clean_val(request.forms.get("mobile"))
-            email = clean_val(request.forms.get("email"))
-            nid_number = clean_val(request.forms.get("nid_number"))
-            dob = clean_val(request.forms.get("dob"))
-            gender = clean_val(request.forms.get("gender"))
-            blood_group = clean_val(request.forms.get("blood_group"))
-            edu_qualification = clean_val(request.forms.get("edu_qualification"))
+            if emp:
+                # EDIT EXISTING RECORD
+                cid = emp.get("cid")
+                emp_id_code = emp.get("emp_id")
+                emp_name = clean_val(request.forms.get("emp_name"))
+                mobile = clean_val(request.forms.get("mobile"))
+                email = clean_val(request.forms.get("email"))
+                nid_number = clean_val(request.forms.get("nid_number"))
+                dob = clean_val(request.forms.get("dob"))
+                gender = clean_val(request.forms.get("gender"))
+                blood_group = clean_val(request.forms.get("blood_group"))
+                edu_qualification = clean_val(request.forms.get("edu_qualification"))
 
-            emp_type = clean_val(request.forms.get("emp_type")) or "PERMANENT"
-            emp_department = clean_val(request.forms.get("emp_department"))
-            emp_designation = clean_val(request.forms.get("emp_designation"))
-            emp_grade = clean_val(request.forms.get("emp_grade"))
-            join_date = clean_val(request.forms.get("join_date"))
-            retirement_date = clean_val(request.forms.get("retirement_date"))
-            status_type = clean_val(request.forms.get("status_type")) or emp.get("status_type") or "ACTIVE"
+                emp_type = clean_val(request.forms.get("emp_type")) or "PERMANENT"
+                emp_department = clean_val(request.forms.get("emp_department"))
+                emp_designation = clean_val(request.forms.get("emp_designation"))
+                emp_grade = clean_val(request.forms.get("emp_grade"))
+                join_date = clean_val(request.forms.get("join_date"))
+                retirement_date = clean_val(request.forms.get("retirement_date"))
+                status_type = clean_val(request.forms.get("status_type")) or emp.get("status_type") or "ACTIVE"
 
-            home_district = clean_val(request.forms.get("home_district"))
-            present_address = clean_val(request.forms.get("present_address"))
-            permanent_address = clean_val(request.forms.get("permanent_address"))
-            note = clean_val(request.forms.get("note"))
+                home_district = clean_val(request.forms.get("home_district"))
+                present_address = clean_val(request.forms.get("present_address"))
+                permanent_address = clean_val(request.forms.get("permanent_address"))
+                note = clean_val(request.forms.get("note"))
 
-            if emp_id_code != emp.get("emp_id"):
-                dup_check = db.executesql("SELECT id FROM employees WHERE cid = %s AND emp_id = %s AND id != %s LIMIT 1", [cid, emp_id_code, emp_id])
-                if dup_check:
-                    flash.set(f"Official ID '{emp_id_code}' already exists.", "danger")
+                photo = request.files.get("emp_photo")
+                old_photo = emp.get("photo_url")
+                remove_photo = request.forms.get("remove_photo") == "1"
+                saved_filename = old_photo
+                new_file_path = None
+                UPLOAD_DIR = os.path.join(os.path.dirname(__file__), "..", "static", "uploads", "emp_images")
+
+                if remove_photo:
+                    saved_filename = None
+                    if old_photo and not (old_photo.startswith('http://') or old_photo.startswith('https://')):
+                        try:
+                            old_file_path = os.path.join(UPLOAD_DIR, old_photo)
+                            if os.path.exists(old_file_path):
+                                os.remove(old_file_path)
+                        except Exception as old_img_err:
+                            print("Failed to remove old profile image:", old_img_err)
+
+                elif photo and photo.filename:
+                    os.makedirs(UPLOAD_DIR, exist_ok=True)
+                    ext = os.path.splitext(photo.filename)[1]
+                    saved_filename = f"{cid}_{emp_id_code}_{int(time.time())}{ext}"
+                    file_path = os.path.join(UPLOAD_DIR, saved_filename)
+                    new_file_path = file_path
+                    with open(file_path, "wb") as f:
+                        f.write(photo.file.read())
+
+                    if old_photo and old_photo != saved_filename and not (old_photo.startswith('http://') or old_photo.startswith('https://')):
+                        try:
+                            old_file_path = os.path.join(UPLOAD_DIR, old_photo)
+                            if os.path.exists(old_file_path):
+                                os.remove(old_file_path)
+                        except Exception as old_img_err:
+                            print("Failed to remove old profile image:", old_img_err)
+
+                user_id = session.user.get('user_id', '') if (session and session.user) else ''
+
+                update_sql = """
+                UPDATE employees SET
+                    cid = %s, emp_id = %s, emp_name = %s, emp_type = %s, emp_department = %s,
+                    emp_designation = %s, emp_grade = %s, mobile = %s, email = %s, gender = %s,
+                    dob = %s, blood_group = %s, join_date = %s, retirement_date = %s,
+                    edu_qualification = %s, home_district = %s, present_address = %s,
+                    permanent_address = %s, nid_number = %s, photo_url = %s, note = %s,
+                    status_type = %s, updated_on = %s, updated_by = %s
+                WHERE id = %s
+                """
+                values = (
+                    cid, emp_id_code, emp_name, emp_type, emp_department,
+                    emp_designation, emp_grade, mobile, email, gender,
+                    dob, blood_group, join_date, retirement_date,
+                    edu_qualification, home_district, present_address,
+                    permanent_address, nid_number, saved_filename, note,
+                    status_type, db_datetime, user_id, emp_id
+                )
+                db.executesql(update_sql, values)
+                db.commit()
+                flash.set("Updated successfully!", "success")
+                redirect(URL("employees/employee_directory"))
+
+            else:
+                # CREATE NEW RECORD
+                cid = user_cid if user_cid else clean_val(request.forms.get("cid"))
+                if not cid:
+                    flash.set("Company ID (CID) is required.", "danger")
                     return dict(user_cid=user_cid, emp=emp, form_data=form_data)
 
-            photo = request.files.get("emp_photo")
-            old_photo = emp.get("photo_url")
-            remove_photo = request.forms.get("remove_photo") == "1"
-            saved_filename = old_photo
-            new_file_path = None
-            UPLOAD_DIR = os.path.join(os.path.dirname(__file__), "..", "static", "uploads", "emp_images")
+                if not user_cid:
+                    comp_check = db.executesql("SELECT cid FROM companies WHERE cid = %s LIMIT 1", [cid.upper()], as_dict=True)
+                    if not comp_check:
+                        flash.set(f"Invalid CID '{cid}'. Company does not exist.", "danger")
+                        return dict(user_cid=user_cid, emp=emp, form_data=form_data)
+                    cid = comp_check[0]['cid']
 
-            if remove_photo:
+                emp_name = clean_val(request.forms.get("emp_name"))
+                mobile = clean_val(request.forms.get("mobile"))
+                email = clean_val(request.forms.get("email"))
+                nid_number = clean_val(request.forms.get("nid_number"))
+                dob = clean_val(request.forms.get("dob"))
+                gender = clean_val(request.forms.get("gender"))
+                blood_group = clean_val(request.forms.get("blood_group"))
+                edu_qualification = clean_val(request.forms.get("edu_qualification"))
+
+                emp_id_code = clean_val(request.forms.get("emp_id"))
+                emp_type = clean_val(request.forms.get("emp_type")) or "PERMANENT"
+                emp_department = clean_val(request.forms.get("emp_department"))
+                emp_designation = clean_val(request.forms.get("emp_designation"))
+                emp_grade = clean_val(request.forms.get("emp_grade"))
+                join_date = clean_val(request.forms.get("join_date"))
+                retirement_date = clean_val(request.forms.get("retirement_date"))
+                status_type = "ACTIVE"
+
+                home_district = clean_val(request.forms.get("home_district"))
+                present_address = clean_val(request.forms.get("present_address"))
+                permanent_address = clean_val(request.forms.get("permanent_address"))
+                note = clean_val(request.forms.get("note"))
+
+                emp_check = db.executesql("SELECT id FROM employees WHERE cid = %s AND emp_id = %s LIMIT 1", [cid, emp_id_code])
+                if emp_check:
+                    flash.set(f"'{emp_id_code}' already exists.", "danger")
+                    return dict(user_cid=user_cid, emp=emp, form_data=form_data)
+
+                photo = request.files.get("emp_photo")
                 saved_filename = None
-                if old_photo and not (old_photo.startswith('http://') or old_photo.startswith('https://')):
-                    try:
-                        old_file_path = os.path.join(UPLOAD_DIR, old_photo)
-                        if os.path.exists(old_file_path):
-                            os.remove(old_file_path)
-                    except Exception as old_img_err:
-                        print("Failed to remove old profile image:", old_img_err)
+                saved_file_path = None
 
-            elif photo and photo.filename:
-                os.makedirs(UPLOAD_DIR, exist_ok=True)
-                ext = os.path.splitext(photo.filename)[1]
-                saved_filename = f"{cid}_{emp_id_code}_{int(time.time())}{ext}"
-                file_path = os.path.join(UPLOAD_DIR, saved_filename)
-                new_file_path = file_path
-                with open(file_path, "wb") as f:
-                    f.write(photo.file.read())
+                if photo and photo.filename:
+                    UPLOAD_DIR = os.path.join(os.path.dirname(__file__), "..", "static", "uploads", "emp_images")
+                    os.makedirs(UPLOAD_DIR, exist_ok=True)
+                    ext = os.path.splitext(photo.filename)[1]
+                    saved_filename = f"{cid}_{emp_id_code}_{int(time.time())}{ext}"
+                    saved_file_path = os.path.join(UPLOAD_DIR, saved_filename)
+                    with open(saved_file_path, "wb") as f:
+                        f.write(photo.file.read())
 
-                # Delete old photo file if replaced by a new upload
-                if old_photo and old_photo != saved_filename and not (old_photo.startswith('http://') or old_photo.startswith('https://')):
-                    try:
-                        old_file_path = os.path.join(UPLOAD_DIR, old_photo)
-                        if os.path.exists(old_file_path):
-                            os.remove(old_file_path)
-                    except Exception as old_img_err:
-                        print("Failed to remove old profile image:", old_img_err)
+                user_id = session.user.get('user_id', '') if (session and session.user) else ''
 
-            user_id = session.user.get('user_id', '') if (session and session.user) else ''
+                insert_sql = """
+                INSERT INTO employees (
+                    cid, emp_id, emp_name, emp_type, emp_department, 
+                    emp_designation, emp_grade, mobile, email, gender, dob, 
+                    blood_group, join_date, retirement_date, 
+                    edu_qualification, home_district, present_address, permanent_address, 
+                    nid_number, photo_url, note, status_type, created_on, created_by
+                ) VALUES (
+                    %s, %s, %s, %s, %s, 
+                    %s, %s, %s, %s, %s, %s, 
+                    %s, %s, %s, 
+                    %s, %s, %s, %s, 
+                    %s, %s, %s, %s, %s, %s
+                )
+                """
+                values = (
+                    cid, emp_id_code, emp_name, emp_type, emp_department,
+                    emp_designation, emp_grade, mobile, email, gender, dob,
+                    blood_group, join_date, retirement_date,
+                    edu_qualification, home_district, present_address, permanent_address,
+                    nid_number, saved_filename, note, status_type, db_datetime, user_id
+                )
+                db.executesql(insert_sql, values)
+                db.commit()
+                flash.set("Saved successfully!", "success")
+                redirect(URL("employees/employee_directory"))
 
-            update_sql = """
-            UPDATE employees SET
-                cid = %s, emp_id = %s, emp_name = %s, emp_type = %s, emp_department = %s,
-                emp_designation = %s, emp_grade = %s, mobile = %s, email = %s, gender = %s,
-                dob = %s, blood_group = %s, join_date = %s, retirement_date = %s,
-                edu_qualification = %s, home_district = %s, present_address = %s,
-                permanent_address = %s, nid_number = %s, photo_url = %s, note = %s,
-                status_type = %s, updated_on = %s, updated_by = %s
-            WHERE id = %s
-            """
-            values = (
-                cid, emp_id_code, emp_name, emp_type, emp_department,
-                emp_designation, emp_grade, mobile, email, gender,
-                dob, blood_group, join_date, retirement_date,
-                edu_qualification, home_district, present_address,
-                permanent_address, nid_number, saved_filename, note,
-                status_type, db_datetime, user_id, emp_id
-            )
-            db.executesql(update_sql, values)
-            db.commit()
-            flash.set("Updated successfully!", "success")
-            redirect(URL("employees/employee_directory"))
         except Exception as e:
-            if new_file_path and os.path.exists(new_file_path):
-                try:
-                    os.remove(new_file_path)
-                except Exception:
-                    pass
-            flash.set(f"Failed to update employee: {str(e)}", "danger")
+            flash.set(f"Error: {str(e)}", "danger")
             return dict(user_cid=user_cid, emp=emp, form_data=form_data)
 
     return dict(user_cid=user_cid, emp=emp, form_data=form_data)
 
-
-
-
-
-@action("employees/add_directory", method=["GET", "POST"])
-@view_page("employees/add_directory.html", title="Add Directory")
-@web_auth_required
-def add_directory():
-    user_cid = session.user.get("cid", "")
-    form_data = {}
-
-    if request.method == "POST":
-        form_data = dict(request.forms)
-        try:
-            def clean_val(val):
-                val = str(val).strip() if val else None
-                return val if val != "" else None
-
-            cid = user_cid if user_cid else clean_val(request.forms.get("cid"))
-            if not cid:
-                flash.set("Company ID (CID) is required.", "danger")
-                return dict(user_cid=user_cid, form_data=form_data)
-
-            # Validate CID against companies master table if user is System Admin
-            if not user_cid:
-                comp_check = db.executesql("SELECT cid FROM companies WHERE cid = %s LIMIT 1", [cid.upper()], as_dict=True)
-                if not comp_check:
-                    flash.set(f"Invalid CID '{cid}'. Company does not exist.", "danger")
-                    return dict(user_cid=user_cid, form_data=form_data)
-                cid = comp_check[0]['cid']
-
-            emp_name = clean_val(request.forms.get("emp_name"))
-            mobile = clean_val(request.forms.get("mobile"))
-            email = clean_val(request.forms.get("email"))
-            nid_number = clean_val(request.forms.get("nid_number"))
-            dob = clean_val(request.forms.get("dob"))
-            gender = clean_val(request.forms.get("gender"))
-            blood_group = clean_val(request.forms.get("blood_group"))
-            edu_qualification = clean_val(request.forms.get("edu_qualification"))
-
-            emp_id = clean_val(request.forms.get("emp_id"))
-            emp_type = clean_val(request.forms.get("emp_type"))
-            emp_department = clean_val(request.forms.get("emp_department"))
-            emp_designation = clean_val(request.forms.get("emp_designation"))
-            emp_grade = clean_val(request.forms.get("emp_grade"))
-            join_date = clean_val(request.forms.get("join_date"))
-            retirement_date = clean_val(request.forms.get("retirement_date"))
-
-            home_district = clean_val(request.forms.get("home_district"))
-            present_address = clean_val(request.forms.get("present_address"))
-            permanent_address = clean_val(request.forms.get("permanent_address"))
-            note = clean_val(request.forms.get("note"))
-            
-            # Check duplicate Official ID for CID
-            emp_check = db.executesql("SELECT id FROM employees WHERE cid = %s AND emp_id = %s LIMIT 1", [cid, emp_id])
-            if emp_check:
-                flash.set(f"'{emp_id}' already exists.", "danger")
-                return dict(user_cid=user_cid, form_data=form_data)
-
-            photo = request.files.get("emp_photo")
-            saved_filename = None
-            saved_file_path = None
-
-            if photo and photo.filename:
-                UPLOAD_DIR = os.path.join(os.path.dirname(__file__), "..", "static", "uploads", "emp_images")
-                os.makedirs(UPLOAD_DIR, exist_ok=True)
-                ext = os.path.splitext(photo.filename)[1]
-                saved_filename = f"{cid}_{emp_id}_{int(time.time())}{ext}"
-                saved_file_path = os.path.join(UPLOAD_DIR, saved_filename)
-                with open(saved_file_path, "wb") as f:
-                    f.write(photo.file.read())
-
-            insert_sql = """
-            INSERT INTO employees (
-                cid, emp_id, emp_name, emp_type, emp_department, 
-                emp_designation, emp_grade, mobile, email, gender, dob, 
-                blood_group, join_date, retirement_date, 
-                edu_qualification, home_district, present_address, permanent_address, 
-                nid_number, photo_url, note, status_type, created_on, created_by
-            ) VALUES (
-                %s, %s, %s, %s, %s, 
-                %s, %s, %s, %s, %s, %s, 
-                %s, %s, %s, 
-                %s, %s, %s, %s, 
-                %s, %s, %s, %s, %s, %s
-            )
-            """
-            user_id = session.user.get('user_id', '') if (session and session.user) else ''
-            values = (
-                cid, emp_id, emp_name, emp_type, emp_department,
-                emp_designation, emp_grade, mobile, email, gender, dob,
-                blood_group, join_date, retirement_date,
-                edu_qualification, home_district, present_address, permanent_address,
-                nid_number, saved_filename, note, 'ACTIVE', db_datetime, user_id
-            )
-            db.executesql(insert_sql, values)
-            db.commit()
-            flash.set("Added successfully!", "success")
-            # Clear form fields on success
-            form_data = {}
-        except Exception as e:
-            if saved_file_path and os.path.exists(saved_file_path):
-                try:
-                    os.remove(saved_file_path)
-                except Exception:
-                    pass
-            flash.set(f"Failed to add: {str(e)}", "danger")
-            return dict(user_cid=user_cid, form_data=form_data)
-
-    return dict(user_cid=user_cid, form_data=form_data)
-
-    return dict(user_cid=user_cid, form_data=form_data)
 
 
 @action("employees/import_directory", method=["GET", "POST"])
@@ -1178,11 +1142,11 @@ def show_transfer(transfer_id=None):
     return dict(item=item, user_cid=user_cid)
 
 
-@action("employees/edit_transfer/<transfer_id:int>", method=["GET", "POST"])
-@action("employees/edit_transfer", method=["GET", "POST"])
-@view_page("employees/edit_transfer.html", title="Edit Transfer Order")
+@action("employees/transfer_manage/<transfer_id:int>", method=["GET", "POST"])
+@action("employees/transfer_manage", method=["GET", "POST"])
+@view_page("employees/transfer_manage.html", title="Transfer Order Manage")
 @web_auth_required
-def edit_transfer(transfer_id=None):
+def transfer_manage(transfer_id=None):
     user_cid = session.user.get("cid", "")
     if transfer_id is None:
         try:
@@ -1190,110 +1154,190 @@ def edit_transfer(transfer_id=None):
         except (TypeError, ValueError):
             transfer_id = None
 
-    if not transfer_id:
-        flash.set("Invalid Transfer Order ID specified.", "danger")
-        redirect(URL("employees/postings_transfers"))
+    item = None
+    emp = None
 
-    where_clauses = ["id = %s"]
-    params = [transfer_id]
-    if user_cid:
-        where_clauses.append("cid = %s")
-        params.append(user_cid)
+    # Handle lookup_id from search
+    lookup_id = request.query.get("lookup_id")
+    lookup_cid = user_cid or request.query.get("cid")
 
-    res = db.executesql(f"SELECT * FROM employee_transfers WHERE {' AND '.join(where_clauses)} LIMIT 1", params, as_dict=True)
-    if not res:
-        flash.set("Transfer order record not found.", "danger")
-        redirect(URL("employees/postings_transfers"))
+    if lookup_id:
+        emp_query = "SELECT * FROM employees WHERE emp_id = %s"
+        emp_params = [lookup_id]
+        if lookup_cid:
+            emp_query += " AND cid = %s"
+            emp_params.append(lookup_cid)
+        emp_res = db.executesql(emp_query + " LIMIT 1", emp_params, as_dict=True)
+        if emp_res:
+            emp = emp_res[0]
 
-    item = res[0]
-    form_data = dict(item)
+    if transfer_id:
+        where_clauses = ["id = %s"]
+        params = [transfer_id]
+        if user_cid:
+            where_clauses.append("cid = %s")
+            params.append(user_cid)
 
-    emp_res = db.executesql("SELECT emp_id, emp_name, emp_designation, emp_department, current_branch_id, emp_grade FROM employees WHERE emp_id = %s LIMIT 1", [item['emp_id']], as_dict=True)
-    emp = emp_res[0] if emp_res else None
+        res = db.executesql(f"SELECT * FROM employee_transfers WHERE {' AND '.join(where_clauses)} LIMIT 1", params, as_dict=True)
+        if not res:
+            flash.set("Transfer order record not found.", "danger")
+            redirect(URL("employees/postings_transfers"))
+        item = res[0]
+        if not emp:
+            emp_res = db.executesql("SELECT * FROM employees WHERE emp_id = %s LIMIT 1", [item['emp_id']], as_dict=True)
+            if emp_res:
+                emp = emp_res[0]
+        if emp and isinstance(item, dict):
+            item['emp_name'] = emp.get('emp_name', '')
 
     if request.method == "POST":
-        post_data = dict(request.forms)
-        form_data.update(post_data)
         try:
             def clean_val(val):
                 val = str(val).strip() if val else None
                 return val if val != "" else None
 
-            cid = user_cid if user_cid else (clean_val(request.forms.get("cid")) or item.get("cid"))
-            emp_id = clean_val(request.forms.get("emp_id")) or item.get("emp_id")
+            if item:
+                # EDIT EXISTING TRANSFER ORDER
+                cid = user_cid if user_cid else (clean_val(request.forms.get("cid")) or item.get("cid"))
+                emp_id = clean_val(request.forms.get("emp_id")) or item.get("emp_id")
+                transfer_order_no = clean_val(request.forms.get("transfer_order_no")) or item.get("transfer_order_no")
+                transfer_type = clean_val(request.forms.get("transfer_type")) or "ADMINISTRATIVE"
+                from_posting_place = clean_val(request.forms.get("from_posting_place"))
+                to_posting_place = clean_val(request.forms.get("to_posting_place"))
+                from_department = clean_val(request.forms.get("from_department"))
+                to_department = clean_val(request.forms.get("to_department"))
+                from_designation = clean_val(request.forms.get("from_designation"))
+                to_designation = clean_val(request.forms.get("to_designation"))
+                from_grade = clean_val(request.forms.get("from_grade"))
+                to_grade = clean_val(request.forms.get("to_grade"))
+                order_date = clean_val(request.forms.get("order_date"))
+                release_date = clean_val(request.forms.get("release_date"))
+                expected_joining_date = clean_val(request.forms.get("expected_joining_date"))
+                actual_joining_date = clean_val(request.forms.get("actual_joining_date"))
+                joining_status = clean_val(request.forms.get("joining_status")) or "PENDING"
+                transfer_reason = clean_val(request.forms.get("transfer_reason"))
+                note = clean_val(request.forms.get("note"))
 
-            if not user_cid:
-                comp_check = db.executesql("SELECT cid FROM companies WHERE cid = %s LIMIT 1", [cid.upper()], as_dict=True)
-                if not comp_check:
-                    flash.set(f"Invalid CID '{cid}'. Company does not exist.", "danger")
-                    return dict(user_cid=user_cid, item=item, form_data=form_data, emp=emp)
-                cid = comp_check[0]['cid']
+                user_id = session.user.get('user_id', '') if (session and session.user) else ''
 
-                emp_check = db.executesql("SELECT emp_id FROM employees WHERE emp_id = %s AND cid = %s LIMIT 1", [emp_id, cid], as_dict=True)
+                update_sql = """
+                UPDATE employee_transfers SET
+                    cid = %s, emp_id = %s, transfer_order_no = %s, transfer_type = %s,
+                    from_branch_id = %s, to_branch_id = %s, from_department = %s, to_department = %s,
+                    from_designation = %s, to_designation = %s, from_grade = %s, to_grade = %s,
+                    order_date = %s, release_date = %s, expected_joining_date = %s, actual_joining_date = %s,
+                    joining_status = %s, transfer_reason = %s, note = %s, updated_on = %s, updated_by = %s
+                WHERE id = %s
+                """
+                db.executesql(update_sql, (
+                    cid, emp_id, transfer_order_no, transfer_type,
+                    from_posting_place, to_posting_place, from_department, to_department,
+                    from_designation, to_designation, from_grade, to_grade,
+                    order_date, release_date, expected_joining_date, actual_joining_date,
+                    joining_status, transfer_reason, note, db_datetime, user_id, transfer_id
+                ))
+
+                if joining_status == 'JOINED' and to_posting_place:
+                    db.executesql("""
+                    UPDATE employees SET
+                        current_posting_place = %s,
+                        emp_department = %s,
+                        emp_designation = %s,
+                        emp_grade = %s
+                    WHERE emp_id = %s AND cid = %s
+                    """, [to_posting_place, to_department, to_designation, to_grade, emp_id, cid])
+
+                db.commit()
+                flash.set("Transfer order updated successfully!", "success")
+                redirect(URL("employees/postings_transfers"))
+
+            else:
+                # ISSUE NEW TRANSFER ORDER
+                cid = user_cid if user_cid else clean_val(request.forms.get("cid"))
+                if not cid:
+                    flash.set("Company ID (CID) is required.", "danger")
+                    return dict(user_cid=user_cid, item=item, emp=emp)
+
+                if not user_cid:
+                    comp_check = db.executesql("SELECT cid FROM companies WHERE cid = %s LIMIT 1", [cid.upper()], as_dict=True)
+                    if not comp_check:
+                        flash.set(f"Invalid CID '{cid}'. Company does not exist.", "danger")
+                        return dict(user_cid=user_cid, item=item, emp=emp)
+                    cid = comp_check[0]['cid']
+
+                emp_id = clean_val(request.forms.get("emp_id"))
+                if not emp_id:
+                    flash.set("Official ID is required.", "danger")
+                    return dict(user_cid=user_cid, item=item, emp=emp)
+
+                emp_check = db.executesql("SELECT * FROM employees WHERE emp_id = %s AND cid = %s LIMIT 1", [emp_id, cid], as_dict=True)
                 if not emp_check:
                     flash.set(f"ID '{emp_id}' does not exist in Company '{cid}'.", "danger")
-                    return dict(user_cid=user_cid, item=item, form_data=form_data, emp=emp)
-            transfer_order_no = clean_val(request.forms.get("transfer_order_no")) or item.get("transfer_order_no")
-            transfer_type = clean_val(request.forms.get("transfer_type")) or "ADMINISTRATIVE"
-            from_branch_id = clean_val(request.forms.get("from_branch_id")) or clean_val(request.forms.get("from_posting_place"))
-            to_branch_id = clean_val(request.forms.get("to_branch_id")) or clean_val(request.forms.get("to_posting_place"))
-            from_department = clean_val(request.forms.get("from_department"))
-            to_department = clean_val(request.forms.get("to_department"))
-            from_designation = clean_val(request.forms.get("from_designation"))
-            to_designation = clean_val(request.forms.get("to_designation"))
-            from_grade = clean_val(request.forms.get("from_grade"))
-            to_grade = clean_val(request.forms.get("to_grade"))
-            order_date = clean_val(request.forms.get("order_date"))
-            release_date = clean_val(request.forms.get("release_date"))
-            expected_joining_date = clean_val(request.forms.get("expected_joining_date"))
-            actual_joining_date = clean_val(request.forms.get("actual_joining_date"))
-            transfer_reason = clean_val(request.forms.get("transfer_reason"))
-            approved_by = clean_val(request.forms.get("approved_by"))
-            note = clean_val(request.forms.get("note"))
-            joining_status = clean_val(request.forms.get("joining_status")) or "PENDING"
-            status_type = "COMPLETED" if joining_status in ["JOINED", "COMPLETED"] else joining_status
+                    return dict(user_cid=user_cid, item=item, emp=emp)
+                target_emp = emp_check[0]
 
-            user_id = session.user.get('user_id', '') if (session and session.user) else ''
+                transfer_order_no = clean_val(request.forms.get("transfer_order_no"))
+                transfer_type = clean_val(request.forms.get("transfer_type")) or "ADMINISTRATIVE"
+                from_posting_place = clean_val(request.forms.get("from_posting_place")) or target_emp.get("current_posting_place", "")
+                to_posting_place = clean_val(request.forms.get("to_posting_place"))
+                from_department = clean_val(request.forms.get("from_department")) or target_emp.get("emp_department", "")
+                to_department = clean_val(request.forms.get("to_department")) or target_emp.get("emp_department", "")
+                from_designation = clean_val(request.forms.get("from_designation")) or target_emp.get("emp_designation", "")
+                to_designation = clean_val(request.forms.get("to_designation")) or target_emp.get("emp_designation", "")
+                from_grade = clean_val(request.forms.get("from_grade")) or target_emp.get("emp_grade", "")
+                to_grade = clean_val(request.forms.get("to_grade")) or target_emp.get("emp_grade", "")
+                order_date = clean_val(request.forms.get("order_date"))
+                release_date = clean_val(request.forms.get("release_date"))
+                expected_joining_date = clean_val(request.forms.get("expected_joining_date"))
+                actual_joining_date = clean_val(request.forms.get("actual_joining_date"))
+                joining_status = clean_val(request.forms.get("joining_status")) or "PENDING"
+                transfer_reason = clean_val(request.forms.get("transfer_reason"))
+                note = clean_val(request.forms.get("note"))
 
-            update_sql = """
-            UPDATE employee_transfers SET
-                cid = %s, emp_id = %s, transfer_order_no = %s, transfer_type = %s, transfer_reason = %s,
-                from_branch_id = %s, to_branch_id = %s, from_department = %s, to_department = %s,
-                from_designation = %s, to_designation = %s, from_grade = %s, to_grade = %s,
-                order_date = %s, release_date = %s, expected_joining_date = %s, actual_joining_date = %s,
-                joining_status = %s, approved_by = %s, note = %s, status_type = %s,
-                updated_on = %s, updated_by = %s
-            WHERE id = %s
-            """
-            values = (
-                cid, emp_id, transfer_order_no, transfer_type, transfer_reason,
-                from_branch_id, to_branch_id, from_department, to_department,
-                from_designation, to_designation, from_grade, to_grade,
-                order_date, release_date, expected_joining_date, actual_joining_date,
-                joining_status, approved_by, note, status_type,
-                db_datetime, user_id, transfer_id
-            )
-            db.executesql(update_sql, values)
+                user_id = session.user.get('user_id', '') if (session and session.user) else ''
 
-            if joining_status in ['JOINED', 'COMPLETED']:
-                update_emp_sql = """
-                UPDATE employees SET
-                    current_branch_id = %s,
-                    emp_department = COALESCE(%s, emp_department),
-                    emp_designation = COALESCE(%s, emp_designation),
-                    current_branch_join_date = COALESCE(%s, current_branch_join_date)
-                WHERE emp_id = %s
+                insert_sql = """
+                INSERT INTO employee_transfers (
+                    cid, emp_id, transfer_order_no, transfer_type,
+                    from_branch_id, to_branch_id, from_department, to_department,
+                    from_designation, to_designation, from_grade, to_grade,
+                    order_date, release_date, expected_joining_date, actual_joining_date,
+                    joining_status, transfer_reason, note, created_on, created_by
+                ) VALUES (
+                    %s, %s, %s, %s,
+                    %s, %s, %s, %s,
+                    %s, %s, %s, %s,
+                    %s, %s, %s, %s,
+                    %s, %s, %s, %s, %s
+                )
                 """
-                db.executesql(update_emp_sql, (to_branch_id, to_department, to_designation, actual_joining_date or expected_joining_date or order_date, emp_id))
+                db.executesql(insert_sql, (
+                    cid, emp_id, transfer_order_no, transfer_type,
+                    from_posting_place, to_posting_place, from_department, to_department,
+                    from_designation, to_designation, from_grade, to_grade,
+                    order_date, release_date, expected_joining_date, actual_joining_date,
+                    joining_status, transfer_reason, note, db_datetime, user_id
+                ))
 
-            db.commit()
-            flash.set("Transfer Order updated successfully!", "success")
-            redirect(URL("employees/postings_transfers"))
+                if joining_status == 'JOINED' and to_posting_place:
+                    db.executesql("""
+                    UPDATE employees SET
+                        current_posting_place = %s,
+                        emp_department = %s,
+                        emp_designation = %s,
+                        emp_grade = %s
+                    WHERE emp_id = %s AND cid = %s
+                    """, [to_posting_place, to_department, to_designation, to_grade, emp_id, cid])
+
+                db.commit()
+                flash.set("Transfer order issued successfully!", "success")
+                redirect(URL("employees/postings_transfers"))
+
         except Exception as e:
-            flash.set(f"Failed to update transfer order: {str(e)}", "danger")
-            return dict(user_cid=user_cid, item=item, form_data=form_data, emp=emp)
+            flash.set(f"Error issuing transfer order: {str(e)}", "danger")
+            return dict(user_cid=user_cid, item=item, emp=emp)
 
-    return dict(user_cid=user_cid, item=item, form_data=form_data, emp=emp)
+    return dict(user_cid=user_cid, item=item, emp=emp)
 
 
 @action("employees/delete_transfer/<transfer_id:int>")
@@ -1323,148 +1367,6 @@ def delete_transfer(transfer_id=None):
         flash.set("Invalid Transfer Order ID.", "danger")
     redirect(URL("employees/postings_transfers"))
 
-
-
-@action("employees/add_transfer", method=["GET", "POST"])
-@view_page("employees/add_transfer.html", title="Issue Transfer Order")
-@web_auth_required
-def add_transfer():
-    user_cid = session.user.get("cid", "")
-    lookup_id = request.query.get("lookup_id", "").strip()
-    query_cid = request.query.get("cid", "").strip()
-    emp = None
-
-    if lookup_id:
-        search_cid = user_cid if user_cid else query_cid
-        if search_cid:
-            emp_res = db.executesql(
-                "SELECT emp_id, emp_name, emp_designation, emp_department, current_branch_id, emp_grade, cid FROM employees WHERE emp_id = %s AND cid = %s AND status_type = 'ACTIVE' LIMIT 1",
-                [lookup_id, search_cid],
-                as_dict=True
-            )
-            emp = emp_res[0] if emp_res else None
-        else:
-            emp_res = db.executesql(
-                "SELECT emp_id, emp_name, emp_designation, emp_department, current_branch_id, emp_grade, cid FROM employees WHERE emp_id = %s AND status_type = 'ACTIVE' LIMIT 1",
-                [lookup_id],
-                as_dict=True
-            )
-            emp = emp_res[0] if emp_res else None
-
-    if request.method == "POST":
-        try:
-            def clean_val(val):
-                val = str(val).strip() if val else None
-                return val if val != "" else None
-
-            cid = user_cid if user_cid else clean_val(request.forms.get("cid"))
-            if not cid and emp:
-                cid = emp.get("cid")
-
-            if not cid:
-                flash.set("Company ID (CID) is required.", "danger")
-                return dict(emp=emp, user_cid=user_cid)
-
-            if not user_cid:
-                comp_check = db.executesql("SELECT cid FROM companies WHERE cid = %s LIMIT 1", [cid.upper()], as_dict=True)
-                if not comp_check:
-                    flash.set(f"Invalid CID '{cid}'. Company does not exist.", "danger")
-                    return dict(emp=emp, user_cid=user_cid)
-                cid = comp_check[0]['cid']
-
-            emp_id = clean_val(request.forms.get("emp_id"))
-            if not emp_id:
-                flash.set("Official ID is required.", "danger")
-                return dict(emp=emp, user_cid=user_cid)
-
-            # Validate employee exists in target company
-            emp_check = db.executesql(
-                "SELECT emp_id, emp_name, emp_designation, emp_department, current_branch_id, emp_grade FROM employees WHERE emp_id = %s AND cid = %s LIMIT 1",
-                [emp_id, cid],
-                as_dict=True
-            )
-            if not emp_check:
-                flash.set(f"'{emp_id}' does not exis '{cid}'. Please enter a valid ID.", "danger")
-                return dict(emp=emp, user_cid=user_cid)
-
-            transfer_order_no = clean_val(request.forms.get("transfer_order_no"))
-            transfer_type = clean_val(request.forms.get("transfer_type")) or "ADMINISTRATIVE"
-            from_branch_id = clean_val(request.forms.get("from_branch_id")) or clean_val(request.forms.get("from_posting_place"))
-            to_branch_id = clean_val(request.forms.get("to_branch_id")) or clean_val(request.forms.get("to_posting_place"))
-            from_department = clean_val(request.forms.get("from_department"))
-            to_department = clean_val(request.forms.get("to_department"))
-            from_designation = clean_val(request.forms.get("from_designation"))
-            to_designation = clean_val(request.forms.get("to_designation"))
-            from_grade = clean_val(request.forms.get("from_grade"))
-            to_grade = clean_val(request.forms.get("to_grade"))
-            order_date = clean_val(request.forms.get("order_date")) or db_datetime.strftime('%Y-%m-%d')
-            release_date = clean_val(request.forms.get("release_date"))
-            expected_joining_date = clean_val(request.forms.get("expected_joining_date"))
-            actual_joining_date = clean_val(request.forms.get("actual_joining_date"))
-            transfer_reason = clean_val(request.forms.get("transfer_reason"))
-            note = clean_val(request.forms.get("note"))
-            joining_status = clean_val(request.forms.get("joining_status")) or "PENDING"
-
-            status_type = "COMPLETED" if joining_status in ["JOINED", "COMPLETED"] else joining_status
-
-            if emp_id and transfer_order_no and to_branch_id and order_date and release_date and expected_joining_date and to_department and to_designation and to_grade:
-                if not from_branch_id or not from_department or not from_designation or not from_grade:
-                    ec = emp_check[0]
-                    if not from_branch_id: from_branch_id = ec.get('current_branch_id') or "HO_DHAKA"
-                    if not from_department: from_department = ec.get('emp_department')
-                    if not from_designation: from_designation = ec.get('emp_designation')
-                    if not from_grade: from_grade = ec.get('emp_grade')
-                
-                if not from_branch_id:
-                    from_branch_id = "HO_DHAKA"
-
-                insert_sql = """
-                INSERT INTO employee_transfers (
-                    cid, emp_id, transfer_order_no, transfer_type, transfer_reason,
-                    from_branch_id, to_branch_id, from_department, to_department,
-                    from_designation, to_designation, from_grade, to_grade, order_date, release_date,
-                    expected_joining_date, actual_joining_date, joining_status,
-                    note, status_type, created_on, created_by
-                ) VALUES (
-                    %s, %s, %s, %s, %s,
-                    %s, %s, %s, %s,
-                    %s, %s, %s, %s, %s, %s,
-                    %s, %s, %s,
-                    %s, %s, %s, %s
-                )
-                """
-                user_id = session.user.get('user_id', '') if (session and session.user) else ''
-                values = (
-                    cid, emp_id, transfer_order_no, transfer_type, transfer_reason,
-                    from_branch_id, to_branch_id, from_department, to_department,
-                    from_designation, to_designation, from_grade, to_grade, order_date, release_date,
-                    expected_joining_date, actual_joining_date, joining_status,
-                    note, status_type, db_datetime, user_id
-                )
-                db.executesql(insert_sql, values)
-
-                if joining_status in ['JOINED', 'COMPLETED']:
-                    update_emp_sql = """
-                    UPDATE employees SET
-                        current_branch_id = %s,
-                        emp_department = COALESCE(%s, emp_department),
-                        emp_designation = COALESCE(%s, emp_designation),
-                        current_branch_join_date = COALESCE(%s, current_branch_join_date)
-                    WHERE emp_id = %s AND cid = %s
-                    """
-                    db.executesql(update_emp_sql, (to_branch_id, to_department, to_designation, actual_joining_date or expected_joining_date or order_date, emp_id, cid))
-
-                db.commit()
-                flash.set("Transfer Order issued successfully!", "success")
-                emp = None
-                redirect(URL("employees/postings_transfers"))
-            else:
-                flash.set("Please fill in all required fields marked with *.", "danger")
-        except Exception as e:
-            print(f"Error creating transfer order: {e}")
-            flash.set(f"Failed to issue transfer order: {str(e)}", "danger")
-
-    return dict(emp=emp, user_cid=user_cid)
 
 
 @action("employees/import_transfer", method=["GET", "POST"])

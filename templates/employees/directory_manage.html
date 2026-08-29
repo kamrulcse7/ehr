@@ -1,5 +1,6 @@
 [[extend 'layout.html']]
-[[ form_data = form_data if 'form_data' in locals() and form_data else (emp if 'emp' in locals() and emp else {}) ]]
+[[ emp = emp if 'emp' in locals() and emp else None ]]
+[[ form_data = form_data if 'form_data' in locals() and form_data else (dict(emp) if emp else {}) ]]
 
 <div class="w-full space-y-4 text-slate-700 dark:text-slate-200">
     <div class="max-w-[1800px] mx-auto space-y-4">
@@ -11,7 +12,7 @@
                 <span class="material-symbols-outlined text-[12px] text-slate-400 dark:text-slate-600 select-none -mx-0.5">chevron_right</span>
                 <a href="[[=URL('employees/employee_directory')]]" class="text-slate-400 dark:text-slate-500 hover:text-primary transition-colors">[[= globals().get('active_child_title') or 'Employee Directory' ]]</a>
                 <span class="material-symbols-outlined text-[12px] text-slate-400 dark:text-slate-600 select-none -mx-0.5">chevron_right</span>
-                <span class="text-primary font-bold">Edit Directory</span>
+                <span class="text-primary font-bold">[[= 'Edit Directory' if emp else 'Add Directory' ]]</span>
             </div>
             <a href="[[=URL('employees/employee_directory')]]"
                 class="h-7 px-2.5 bg-slate-200 hover:bg-slate-300 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 rounded-md text-xs font-semibold transition-all inline-flex items-center gap-1 shrink-0">
@@ -21,7 +22,7 @@
         </div>
 
         <!-- FORM START -->
-        <form action="[[=URL('employees/edit_directory', emp.get('id'))]]" method="POST" enctype="multipart/form-data" id="employeeForm"
+        <form action="[[=URL('employees/directory_manage', emp.get('id')) if emp else URL('employees/directory_manage')]]" method="POST" enctype="multipart/form-data" id="employeeForm"
             autocomplete="off" class="space-y-4">
 
             <!-- SECTION 1: PERSONAL DETAILS CARD -->
@@ -37,45 +38,50 @@
 
                     [[ if not user_cid: ]]
                     <div>
-                        <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 mb-1">Company ID (CID)</label>
-                        <input type="text" name="cid" value="[[=form_data.get('cid', '')]]" readonly
+                        <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 mb-1">Company ID (CID) [[ if not emp: ]]<span class="text-rose-500">*</span>[[ pass ]]</label>
+                        [[ if emp: ]]
+                        <input type="text" name="cid" value="[[=form_data.get('cid') or '']]" readonly
                             class="w-full px-3 py-2 bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-semibold text-slate-500 dark:text-slate-400 font-mono cursor-not-allowed select-none">
+                        [[ else: ]]
+                        <input type="text" name="cid" value="[[=form_data.get('cid') or '']]" required placeholder="e.g. EON"
+                            class="w-full px-3 py-2 bg-slate-50/50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-semibold uppercase text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all">
+                        [[ pass ]]
                     </div>
                     [[ pass ]]
 
                     <div>
                         <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 mb-1">Full Name <span class="text-rose-500">*</span></label>
-                        <input type="text" name="emp_name" value="[[=form_data.get('emp_name', '')]]" required placeholder="Enter full name"
+                        <input type="text" name="emp_name" value="[[=form_data.get('emp_name') or '']]" required placeholder="Enter full name"
                             class="w-full px-3 py-2 bg-slate-50/50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-semibold text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all">
                     </div>
 
                     <div>
                         <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 mb-1">Mobile Number <span class="text-rose-500">*</span></label>
-                        <input type="tel" name="mobile" value="[[=form_data.get('mobile', '')]]" required placeholder="01711000000"
+                        <input type="tel" name="mobile" value="[[=form_data.get('mobile') or '']]" required placeholder="01711000000"
                             class="w-full px-3 py-2 bg-slate-50/50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-medium text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all">
                     </div>
 
                     <div>
                         <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 mb-1">Email Address</label>
-                        <input type="email" name="email" value="[[=form_data.get('email', '')]]" placeholder="example@domain.com"
+                        <input type="email" name="email" value="[[=form_data.get('email') or '']]" placeholder="example@domain.com"
                             class="w-full px-3 py-2 bg-slate-50/50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-medium text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all">
                     </div>
 
                     <div>
                         <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 mb-1">NID Number</label>
-                        <input type="text" name="nid_number" value="[[=form_data.get('nid_number', '')]]" placeholder="NID Number"
+                        <input type="text" name="nid_number" value="[[=form_data.get('nid_number') or '']]" placeholder="NID Number"
                             class="w-full px-3 py-2 bg-slate-50/50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-medium text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all">
                     </div>
 
                     <div>
                         <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 mb-1">Date of Birth (DOB) <span class="text-rose-500">*</span></label>
-                        <input type="date" name="dob" value="[[=form_data.get('dob', '')]]" required
+                        <input type="date" name="dob" value="[[=form_data.get('dob') or '']]" required
                             class="w-full px-3 py-2 bg-slate-50/50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-medium text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all">
                     </div>
 
                     <!-- Gender Custom Dropdown -->
                     <div class="relative w-full custom-dropdown-container">
-                        [[ cur_gender = str(form_data.get('gender') or '').upper() ]]
+                        [[ cur_gender = form_data.get('gender') or '' ]]
                         [[ display_gender = 'Male' if cur_gender == 'MALE' else 'Female' if cur_gender == 'FEMALE' else 'Other' if cur_gender == 'OTHER' else 'Select Gender' ]]
                         <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 mb-1">Gender <span class="text-rose-500">*</span></label>
                         
@@ -124,7 +130,7 @@
 
                     <div>
                         <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 mb-1">Education Qualification</label>
-                        <input type="text" name="edu_qualification" value="[[=form_data.get('edu_qualification', '')]]"
+                        <input type="text" name="edu_qualification" value="[[=form_data.get('edu_qualification') or '']]"
                             placeholder="e.g. B.Sc. in Computer Science & Engineering"
                             class="w-full px-3 py-2 bg-slate-50/50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-medium text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all">
                     </div>
@@ -144,14 +150,19 @@
                 <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3.5">
 
                     <div>
-                        <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 mb-1">Official ID</label>
-                        <input type="text" name="emp_id" value="[[=form_data.get('emp_id', '')]]" readonly
+                        <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 mb-1">Official ID [[ if not emp: ]]<span class="text-rose-500">*</span>[[ pass ]]</label>
+                        [[ if emp: ]]
+                        <input type="text" name="emp_id" value="[[=form_data.get('emp_id') or '']]" readonly
                             class="w-full px-3 py-2 bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-semibold text-slate-500 dark:text-slate-400 font-mono cursor-not-allowed select-none">
+                        [[ else: ]]
+                        <input type="text" name="emp_id" value="[[=form_data.get('emp_id') or '']]" required placeholder="EMP-00101"
+                            class="w-full px-3 py-2 bg-slate-50/50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-semibold text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all">
+                        [[ pass ]]
                     </div>
 
                     <!-- Service Type Custom Dropdown -->
                     <div class="relative w-full custom-dropdown-container">
-                        [[ cur_emptype = str(form_data.get('emp_type', 'PERMANENT')).upper() ]]
+                        [[ cur_emptype = form_data.get('emp_type') or 'PERMANENT' ]]
                         <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 mb-1">Service Type <span class="text-rose-500">*</span></label>
                         
                         <input type="hidden" name="emp_type" id="emp_type_hidden_input" value="[[= cur_emptype ]]" required>
@@ -172,31 +183,31 @@
 
                     <div>
                         <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 mb-1">Department <span class="text-rose-500">*</span></label>
-                        <input type="text" name="emp_department" value="[[=form_data.get('emp_department', '')]]" required placeholder="e.g. Software Development"
+                        <input type="text" name="emp_department" value="[[=form_data.get('emp_department') or '']]" required placeholder="e.g. Software Development"
                             class="w-full px-3 py-2 bg-slate-50/50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-semibold text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all">
                     </div>
 
                     <div>
                         <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 mb-1">Designation <span class="text-rose-500">*</span></label>
-                        <input type="text" name="emp_designation" value="[[=form_data.get('emp_designation', '')]]" required placeholder="e.g. Software Engineer"
+                        <input type="text" name="emp_designation" value="[[=form_data.get('emp_designation') or '']]" required placeholder="e.g. Software Engineer"
                             class="w-full px-3 py-2 bg-slate-50/50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-semibold text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all">
                     </div>
 
                     <div>
                         <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 mb-1">Grade</label>
-                        <input type="text" name="emp_grade" value="[[=form_data.get('emp_grade', '')]]" placeholder="e.g. Grade-2"
+                        <input type="text" name="emp_grade" value="[[=form_data.get('emp_grade') or '']]" placeholder="e.g. Grade-2"
                             class="w-full px-3 py-2 bg-slate-50/50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-medium text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all">
                     </div>
 
                     <div>
                         <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 mb-1">Join Date <span class="text-rose-500">*</span></label>
-                        <input type="date" name="join_date" value="[[=form_data.get('join_date', '')]]" required
+                        <input type="date" name="join_date" value="[[=form_data.get('join_date') or '']]" required
                             class="w-full px-3 py-2 bg-slate-50/50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-medium text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all">
                     </div>
 
                     <div>
                         <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 mb-1">Retirement Date</label>
-                        <input type="date" name="retirement_date" value="[[=form_data.get('retirement_date', '')]]"
+                        <input type="date" name="retirement_date" value="[[=form_data.get('retirement_date') or '']]"
                             class="w-full px-3 py-2 bg-slate-50/50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-medium text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all">
                     </div>
 
@@ -223,7 +234,7 @@
                                 <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 mb-1">
                                     Home District <span class="text-rose-500">*</span>
                                 </label>
-                                <input type="text" name="home_district" value="[[=form_data.get('home_district', '')]]" placeholder="e.g. Dhaka" required
+                                <input type="text" name="home_district" value="[[=form_data.get('home_district') or '']]" placeholder="e.g. Dhaka" required
                                     class="w-full px-3 py-2 bg-slate-50/50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-medium text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all">
                             </div>
 
@@ -231,7 +242,7 @@
                                 <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 mb-1">
                                     Present Address <span class="text-rose-500">*</span>
                                 </label>
-                                <input type="text" name="present_address" value="[[=form_data.get('present_address', '')]]" placeholder="House/Street, Area..." required
+                                <input type="text" name="present_address" value="[[=form_data.get('present_address') or '']]" placeholder="House/Street, Area..." required
                                     class="w-full px-3 py-2 bg-slate-50/50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-medium text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all">
                             </div>
 
@@ -239,7 +250,7 @@
                                 <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 mb-1">
                                     Permanent Address <span class="text-rose-500">*</span>
                                 </label>
-                                <input type="text" name="permanent_address" value="[[=form_data.get('permanent_address', '')]]" placeholder="Village/Street, Upazila..." required
+                                <input type="text" name="permanent_address" value="[[=form_data.get('permanent_address') or '']]" placeholder="Village/Street, Upazila..." required
                                     class="w-full px-3 py-2 bg-slate-50/50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-medium text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all">
                             </div>
                         </div>
@@ -250,7 +261,7 @@
                                 Note / Comments
                             </label>
                             <textarea name="note" rows="2" placeholder="Additional notes..."
-                                class="w-full px-3 py-2 bg-slate-50/50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-medium text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all resize-none">[[=form_data.get('note', '')]]</textarea>
+                                class="w-full px-3 py-2 bg-slate-50/50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-medium text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all resize-none">[[=form_data.get('note') or '']]</textarea>
                         </div>
 
                     </div>
@@ -264,11 +275,10 @@
                             <span class="text-[8px] text-slate-400 font-normal">(120KB)</span>
                         </div>
 
-                        [[ photo_raw = form_data.get('photo_url') or '' ]]
-                        [[ photo_src = photo_raw if (photo_raw.startswith('http://') or photo_raw.startswith('https://') or photo_raw.startswith('/')) else URL('static/uploads/emp_images', photo_raw) if photo_raw else '' ]]
-
-                        <!-- Hidden Flag for Explicit Photo Removal -->
                         <input type="hidden" name="remove_photo" id="removePhotoInput" value="0">
+
+                        [[ photo_raw = form_data.get('photo_url') or (emp.get('photo_url') if emp else '') ]]
+                        [[ photo_src = photo_raw if (photo_raw.startswith('http://') or photo_raw.startswith('https://') or photo_raw.startswith('/')) else URL('static/uploads/emp_images', photo_raw) if photo_raw else '' ]]
 
                         <div id="dropzone"
                             class="relative flex-1 w-full min-h-[100px] border-2 border-dashed border-slate-200 dark:border-slate-800 hover:border-primary dark:hover:border-primary rounded-2xl flex flex-col items-center justify-center bg-slate-50/50 dark:bg-slate-800/30 transition-all duration-200 group cursor-pointer overflow-hidden p-2">
@@ -297,7 +307,6 @@
                                 class="[[= '' if photo_src else 'hidden' ]] absolute inset-0 flex items-center justify-center bg-white dark:bg-slate-900 pointer-events-none z-20 p-2">
                                 <div class="relative w-full h-full flex items-center justify-center pointer-events-auto">
                                     <img id="imagePreview" src="[[= photo_src or '#' ]]" alt="Preview"
-                                        onerror="handleImagePreviewError()"
                                         class="h-16 w-16 object-cover rounded-full border border-primary/20">
 
                                     <button type="button" onclick="clearSelectedImage(event)" title="Remove Image"
@@ -324,7 +333,7 @@
                 <button type="submit" id="submitBtn"
                     class="h-7 px-3.5 bg-primary hover:opacity-90 active:scale-[0.98] text-white rounded-md text-xs font-semibold shadow-xs transition-all flex items-center gap-1 justify-center cursor-pointer">
                     <span class="material-symbols-outlined text-[15px]">save</span>
-                    Save Changes
+                    <span>[[= 'Update' if emp else 'Save' ]]</span>
                 </button>
             </div>
 
@@ -338,10 +347,10 @@
         window.history.replaceState(null, null, window.location.href);
     }
 
-    [[ if request.method == 'GET': ]]
+    [[ if not form_data: ]]
     try {
-        sessionStorage.removeItem('pending_emp_photo_edit');
-        sessionStorage.removeItem('pending_emp_photo_edit_name');
+        sessionStorage.removeItem('pending_emp_photo');
+        sessionStorage.removeItem('pending_emp_photo_name');
     } catch (e) {}
     [[ pass ]]
 
@@ -370,6 +379,7 @@
         errorEl.textContent = '';
 
         if (file) {
+            // Max size validation (120KB)
             const maxSize = 120 * 1024;
             if (file.size > maxSize) {
                 errorEl.textContent = `File size (${(file.size / 1024).toFixed(1)}KB) exceeds 120KB limit!`;
@@ -378,6 +388,7 @@
                 return;
             }
 
+            // Preview Image
             const reader = new FileReader();
             reader.onload = function (e) {
                 previewImg.src = e.target.result;
@@ -385,8 +396,8 @@
                 previewContainer.classList.remove('hidden');
                 if (removeInput) removeInput.value = '0';
                 try {
-                    sessionStorage.setItem('pending_emp_photo_edit', e.target.result);
-                    sessionStorage.setItem('pending_emp_photo_edit_name', file.name);
+                    sessionStorage.setItem('pending_emp_photo', e.target.result);
+                    sessionStorage.setItem('pending_emp_photo_name', file.name);
                 } catch (err) {}
             };
             reader.readAsDataURL(file);
@@ -403,13 +414,6 @@
         resetImageField();
     }
 
-    function handleImagePreviewError() {
-        const placeholder = document.getElementById('uploadPlaceholder');
-        const previewContainer = document.getElementById('imagePreviewContainer');
-        if (previewContainer) previewContainer.classList.add('hidden');
-        if (placeholder) placeholder.classList.remove('hidden');
-    }
-
     function resetImageField() {
         const input = document.getElementById('empPhotoInput');
         const placeholder = document.getElementById('uploadPlaceholder');
@@ -423,8 +427,8 @@
         if (previewContainer) previewContainer.classList.add('hidden');
         if (removeInput) removeInput.value = '1';
         try {
-            sessionStorage.removeItem('pending_emp_photo_edit');
-            sessionStorage.removeItem('pending_emp_photo_edit_name');
+            sessionStorage.removeItem('pending_emp_photo');
+            sessionStorage.removeItem('pending_emp_photo_name');
         } catch (err) {}
     }
 
@@ -479,8 +483,8 @@
 
     function restorePendingImage() {
         try {
-            const savedData = sessionStorage.getItem('pending_emp_photo_edit');
-            const savedName = sessionStorage.getItem('pending_emp_photo_edit_name') || 'uploaded_photo.jpg';
+            const savedData = sessionStorage.getItem('pending_emp_photo');
+            const savedName = sessionStorage.getItem('pending_emp_photo_name') || 'uploaded_photo.jpg';
             if (savedData) {
                 const file = dataURLtoFile(savedData, savedName);
                 const input = document.getElementById('empPhotoInput');
@@ -492,11 +496,9 @@
                 const previewImg = document.getElementById('imagePreview');
                 const placeholder = document.getElementById('uploadPlaceholder');
                 const previewContainer = document.getElementById('imagePreviewContainer');
-                const removeInput = document.getElementById('removePhotoInput');
                 if (previewImg) previewImg.src = savedData;
                 if (placeholder) placeholder.classList.add('hidden');
                 if (previewContainer) previewContainer.classList.remove('hidden');
-                if (removeInput) removeInput.value = '0';
             }
         } catch (e) {}
     }
