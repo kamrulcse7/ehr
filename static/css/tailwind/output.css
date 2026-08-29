@@ -1066,6 +1066,10 @@ html.dark body {
   height: 34px;
 }
 
+.h-\[106px\] {
+  height: 106px;
+}
+
 .max-h-0 {
   max-height: 0px;
 }
@@ -1236,6 +1240,10 @@ html.dark body {
 
 .w-12 {
   width: 3rem;
+}
+
+.w-\[34px\] {
+  width: 34px;
 }
 
 .min-w-0 {

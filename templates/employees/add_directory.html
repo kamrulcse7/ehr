@@ -22,331 +22,300 @@
 
         <!-- FORM START -->
         <form action="[[=URL('employees/add_directory')]]" method="POST" enctype="multipart/form-data" id="employeeForm"
-            autocomplete="off"
-            class="bg-white dark:bg-slate-900 rounded-lg border border-slate-200 dark:border-slate-800 shadow-xs overflow-hidden">
+            autocomplete="off" class="space-y-4">
 
-            <div class="p-4 space-y-4">
-
-                <!-- SECTION 1: PERSONAL DETAILS -->
-                <div
-                    class="p-3.5 bg-slate-50/50 dark:bg-slate-950/40 rounded-lg border border-slate-200/60 dark:border-slate-800/60">
-                    <h3
-                        class="text-[11px] font-bold uppercase tracking-wider text-primary pb-2 mb-3 border-b border-slate-200 dark:border-slate-800 flex items-center gap-1.5">
-                        <span class="material-symbols-outlined text-[16px]">badge</span> Personal Details
-                    </h3>
-                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
-
-                        [[ if not user_cid: ]]
-                        <div>
-                            <label
-                                class="block text-[11px] font-semibold text-slate-700 dark:text-slate-300 mb-1">Company ID (CID) <span class="text-rose-500">*</span></label>
-                            <input type="text" name="cid" value="[[=form_data.get('cid', '')]]" required placeholder="e.g. EON"
-                                class="w-full h-8 px-2.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-md text-xs text-slate-800 dark:text-slate-200 focus:outline-none focus:border-primary transition-all">
-                        </div>
-                        [[ pass ]]
-
-                        <div>
-                            <label class="block text-[11px] font-semibold text-slate-700 dark:text-slate-300 mb-1">Full
-                                Name <span class="text-rose-500">*</span></label>
-                            <input type="text" name="emp_name" value="[[=form_data.get('emp_name', '')]]" required placeholder="Enter full name"
-                                class="w-full h-8 px-2.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-md text-xs text-slate-800 dark:text-slate-200 focus:outline-none focus:border-primary transition-all">
-                        </div>
-
-                        <div>
-                            <label
-                                class="block text-[11px] font-semibold text-slate-700 dark:text-slate-300 mb-1">Mobile
-                                Number <span class="text-rose-500">*</span></label>
-                            <input type="tel" name="mobile" value="[[=form_data.get('mobile', '')]]" required placeholder="01711000000"
-                                class="w-full h-8 px-2.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-md text-xs text-slate-800 dark:text-slate-200 focus:outline-none focus:border-primary transition-all">
-                        </div>
-
-                        <div>
-                            <label class="block text-[11px] font-semibold text-slate-700 dark:text-slate-300 mb-1">Email
-                                Address</label>
-                            <input type="email" name="email" value="[[=form_data.get('email', '')]]" placeholder="example@domain.com"
-                                class="w-full h-8 px-2.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-md text-xs text-slate-800 dark:text-slate-200 focus:outline-none focus:border-primary transition-all">
-                        </div>
-
-                        <div>
-                            <label class="block text-[11px] font-semibold text-slate-700 dark:text-slate-300 mb-1">NID
-                                Number</label>
-                            <input type="text" name="nid_number" value="[[=form_data.get('nid_number', '')]]" placeholder="NID Number"
-                                class="w-full h-8 px-2.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-md text-xs text-slate-800 dark:text-slate-200 focus:outline-none focus:border-primary transition-all">
-                        </div>
-
-                        <div>
-                            <label class="block text-[11px] font-semibold text-slate-700 dark:text-slate-300 mb-1">Date
-                                of Birth (DOB)  <span class="text-rose-500">*</span></label>
-                            <input type="date" name="dob" value="[[=form_data.get('dob', '')]]" required
-                                class="w-full h-8 px-2.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-md text-xs text-slate-800 dark:text-slate-200 focus:outline-none focus:border-primary transition-all">
-                        </div>
-
-                        <!-- Gender Custom Dropdown -->
-                        <div class="relative w-full custom-dropdown-container">
-                            [[ cur_gender = form_data.get('gender') or '' ]]
-                            [[ display_gender = 'Male' if cur_gender == 'MALE' else 'Female' if cur_gender == 'FEMALE' else 'Other' if cur_gender == 'OTHER' else 'Select Gender' ]]
-                            <label class="block text-[11px] font-semibold text-slate-700 dark:text-slate-300 mb-1">Gender <span class="text-rose-500">*</span></label>
-                            
-                            <input type="hidden" name="gender" id="gender_hidden_input" value="[[= cur_gender ]]" required>
-                            
-                            <button type="button" onclick="toggleCustomDropdown('gender', false)"
-                                class="w-full h-8 px-2.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-md text-xs text-slate-800 dark:text-slate-200 focus:outline-none focus:border-primary transition-all flex items-center justify-between cursor-pointer">
-                                <span id="gender_selected_text" class="truncate">[[= display_gender ]]</span>
-                                <span class="material-symbols-outlined text-slate-400 text-[18px] shrink-0 transition-transform duration-200 custom-dropdown-arrow" id="gender_arrow_icon">expand_more</span>
-                            </button>
-
-                            <div id="gender_dropdown_menu" class="custom-dropdown-menu hidden absolute left-0 right-0 top-full mt-1 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl shadow-xl z-50 p-1.5 space-y-0.5 min-w-[120px]">
-                                <button type="button" onclick="selectCustomOption('gender', '', 'Select Gender')" class="gender-option-item w-full text-left px-2.5 py-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 font-medium text-xs transition-colors">Select Gender</button>
-                                <button type="button" onclick="selectCustomOption('gender', 'MALE', 'Male')" class="gender-option-item w-full text-left px-2.5 py-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 font-medium text-xs transition-colors">Male</button>
-                                <button type="button" onclick="selectCustomOption('gender', 'FEMALE', 'Female')" class="gender-option-item w-full text-left px-2.5 py-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 font-medium text-xs transition-colors">Female</button>
-                                <button type="button" onclick="selectCustomOption('gender', 'OTHER', 'Other')" class="gender-option-item w-full text-left px-2.5 py-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 font-medium text-xs transition-colors">Other</button>
-                            </div>
-                        </div>
-
-                        <!-- Blood Group Custom Dropdown -->
-                        <div class="relative w-full custom-dropdown-container">
-                            [[ cur_bg = form_data.get('blood_group') or '' ]]
-                            [[ display_bg = cur_bg if cur_bg else 'Select Group' ]]
-                            <label class="block text-[11px] font-semibold text-slate-700 dark:text-slate-300 mb-1">Blood Group</label>
-                            
-                            <input type="hidden" name="blood_group" id="blood_group_hidden_input" value="[[= cur_bg ]]">
-                            
-                            <button type="button" onclick="toggleCustomDropdown('blood_group', false)"
-                                class="w-full h-8 px-2.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-md text-xs text-slate-800 dark:text-slate-200 focus:outline-none focus:border-primary transition-all flex items-center justify-between cursor-pointer">
-                                <span id="blood_group_selected_text" class="truncate">[[= display_bg ]]</span>
-                                <span class="material-symbols-outlined text-slate-400 text-[18px] shrink-0 transition-transform duration-200 custom-dropdown-arrow" id="blood_group_arrow_icon">expand_more</span>
-                            </button>
-
-                            <div id="blood_group_dropdown_menu" class="custom-dropdown-menu hidden absolute left-0 right-0 top-full mt-1 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl shadow-xl z-50 p-1.5 space-y-0.5 min-w-[120px] max-h-48 overflow-y-auto">
-                                <button type="button" onclick="selectCustomOption('blood_group', '', 'Select Group')" class="blood_group-option-item w-full text-left px-2.5 py-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 font-medium text-xs transition-colors">Select Group</button>
-                                <button type="button" onclick="selectCustomOption('blood_group', 'A+', 'A+')" class="blood_group-option-item w-full text-left px-2.5 py-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 font-medium text-xs transition-colors">A+</button>
-                                <button type="button" onclick="selectCustomOption('blood_group', 'A-', 'A-')" class="blood_group-option-item w-full text-left px-2.5 py-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 font-medium text-xs transition-colors">A-</button>
-                                <button type="button" onclick="selectCustomOption('blood_group', 'B+', 'B+')" class="blood_group-option-item w-full text-left px-2.5 py-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 font-medium text-xs transition-colors">B+</button>
-                                <button type="button" onclick="selectCustomOption('blood_group', 'B-', 'B-')" class="blood_group-option-item w-full text-left px-2.5 py-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 font-medium text-xs transition-colors">B-</button>
-                                <button type="button" onclick="selectCustomOption('blood_group', 'O+', 'O+')" class="blood_group-option-item w-full text-left px-2.5 py-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 font-medium text-xs transition-colors">O+</button>
-                                <button type="button" onclick="selectCustomOption('blood_group', 'O-', 'O-')" class="blood_group-option-item w-full text-left px-2.5 py-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 font-medium text-xs transition-colors">O-</button>
-                                <button type="button" onclick="selectCustomOption('blood_group', 'AB+', 'AB+')" class="blood_group-option-item w-full text-left px-2.5 py-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 font-medium text-xs transition-colors">AB+</button>
-                                <button type="button" onclick="selectCustomOption('blood_group', 'AB-', 'AB-')" class="blood_group-option-item w-full text-left px-2.5 py-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 font-medium text-xs transition-colors">AB-</button>
-                            </div>
-                        </div>
-
-                        <div>
-                            <label
-                                class="block text-[11px] font-semibold text-slate-700 dark:text-slate-300 mb-1">Education
-                                Qualification</label>
-                            <input type="text" name="edu_qualification" value="[[=form_data.get('edu_qualification', '')]]"
-                                placeholder="e.g. B.Sc. in Computer Science & Engineering"
-                                class="w-full h-8 px-2.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-md text-xs text-slate-800 dark:text-slate-200 focus:outline-none focus:border-primary transition-all">
-                        </div>
-
+            <!-- SECTION 1: PERSONAL DETAILS CARD -->
+            <div class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-800/80 p-5 shadow-xs space-y-4">
+                <div class="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
+                    <div class="flex items-center gap-2">
+                        <span class="material-symbols-outlined text-primary text-[20px]">badge</span>
+                        <h3 class="font-bold text-sm text-slate-900 dark:text-white">Personal Details</h3>
                     </div>
                 </div>
 
-                <!-- SECTION 2: OFFICIAL DETAILS -->
-                <div
-                    class="p-3.5 bg-slate-50/50 dark:bg-slate-950/40 rounded-lg border border-slate-200/60 dark:border-slate-800/60">
-                    <h3
-                        class="text-[11px] font-bold uppercase tracking-wider text-primary pb-2 mb-3 border-b border-slate-200 dark:border-slate-800 flex items-center gap-1.5">
-                        <span class="material-symbols-outlined text-[16px]">domain</span> Official Details
-                    </h3>
-                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3.5">
 
-                        <div>
-                            <label
-                                class="block text-[11px] font-semibold text-slate-700 dark:text-slate-300 mb-1">Official ID <span class="text-rose-500">*</span></label>
-                            <input type="text" name="emp_id" value="[[=form_data.get('emp_id', '')]]" required placeholder="EMP-00101"
-                                class="w-full h-8 px-2.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-md text-xs text-slate-800 dark:text-slate-200 focus:outline-none focus:border-primary transition-all">
-                        </div>
+                    [[ if not user_cid: ]]
+                    <div>
+                        <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 mb-1">Company ID (CID) <span class="text-rose-500">*</span></label>
+                        <input type="text" name="cid" value="[[=form_data.get('cid', '')]]" required placeholder="e.g. EON"
+                            class="w-full px-3 py-2 bg-slate-50/50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-semibold uppercase text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all">
+                    </div>
+                    [[ pass ]]
 
-                        <!-- Service Type Custom Dropdown -->
-                        <div class="relative w-full custom-dropdown-container">
-                            [[ cur_emptype = form_data.get('emp_type') or 'PERMANENT' ]]
-                            <label class="block text-[11px] font-semibold text-slate-700 dark:text-slate-300 mb-1">Service Type <span class="text-rose-500">*</span></label>
-                            
-                            <input type="hidden" name="emp_type" id="emp_type_hidden_input" value="[[= cur_emptype ]]" required>
-                            
-                            <button type="button" onclick="toggleCustomDropdown('emp_type', false)"
-                                class="w-full h-8 px-2.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-md text-xs text-slate-800 dark:text-slate-200 focus:outline-none focus:border-primary transition-all flex items-center justify-between cursor-pointer">
-                                <span id="emp_type_selected_text" class="truncate font-semibold">[[= cur_emptype ]]</span>
-                                <span class="material-symbols-outlined text-slate-400 text-[18px] shrink-0 transition-transform duration-200 custom-dropdown-arrow" id="emp_type_arrow_icon">expand_more</span>
-                            </button>
+                    <div>
+                        <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 mb-1">Full Name <span class="text-rose-500">*</span></label>
+                        <input type="text" name="emp_name" value="[[=form_data.get('emp_name', '')]]" required placeholder="Enter full name"
+                            class="w-full px-3 py-2 bg-slate-50/50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-semibold text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all">
+                    </div>
 
-                            <div id="emp_type_dropdown_menu" class="custom-dropdown-menu hidden absolute left-0 right-0 top-full mt-1 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl shadow-xl z-50 p-1.5 space-y-0.5 min-w-[120px]">
-                                <button type="button" onclick="selectCustomOption('emp_type', 'PERMANENT', 'PERMANENT')" class="emp_type-option-item w-full text-left px-2.5 py-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 font-semibold text-xs transition-colors">PERMANENT</button>
-                                <button type="button" onclick="selectCustomOption('emp_type', 'PROBATIONARY', 'PROBATIONARY')" class="emp_type-option-item w-full text-left px-2.5 py-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 font-semibold text-xs transition-colors">PROBATIONARY</button>
-                                <button type="button" onclick="selectCustomOption('emp_type', 'TEMPORARY', 'TEMPORARY')" class="emp_type-option-item w-full text-left px-2.5 py-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 font-semibold text-xs transition-colors">TEMPORARY</button>
-                                <button type="button" onclick="selectCustomOption('emp_type', 'CONTRACTUAL', 'CONTRACTUAL')" class="emp_type-option-item w-full text-left px-2.5 py-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 font-semibold text-xs transition-colors">CONTRACTUAL</button>
-                            </div>
-                        </div>
+                    <div>
+                        <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 mb-1">Mobile Number <span class="text-rose-500">*</span></label>
+                        <input type="tel" name="mobile" value="[[=form_data.get('mobile', '')]]" required placeholder="01711000000"
+                            class="w-full px-3 py-2 bg-slate-50/50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-medium text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all">
+                    </div>
 
-                        <div>
-                            <label
-                                class="block text-[11px] font-semibold text-slate-700 dark:text-slate-300 mb-1">Department
-                                <span class="text-rose-500">*</span></label>
-                            <input type="text" name="emp_department" value="[[=form_data.get('emp_department', '')]]" required placeholder="e.g. Software Development"
-                                class="w-full h-8 px-2.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-md text-xs text-slate-800 dark:text-slate-200 focus:outline-none focus:border-primary transition-all">
-                        </div>
+                    <div>
+                        <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 mb-1">Email Address</label>
+                        <input type="email" name="email" value="[[=form_data.get('email', '')]]" placeholder="example@domain.com"
+                            class="w-full px-3 py-2 bg-slate-50/50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-medium text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all">
+                    </div>
 
-                        <div>
-                            <label
-                                class="block text-[11px] font-semibold text-slate-700 dark:text-slate-300 mb-1">Designation
-                                <span class="text-rose-500">*</span></label>
-                            <input type="text" name="emp_designation" value="[[=form_data.get('emp_designation', '')]]" required placeholder="e.g. Software Engineer"
-                                class="w-full h-8 px-2.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-md text-xs text-slate-800 dark:text-slate-200 focus:outline-none focus:border-primary transition-all">
-                        </div>
+                    <div>
+                        <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 mb-1">NID Number</label>
+                        <input type="text" name="nid_number" value="[[=form_data.get('nid_number', '')]]" placeholder="NID Number"
+                            class="w-full px-3 py-2 bg-slate-50/50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-medium text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all">
+                    </div>
 
-                        <div>
-                            <label
-                                class="block text-[11px] font-semibold text-slate-700 dark:text-slate-300 mb-1">Grade</label>
-                            <input type="text" name="emp_grade" value="[[=form_data.get('emp_grade', '')]]" placeholder="e.g. Grade-2"
-                                class="w-full h-8 px-2.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-md text-xs text-slate-800 dark:text-slate-200 focus:outline-none focus:border-primary transition-all">
-                        </div>
+                    <div>
+                        <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 mb-1">Date of Birth (DOB) <span class="text-rose-500">*</span></label>
+                        <input type="date" name="dob" value="[[=form_data.get('dob', '')]]" required
+                            class="w-full px-3 py-2 bg-slate-50/50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-medium text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all">
+                    </div>
 
-                        <div>
-                            <label class="block text-[11px] font-semibold text-slate-700 dark:text-slate-300 mb-1">Join
-                                Date <span class="text-rose-500">*</span></label>
-                            <input type="date" name="join_date" value="[[=form_data.get('join_date', '')]]" required
-                                class="w-full h-8 px-2.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-md text-xs text-slate-800 dark:text-slate-200 focus:outline-none focus:border-primary transition-all">
-                        </div>
-
+                    <!-- Gender Custom Dropdown -->
+                    <div class="relative w-full custom-dropdown-container">
+                        [[ cur_gender = form_data.get('gender') or '' ]]
+                        [[ display_gender = 'Male' if cur_gender == 'MALE' else 'Female' if cur_gender == 'FEMALE' else 'Other' if cur_gender == 'OTHER' else 'Select Gender' ]]
+                        <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 mb-1">Gender <span class="text-rose-500">*</span></label>
                         
+                        <input type="hidden" name="gender" id="gender_hidden_input" value="[[= cur_gender ]]" required>
+                        
+                        <button type="button" onclick="toggleCustomDropdown('gender', false)"
+                            class="w-full h-[34px] px-3 bg-slate-50/50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-semibold text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all flex items-center justify-between cursor-pointer">
+                            <span id="gender_selected_text" class="truncate">[[= display_gender ]]</span>
+                            <span class="material-symbols-outlined text-slate-400 text-[18px] shrink-0 transition-transform duration-200 custom-dropdown-arrow" id="gender_arrow_icon">expand_more</span>
+                        </button>
 
-                        <div>
-                            <label
-                                class="block text-[11px] font-semibold text-slate-700 dark:text-slate-300 mb-1">Retirement
-                                Date</label>
-                            <input type="date" name="retirement_date" value="[[=form_data.get('retirement_date', '')]]"
-                                class="w-full h-8 px-2.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-md text-xs text-slate-800 dark:text-slate-200 focus:outline-none focus:border-primary transition-all">
+                        <div id="gender_dropdown_menu" class="custom-dropdown-menu hidden absolute left-0 right-0 top-full mt-1 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl shadow-xl z-50 p-1.5 space-y-0.5 min-w-[120px]">
+                            <button type="button" onclick="selectCustomOption('gender', '', 'Select Gender')" class="gender-option-item w-full text-left px-2.5 py-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 font-medium text-xs transition-colors">Select Gender</button>
+                            <button type="button" onclick="selectCustomOption('gender', 'MALE', 'Male')" class="gender-option-item w-full text-left px-2.5 py-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 font-medium text-xs transition-colors">Male</button>
+                            <button type="button" onclick="selectCustomOption('gender', 'FEMALE', 'Female')" class="gender-option-item w-full text-left px-2.5 py-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 font-medium text-xs transition-colors">Female</button>
+                            <button type="button" onclick="selectCustomOption('gender', 'OTHER', 'Other')" class="gender-option-item w-full text-left px-2.5 py-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 font-medium text-xs transition-colors">Other</button>
                         </div>
-
                     </div>
-                </div>
 
-                <!-- SECTION 3: ADDRESS & ATTACHMENTS -->
-                <div
-                    class="p-4 bg-slate-50/50 dark:bg-slate-950/40 rounded-xl border border-slate-200/80 dark:border-slate-800/80 shadow-xs">
-                    <h3
-                        class="text-[12px] font-bold uppercase tracking-wider text-primary pb-2 mb-3 border-b border-slate-200 dark:border-slate-800/80 flex items-center gap-2">
-                        <span class="material-symbols-outlined text-[18px]">home_pin</span> Address & Photo Attachment
-                    </h3>
+                    <!-- Blood Group Custom Dropdown -->
+                    <div class="relative w-full custom-dropdown-container">
+                        [[ cur_bg = form_data.get('blood_group') or '' ]]
+                        [[ display_bg = cur_bg if cur_bg else 'Select Group' ]]
+                        <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 mb-1">Blood Group</label>
+                        
+                        <input type="hidden" name="blood_group" id="blood_group_hidden_input" value="[[= cur_bg ]]">
+                        
+                        <button type="button" onclick="toggleCustomDropdown('blood_group', false)"
+                            class="w-full h-[34px] px-3 bg-slate-50/50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-semibold text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all flex items-center justify-between cursor-pointer">
+                            <span id="blood_group_selected_text" class="truncate">[[= display_bg ]]</span>
+                            <span class="material-symbols-outlined text-slate-400 text-[18px] shrink-0 transition-transform duration-200 custom-dropdown-arrow" id="blood_group_arrow_icon">expand_more</span>
+                        </button>
 
-                    <div class="grid grid-cols-1 lg:grid-cols-12 gap-4 items-stretch">
-
-                        <!-- Left Inputs (Grid Column 9 or 10 for wider layout) -->
-                        <div class="lg:col-span-9 xl:col-span-10 flex flex-col justify-between gap-3">
-
-                            <!-- Row 1: District, Present Address, Permanent Address -->
-                            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-                                <div>
-                                    <label
-                                        class="block text-[11px] font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                                        Home District  <span class="text-rose-500">*</span>
-                                    </label>
-                                    <input type="text" name="home_district" value="[[=form_data.get('home_district', '')]]" placeholder="e.g. Dhaka" required
-                                        class="w-full h-8 px-2.5 text-xs bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-md text-slate-800 dark:text-slate-200 placeholder:text-slate-400 focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary transition-all">
-                                </div>
-
-                                <div>
-                                    <label
-                                        class="block text-[11px] font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                                        Present Address <span class="text-rose-500">*</span>
-                                    </label>
-                                    <input type="text" name="present_address" value="[[=form_data.get('present_address', '')]]" placeholder="House/Street, Area..." required
-                                        class="w-full h-8 px-2.5 text-xs bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-md text-slate-800 dark:text-slate-200 placeholder:text-slate-400 focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary transition-all">
-                                </div>
-
-                                <div>
-                                    <label
-                                        class="block text-[11px] font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                                        Permanent Address <span class="text-rose-500">*</span>
-                                    </label>
-                                    <input type="text" name="permanent_address" value="[[=form_data.get('permanent_address', '')]]" placeholder="Village/Street, Upazila..." required
-                                        class="w-full h-8 px-2.5 text-xs bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-md text-slate-800 dark:text-slate-200 placeholder:text-slate-400 focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary transition-all">
-                                </div>
-                            </div>
-
-                            <!-- Row 2: Note / Comments -->
-                            <div>
-                                <label class="block text-[11px] font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                                    Note / Comments
-                                </label>
-                                <textarea name="note" rows="2" placeholder="Additional notes..."
-                                    class="w-full px-2.5 py-1.5 text-xs bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-md text-slate-800 dark:text-slate-200 placeholder:text-slate-400 focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary transition-all resize-none">[[=form_data.get('note', '')]]</textarea>
-                            </div>
-
+                        <div id="blood_group_dropdown_menu" class="custom-dropdown-menu hidden absolute left-0 right-0 top-full mt-1 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl shadow-xl z-50 p-1.5 space-y-0.5 min-w-[120px] max-h-48 overflow-y-auto">
+                            <button type="button" onclick="selectCustomOption('blood_group', '', 'Select Group')" class="blood_group-option-item w-full text-left px-2.5 py-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 font-medium text-xs transition-colors">Select Group</button>
+                            <button type="button" onclick="selectCustomOption('blood_group', 'A+', 'A+')" class="blood_group-option-item w-full text-left px-2.5 py-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 font-medium text-xs transition-colors">A+</button>
+                            <button type="button" onclick="selectCustomOption('blood_group', 'A-', 'A-')" class="blood_group-option-item w-full text-left px-2.5 py-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 font-medium text-xs transition-colors">A-</button>
+                            <button type="button" onclick="selectCustomOption('blood_group', 'B+', 'B+')" class="blood_group-option-item w-full text-left px-2.5 py-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 font-medium text-xs transition-colors">B+</button>
+                            <button type="button" onclick="selectCustomOption('blood_group', 'B-', 'B-')" class="blood_group-option-item w-full text-left px-2.5 py-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 font-medium text-xs transition-colors">B-</button>
+                            <button type="button" onclick="selectCustomOption('blood_group', 'O+', 'O+')" class="blood_group-option-item w-full text-left px-2.5 py-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 font-medium text-xs transition-colors">O+</button>
+                            <button type="button" onclick="selectCustomOption('blood_group', 'O-', 'O-')" class="blood_group-option-item w-full text-left px-2.5 py-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 font-medium text-xs transition-colors">O-</button>
+                            <button type="button" onclick="selectCustomOption('blood_group', 'AB+', 'AB+')" class="blood_group-option-item w-full text-left px-2.5 py-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 font-medium text-xs transition-colors">AB+</button>
+                            <button type="button" onclick="selectCustomOption('blood_group', 'AB-', 'AB-')" class="blood_group-option-item w-full text-left px-2.5 py-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 font-medium text-xs transition-colors">AB-</button>
                         </div>
-
-                        <!-- Right Photo Upload Dropzone -->
-                        <div class="lg:col-span-3 xl:col-span-2 flex flex-col h-full justify-between">
-                            <div class="flex items-center justify-between mb-1 shrink-0">
-                                <label class="block text-[11px] font-semibold text-slate-700 dark:text-slate-300">
-                                    Photo Upload
-                                </label>
-                                <span class="text-[9px] text-slate-400 font-normal">(Max 120KB)</span>
-                            </div>
-
-                            <div id="dropzone"
-                                class="relative flex-1 w-full min-h-[100px] border-2 border-dashed border-slate-200 dark:border-slate-800 hover:border-primary dark:hover:border-primary rounded-lg flex flex-col items-center justify-center bg-white dark:bg-slate-900 transition-all duration-200 group cursor-pointer shadow-2xs overflow-hidden">
-
-                                <!-- File Input Top Overlay -->
-                                <input type="file" name="emp_photo" id="empPhotoInput" accept="image/jpeg, image/png"
-                                    class="absolute inset-0 opacity-0 cursor-pointer w-full h-full z-10"
-                                    onchange="validateAndPreviewImage(this)">
-
-                                <!-- Placeholder State -->
-                                <div id="uploadPlaceholder"
-                                    class="flex flex-col items-center text-center space-y-1 p-2 pointer-events-none">
-                                    <div
-                                        class="p-1 rounded-full bg-slate-50 dark:bg-slate-800 group-hover:bg-primary/10 transition-colors">
-                                        <span
-                                            class="material-symbols-outlined text-[18px] text-slate-400 group-hover:text-primary transition-colors">cloud_upload</span>
-                                    </div>
-                                    <div>
-                                        <p
-                                            class="text-[10px] font-semibold text-slate-700 dark:text-slate-300 group-hover:text-primary transition-colors">
-                                            Upload Image
-                                        </p>
-                                        <p class="text-[8px] text-slate-400 mt-0.5">JPG/PNG (120KB)</p>
-                                    </div>
-                                </div>
-
-                                <!-- Image Preview State -->
-                                <div id="imagePreviewContainer"
-                                    class="hidden absolute inset-0 flex items-center justify-center bg-slate-50/90 dark:bg-slate-900/90 backdrop-blur-xs pointer-events-none z-20">
-                                    <div
-                                        class="relative p-0.5 bg-white dark:bg-slate-800 rounded-full shadow-sm border border-slate-500 dark:border-slate-700 pointer-events-auto">
-
-                                        <!-- Preview Image (Bigger Size: h-16 w-16) -->
-                                        <img id="imagePreview" src="#" alt="Preview"
-                                            class="h-16 w-16 object-cover rounded-full border border-primary/20">
-
-                                        <!-- Compact Close Button -->
-                                        <button type="button" onclick="clearSelectedImage(event)" title="Remove Image"
-                                            class="absolute top-0 right-0 h-3.5 w-3.5 active:scale-95 text-gray-500 rounded-full flex items-center justify-center shadow-xs transition-all duration-150 cursor-pointer z-30 group">
-                                            <span class="material-symbols-outlined text-[8px]">close</span>
-                                        </button>
-                                    </div>
-                                </div>
-
-                            </div>
-                            <p id="photoError"
-                                class="text-[10px] text-rose-500 font-medium mt-1 hidden text-center shrink-0"></p>
-                        </div>
-
                     </div>
-                </div>
 
+                    <div>
+                        <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 mb-1">Education Qualification</label>
+                        <input type="text" name="edu_qualification" value="[[=form_data.get('edu_qualification', '')]]"
+                            placeholder="e.g. B.Sc. in Computer Science & Engineering"
+                            class="w-full px-3 py-2 bg-slate-50/50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-medium text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all">
+                    </div>
+
+                </div>
             </div>
 
-            <!-- FORM FOOTER BUTTONS -->
-            <div
-                class="px-4 py-2.5 bg-slate-50 dark:bg-slate-950 border-t border-slate-200 dark:border-slate-800 flex items-center justify-end gap-2">
+            <!-- SECTION 2: OFFICIAL DETAILS CARD -->
+            <div class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-800/80 p-5 shadow-xs space-y-4">
+                <div class="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
+                    <div class="flex items-center gap-2">
+                        <span class="material-symbols-outlined text-primary text-[20px]">domain</span>
+                        <h3 class="font-bold text-sm text-slate-900 dark:text-white">Official Details</h3>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3.5">
+
+                    <div>
+                        <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 mb-1">Official ID <span class="text-rose-500">*</span></label>
+                        <input type="text" name="emp_id" value="[[=form_data.get('emp_id', '')]]" required placeholder="EMP-00101"
+                            class="w-full px-3 py-2 bg-slate-50/50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-semibold text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all">
+                    </div>
+
+                    <!-- Service Type Custom Dropdown -->
+                    <div class="relative w-full custom-dropdown-container">
+                        [[ cur_emptype = form_data.get('emp_type') or 'PERMANENT' ]]
+                        <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 mb-1">Service Type <span class="text-rose-500">*</span></label>
+                        
+                        <input type="hidden" name="emp_type" id="emp_type_hidden_input" value="[[= cur_emptype ]]" required>
+                        
+                        <button type="button" onclick="toggleCustomDropdown('emp_type', false)"
+                            class="w-full h-[34px] px-3 bg-slate-50/50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-semibold text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all flex items-center justify-between cursor-pointer">
+                            <span id="emp_type_selected_text" class="truncate">[[= cur_emptype ]]</span>
+                            <span class="material-symbols-outlined text-slate-400 text-[18px] shrink-0 transition-transform duration-200 custom-dropdown-arrow" id="emp_type_arrow_icon">expand_more</span>
+                        </button>
+
+                        <div id="emp_type_dropdown_menu" class="custom-dropdown-menu hidden absolute left-0 right-0 top-full mt-1 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl shadow-xl z-50 p-1.5 space-y-0.5 min-w-[120px]">
+                            <button type="button" onclick="selectCustomOption('emp_type', 'PERMANENT', 'PERMANENT')" class="emp_type-option-item w-full text-left px-2.5 py-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 font-semibold text-xs transition-colors">PERMANENT</button>
+                            <button type="button" onclick="selectCustomOption('emp_type', 'PROBATIONARY', 'PROBATIONARY')" class="emp_type-option-item w-full text-left px-2.5 py-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 font-semibold text-xs transition-colors">PROBATIONARY</button>
+                            <button type="button" onclick="selectCustomOption('emp_type', 'TEMPORARY', 'TEMPORARY')" class="emp_type-option-item w-full text-left px-2.5 py-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 font-semibold text-xs transition-colors">TEMPORARY</button>
+                            <button type="button" onclick="selectCustomOption('emp_type', 'CONTRACTUAL', 'CONTRACTUAL')" class="emp_type-option-item w-full text-left px-2.5 py-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 font-semibold text-xs transition-colors">CONTRACTUAL</button>
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 mb-1">Department <span class="text-rose-500">*</span></label>
+                        <input type="text" name="emp_department" value="[[=form_data.get('emp_department', '')]]" required placeholder="e.g. Software Development"
+                            class="w-full px-3 py-2 bg-slate-50/50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-semibold text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all">
+                    </div>
+
+                    <div>
+                        <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 mb-1">Designation <span class="text-rose-500">*</span></label>
+                        <input type="text" name="emp_designation" value="[[=form_data.get('emp_designation', '')]]" required placeholder="e.g. Software Engineer"
+                            class="w-full px-3 py-2 bg-slate-50/50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-semibold text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all">
+                    </div>
+
+                    <div>
+                        <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 mb-1">Grade</label>
+                        <input type="text" name="emp_grade" value="[[=form_data.get('emp_grade', '')]]" placeholder="e.g. Grade-2"
+                            class="w-full px-3 py-2 bg-slate-50/50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-medium text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all">
+                    </div>
+
+                    <div>
+                        <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 mb-1">Join Date <span class="text-rose-500">*</span></label>
+                        <input type="date" name="join_date" value="[[=form_data.get('join_date', '')]]" required
+                            class="w-full px-3 py-2 bg-slate-50/50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-medium text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all">
+                    </div>
+
+                    <div>
+                        <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 mb-1">Retirement Date</label>
+                        <input type="date" name="retirement_date" value="[[=form_data.get('retirement_date', '')]]"
+                            class="w-full px-3 py-2 bg-slate-50/50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-medium text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all">
+                    </div>
+
+                </div>
+            </div>
+
+            <!-- SECTION 3: ADDRESS & ATTACHMENTS CARD -->
+            <div class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-800/80 p-5 shadow-xs space-y-4">
+                <div class="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
+                    <div class="flex items-center gap-2">
+                        <span class="material-symbols-outlined text-primary text-[20px]">home_pin</span>
+                        <h3 class="font-bold text-sm text-slate-900 dark:text-white">Address & Photo Attachment</h3>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 lg:grid-cols-12 gap-4 items-stretch">
+
+                    <!-- Left Inputs -->
+                    <div class="lg:col-span-9 xl:col-span-10 flex flex-col justify-between gap-3">
+
+                        <!-- Row 1: District, Present Address, Permanent Address -->
+                        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5">
+                            <div>
+                                <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 mb-1">
+                                    Home District <span class="text-rose-500">*</span>
+                                </label>
+                                <input type="text" name="home_district" value="[[=form_data.get('home_district', '')]]" placeholder="e.g. Dhaka" required
+                                    class="w-full px-3 py-2 bg-slate-50/50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-medium text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all">
+                            </div>
+
+                            <div>
+                                <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 mb-1">
+                                    Present Address <span class="text-rose-500">*</span>
+                                </label>
+                                <input type="text" name="present_address" value="[[=form_data.get('present_address', '')]]" placeholder="House/Street, Area..." required
+                                    class="w-full px-3 py-2 bg-slate-50/50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-medium text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all">
+                            </div>
+
+                            <div>
+                                <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 mb-1">
+                                    Permanent Address <span class="text-rose-500">*</span>
+                                </label>
+                                <input type="text" name="permanent_address" value="[[=form_data.get('permanent_address', '')]]" placeholder="Village/Street, Upazila..." required
+                                    class="w-full px-3 py-2 bg-slate-50/50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-medium text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all">
+                            </div>
+                        </div>
+
+                        <!-- Row 2: Note / Comments -->
+                        <div>
+                            <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 mb-1">
+                                Note / Comments
+                            </label>
+                            <textarea name="note" rows="2" placeholder="Additional notes..."
+                                class="w-full px-3 py-2 bg-slate-50/50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-medium text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all resize-none">[[=form_data.get('note', '')]]</textarea>
+                        </div>
+
+                    </div>
+
+                    <!-- Right Photo Upload Dropzone -->
+                    <div class="lg:col-span-3 xl:col-span-2 flex flex-col h-full justify-between">
+                        <div class="flex items-center justify-between mb-1 shrink-0">
+                            <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500">
+                                Photo Upload
+                            </label>
+                            <span class="text-[8px] text-slate-400 font-normal">(120KB)</span>
+                        </div>
+
+                        <div id="dropzone"
+                            class="relative flex-1 w-full min-h-[100px] border-2 border-dashed border-slate-200 dark:border-slate-800 hover:border-primary dark:hover:border-primary rounded-2xl flex flex-col items-center justify-center bg-slate-50/50 dark:bg-slate-800/30 transition-all duration-200 group cursor-pointer overflow-hidden p-2">
+
+                            <!-- File Input Overlay -->
+                            <input type="file" name="emp_photo" id="empPhotoInput" accept="image/jpeg, image/png"
+                                class="absolute inset-0 opacity-0 cursor-pointer w-full h-full z-10"
+                                onchange="validateAndPreviewImage(this)">
+
+                            <!-- Placeholder State -->
+                            <div id="uploadPlaceholder"
+                                class="flex flex-col items-center text-center space-y-1 p-2 pointer-events-none">
+                                <div class="w-8 h-8 rounded-full bg-slate-100 dark:bg-slate-800 group-hover:bg-primary/10 flex items-center justify-center transition-colors shadow-2xs">
+                                    <span class="material-symbols-outlined text-[18px] text-slate-400 group-hover:text-primary transition-colors">cloud_upload</span>
+                                </div>
+                                <div>
+                                    <p class="text-[11px] font-bold text-slate-700 dark:text-slate-200 group-hover:text-primary transition-colors">
+                                        Upload Image
+                                    </p>
+                                    <p class="text-[8px] text-slate-400 mt-0.5">JPG/PNG (120KB)</p>
+                                </div>
+                            </div>
+
+                            <!-- Image Preview State -->
+                            <div id="imagePreviewContainer"
+                                class="hidden absolute inset-0 flex items-center justify-center bg-white dark:bg-slate-900 pointer-events-none z-20 p-2">
+                                <div class="relative w-full h-full flex items-center justify-center pointer-events-auto">
+                                    <img id="imagePreview" src="#" alt="Preview"
+                                        class="h-16 w-16 object-cover rounded-full border border-primary/20">
+
+                                    <button type="button" onclick="clearSelectedImage(event)" title="Remove Image"
+                                        class="absolute top-0 right-0 h-4 w-4 bg-slate-900/70 hover:bg-rose-600 text-white rounded-full flex items-center justify-center transition-all shadow-md z-30 cursor-pointer">
+                                        <span class="material-symbols-outlined text-[10px]">close</span>
+                                    </button>
+                                </div>
+                            </div>
+
+                        </div>
+                        <p id="photoError"
+                            class="text-[10px] text-rose-500 font-medium mt-1 hidden text-center shrink-0"></p>
+                    </div>
+
+                </div>
+            </div>
+
+            <!-- SUBMIT BUTTONS -->
+            <div class="flex items-center justify-end gap-2 pt-2">
                 <a href="[[=URL('employees/employee_directory')]]"
                     class="h-7 px-3 bg-white dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700 rounded-md text-xs font-semibold transition-all flex items-center justify-center">
                     Cancel
                 </a>
                 <button type="submit" id="submitBtn"
-                    class="h-7 px-3.5 bg-primary hover:opacity-90 text-white rounded-md text-xs font-semibold shadow-xs transition-all flex items-center gap-1 justify-center">
+                    class="h-7 px-3.5 bg-primary hover:opacity-90 active:scale-[0.98] text-white rounded-md text-xs font-semibold shadow-xs transition-all flex items-center gap-1 justify-center cursor-pointer">
                     <span class="material-symbols-outlined text-[15px]">save</span>
                     Save
                 </button>

@@ -824,192 +824,197 @@ def import_companies():
     return dict(stats=stats, active_tab=active_tab)
 
 @action("administration/roles_permisions")
-@view_page("administration/roles_permisions.html")
+@view_page("administration/roles_permisions.html", title="Roles & Permissions | Administration")
 @web_auth_required
 def roles_permisions():
+    roles_rows = db.executesql(
+        "SELECT id, role_id, role_name, note as description FROM roles WHERE status_type = 'ACTIVE' ORDER BY id ASC",
+        as_dict=True
+    )
+
+    all_mods = db.executesql(
+        "SELECT module_id, module_name, parent_module_id, module_group, icon as module_icon, is_clickable FROM modules WHERE status_type = 'ACTIVE' ORDER BY display_order ASC",
+        as_dict=True
+    )
+    parent_map = {m["module_id"]: m["module_name"] for m in all_mods if not m["is_clickable"]}
+
+    all_roles = []
+    for r in roles_rows:
+        role_id = r["role_id"]
+        perm_rows = db.executesql(
+            """SELECT p.*, m.module_name, m.parent_module_id, m.module_group, m.icon as module_icon, m.is_clickable
+               FROM role_module_permissions p
+               JOIN modules m ON p.module_id = m.module_id
+               WHERE p.role_id = %s AND (p.status_type IS NULL OR p.status_type = 'ACTIVE') AND (m.status_type IS NULL OR m.status_type = 'ACTIVE') AND m.is_clickable = 1
+               ORDER BY m.display_order ASC""",
+            [role_id],
+            as_dict=True
+        )
+
+        groups_dict = {}
+        for p in perm_rows:
+            p_id = p.get("parent_module_id")
+            g_name = parent_map.get(p_id) or p.get("module_group") or "General"
+            if g_name not in groups_dict:
+                groups_dict[g_name] = {"module_group": g_name, "modules": []}
+            
+            groups_dict[g_name]["modules"].append({
+                "module_id": p.get("module_id"),
+                "module_name": p.get("module_name"),
+                "module_icon": p.get("module_icon") or "extension",
+                "can_view": bool(p.get("can_view")),
+                "can_create": bool(p.get("can_add") or p.get("can_create")),
+                "can_edit": bool(p.get("can_edit")),
+                "can_delete": bool(p.get("can_delete")),
+                "can_export": bool(p.get("can_export")),
+                "can_approve": bool(p.get("can_approve")),
+            })
+
+        r["permissions"] = list(groups_dict.values())
+        all_roles.append(r)
+
     return dict(all_roles=all_roles)
 
 
-
-@action("administration/roles_permisions_manage")
-@view_page("administration/roles_permisions_manage.html")
+@action("administration/role_manage", method=["GET", "POST"])
+@action("administration/role_manage/<role_id>", method=["GET", "POST"])
+@view_page("administration/role_manage.html", title="Role Management | Administration")
 @web_auth_required
-def roles_permisions_manage():
-    role_id = request.params.get("role_id")
+def role_manage(role_id=None):
+    user_id = session.user.get("user_id", "SYSTEM") if (session and session.user) else "SYSTEM"
 
-    module_groups = [
-         {
-            "module_group": "Administration",
-            "modules": [
-                {
-                    "module_id": "user_mgmt",
-                    "module_name": "User Management",
-                    "description": "User Management",
-                    "module_icon": "manage_accounts",
-                    "can_view": False,
-                    "can_create": False,
-                    "can_edit": False,
-                    "can_delete": False,
-                    "can_export": False,
-                    "can_import": False,
-                    "can_approve": False,
-                    "can_reject": False,
-                    "can_view_sensitive": False,
-                },
-                {
-                    "module_id": "role_mgmt",
-                    "module_name": "Role Management",
-                    "description": "Role Management",
-                    "module_icon": "admin_panel_settings",
-                    "can_view": False,
-                    "can_create": False,
-                    "can_edit": False,
-                    "can_delete": False,
-                    "can_export": False,
-                    "can_import": False,
-                    "can_approve": False,
-                    "can_reject": False,
-                    "can_view_sensitive": False,
-                },
-            ],
-        },
-        {
-            "module_group": "Employees",
-            "modules": [
-                {
-                    "module_id": "emp_mgmt",
-                    "module_name": "Employee Management",
-                    "description": "Employee Management",
-                    "module_icon": "badge",
-                    "can_view": False,
-                    "can_create": False,
-                    "can_edit": False,
-                    "can_delete": False,
-                    "can_export": False,
-                    "can_import": False,
-                    "can_approve": False,
-                    "can_reject": False,
-                    "can_view_sensitive": False,
-                },
-                {
-                    "module_id": "transfer_mgmt",
-                    "module_name": "Transfer Management",
-                    "description": "Transfer Management",
-                    "module_icon": "swap_horiz",
-                    "can_view": False,
-                    "can_create": False,
-                    "can_edit": False,
-                    "can_delete": False,
-                    "can_export": False,
-                    "can_import": False,
-                    "can_approve": False,
-                    "can_reject": False,
-                    "can_view_sensitive": False,
-                },
-            ],
-        },
-        {
-            "module_group": "Organization",
-            "modules": [
-                {
-                    "module_id": "department_mgmt",
-                    "module_name": "Department Management",
-                    "description": "Department Management",
-                    "module_icon": "domain",
-                    "can_view": False,
-                    "can_create": False,
-                    "can_edit": False,
-                    "can_delete": False,
-                    "can_export": False,
-                    "can_import": False,
-                    "can_approve": False,
-                    "can_reject": False,
-                    "can_view_sensitive": False,
-                },
-                {
-                    "module_id": "designation_mgmt",
-                    "module_name": "Designation Management",
-                    "description": "Designation Management",
-                    "module_icon": "military_tech",
-                    "can_view": False,
-                    "can_create": False,
-                    "can_edit": False,
-                    "can_delete": False,
-                    "can_export": False,
-                    "can_import": False,
-                    "can_approve": False,
-                    "can_reject": False,
-                    "can_view_sensitive": False,
-                },
-                {
-                    "module_id": "branch_mgmt",
-                    "module_name": "Branch Management",
-                    "description": "Branch Management",
-                    "module_icon": "store",
-                    "can_view": False,
-                    "can_create": False,
-                    "can_edit": False,
-                    "can_delete": False,
-                    "can_export": False,
-                    "can_import": False,
-                    "can_approve": False,
-                    "can_reject": False,
-                    "can_view_sensitive": False,
-                },
-            ],
-        },
-        {
-            "module_group": "Analytics & System",
-            "modules": [
-                {
-                    "module_id": "report_view",
-                    "module_name": "Report View",
-                    "description": "Report View",
-                    "module_icon": "analytics",
-                    "can_view": False,
-                    "can_create": False,
-                    "can_edit": False,
-                    "can_delete": False,
-                    "can_export": False,
-                    "can_import": False,
-                    "can_approve": False,
-                    "can_reject": False,
-                    "can_view_sensitive": False,
-                }
-            ],
-        },
-    ]
+    if request.method == "POST":
+        data = request.json if request.json else request.forms
+        raw_role_id = str(data.get("role_id") or "").strip()
+        custom_role_id = str(data.get("custom_role_id") or "").strip()
+        role_name = str(data.get("role_name") or "").strip()
+        description = str(data.get("description") or "").strip()
+        status_type = str(data.get("status_type") or "ACTIVE").strip().upper()
+        permissions = data.get("permissions") or []
 
+        if not role_name:
+            flash.set("Role Name is required.", "danger")
+            return response.json({"status": "error", "message": "Role Name is required."})
+
+        target_role_id = raw_role_id or custom_role_id
+
+        if raw_role_id:
+            # Updating existing role
+            db.executesql(
+                "UPDATE roles SET role_name = %s, note = %s, status_type = %s, updated_on = %s, updated_by = %s WHERE role_id = %s",
+                [role_name, description, status_type, db_datetime, user_id, raw_role_id]
+            )
+            target_role_id = raw_role_id
+        else:
+            # Creating new role
+            if not target_role_id:
+                slug = "".join([c if c.isalnum() else "_" for c in role_name.upper()]).strip("_")
+                target_role_id = f"ROLE_{slug}" if slug else f"ROLE_{int(time.time())}"
+            
+            check_exist = db.executesql("SELECT role_id FROM roles WHERE role_id = %s LIMIT 1", [target_role_id], as_dict=True)
+            if check_exist:
+                target_role_id = f"{target_role_id}_{int(time.time())}"
+
+            db.executesql(
+                "INSERT INTO roles (role_id, role_name, note, status_type, created_on, created_by) VALUES (%s, %s, %s, %s, %s, %s)",
+                [target_role_id, role_name, description, status_type, db_datetime, user_id]
+            )
+
+        db.executesql("DELETE FROM role_module_permissions WHERE role_id = %s", [target_role_id])
+
+        for perm in permissions:
+            mod_id = perm.get("module_id")
+            if not mod_id:
+                continue
+            can_v = 1 if perm.get("can_view") else 0
+            can_c = 1 if (perm.get("can_create") or perm.get("can_add")) else 0
+            can_e = 1 if perm.get("can_edit") else 0
+            can_d = 1 if perm.get("can_delete") else 0
+            can_ex = 1 if perm.get("can_export") else 0
+            can_app = 1 if perm.get("can_approve") else 0
+
+            db.executesql(
+                """INSERT INTO role_module_permissions
+                   (role_id, module_id, can_view, can_add, can_edit, can_delete, can_export, can_approve, status_type, created_on, created_by)
+                   VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)""",
+                [target_role_id, mod_id, can_v, can_c, can_e, can_d, can_ex, can_app, status_type, db_datetime, user_id]
+            )
+
+        db.commit()
+        flash.set(f"Role '{role_name}' saved successfully!", "success")
+        return response.json({"status": "success", "message": "Role saved successfully!", "role_id": target_role_id})
+
+    # GET Request
+    role_id = role_id or request.query.get("role_id") or request.params.get("role_id") or ""
     role_name = ""
     description = ""
+    status_type = "ACTIVE"
 
     if role_id:
-        selected_role = next(
-            (r for r in all_roles if str(r["role_id"]) == str(role_id)), None
+        r_rows = db.executesql("SELECT role_id, role_name, note as description, status_type FROM roles WHERE role_id = %s LIMIT 1", [role_id], as_dict=True)
+        if r_rows:
+            role_name = r_rows[0].get("role_name", "")
+            description = r_rows[0].get("description", "")
+            status_type = r_rows[0].get("status_type", "ACTIVE") or "ACTIVE"
+
+    all_mods = db.executesql(
+        "SELECT module_id, module_name, parent_module_id, module_group, icon as module_icon, is_clickable FROM modules WHERE status_type = 'ACTIVE' ORDER BY display_order ASC",
+        as_dict=True
+    )
+    parent_map = {m["module_id"]: m["module_name"] for m in all_mods if not m["is_clickable"]}
+    clickable_mods = [m for m in all_mods if m["is_clickable"]]
+
+    if not clickable_mods:
+        clickable_mods = [
+            {"module_id": "DASHBOARD", "module_name": "Dashboard", "parent_module_id": None, "module_group": "General", "module_icon": "dashboard"},
+            {"module_id": "EMPLOYEE_DIR", "module_name": "Employee Directory", "parent_module_id": "EMP_MGMT", "module_group": "HR", "module_icon": "badge"},
+            {"module_id": "POSTING_TRANS", "module_name": "Postings & Transfers", "parent_module_id": "EMP_MGMT", "module_group": "HR", "module_icon": "swap_horiz"},
+            {"module_id": "COMPANY_MGMT", "module_name": "Company Management", "parent_module_id": "ADMINISTRATION", "module_group": "System", "module_icon": "domain"},
+            {"module_id": "ROLES_PERM", "module_name": "Roles & Permissions", "parent_module_id": "ADMINISTRATION", "module_group": "System", "module_icon": "key"},
+            {"module_id": "USER_MGMT", "module_name": "User Management", "parent_module_id": "ADMINISTRATION", "module_group": "System", "module_icon": "manage_accounts"},
+            {"module_id": "AUDIT_LOGS", "module_name": "Audit Logs", "parent_module_id": "ADMINISTRATION", "module_group": "System", "module_icon": "history"},
+            {"module_id": "EMP_REPORTS", "module_name": "Employee Reports", "parent_module_id": "REPORTS_ANALYTICS", "module_group": "Reports", "module_icon": "description"},
+            {"module_id": "TRANSFER_LOGS", "module_name": "Movement & Transfer Logs", "parent_module_id": "REPORTS_ANALYTICS", "module_group": "Reports", "module_icon": "receipt_long"},
+        ]
+
+    existing_perms = {}
+    if role_id:
+        p_rows = db.executesql(
+            "SELECT module_id, can_view, can_add, can_edit, can_delete, can_export, can_approve FROM role_module_permissions WHERE role_id = %s",
+            [role_id],
+            as_dict=True
         )
+        for p in p_rows:
+            existing_perms[p["module_id"]] = p
 
-        if selected_role:
-            role_name = selected_role.get("role_name", "")
-            description = selected_role.get("description", "")
+    groups_map = {}
+    for m in clickable_mods:
+        p_id = m.get("parent_module_id")
+        g_name = parent_map.get(p_id) or m.get("module_group") or "General"
+        if g_name not in groups_map:
+            groups_map[g_name] = {"module_group": g_name, "modules": []}
+        
+        m_id = m.get("module_id")
+        p = existing_perms.get(m_id, {})
+        groups_map[g_name]["modules"].append({
+            "module_id": m_id,
+            "module_name": m.get("module_name"),
+            "module_icon": m.get("module_icon") or "extension",
+            "can_view": bool(p.get("can_view", False)),
+            "can_create": bool(p.get("can_add", False) or p.get("can_create", False)),
+            "can_edit": bool(p.get("can_edit", False)),
+            "can_delete": bool(p.get("can_delete", False)),
+            "can_export": bool(p.get("can_export", False)),
+            "can_approve": bool(p.get("can_approve", False)),
+        })
 
-            perm_map = {
-                mod["module_id"]: mod
-                for group in selected_role.get("permissions", [])
-                for mod in group.get("modules", [])
-            }
+    module_groups = list(groups_map.values())
 
-            for group in module_groups:
-                for mod in group.get("modules", []):
-                    mod_id = mod["module_id"]
-                    if mod_id in perm_map:
-                        saved_mod = perm_map[mod_id]
-                        for key in mod:
-                            if key.startswith("can_"):
-                                mod[key] = saved_mod.get(key, False)
     return dict(
         role_id=role_id,
         role_name=role_name,
         description=description,
+        status_type=status_type,
         module_groups=module_groups,
     )
 
