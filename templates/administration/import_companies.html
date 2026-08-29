@@ -6,13 +6,13 @@
         <!-- HEADER SECTION (Breadcrumb) -->
         <div class="pb-2 border-b border-slate-200/80 dark:border-slate-800/80 flex items-center justify-between h-7">
             <div class="flex items-center gap-0.5 text-xs font-medium">
-                <a href="[[=URL('employees/employee_directory')]]" class="text-slate-400 dark:text-slate-500 hover:text-primary transition-colors">[[= globals().get('active_parent_title') or 'Employee Management' ]]</a>
+                <a href="[[=URL('administration/companies')]]" class="text-slate-400 dark:text-slate-500 hover:text-primary transition-colors">Administration</a>
                 <span class="material-symbols-outlined text-[12px] text-slate-400 dark:text-slate-600 select-none -mx-0.5">chevron_right</span>
-                <a href="[[=URL('employees/employee_directory')]]" class="text-slate-400 dark:text-slate-500 hover:text-primary transition-colors">[[= globals().get('active_child_title') or 'Employee Directory' ]]</a>
+                <a href="[[=URL('administration/companies')]]" class="text-slate-400 dark:text-slate-500 hover:text-primary transition-colors">Company Management</a>
                 <span class="material-symbols-outlined text-[12px] text-slate-400 dark:text-slate-600 select-none -mx-0.5">chevron_right</span>
-                <span class="text-primary font-bold">Import Directory</span>
+                <span class="text-primary font-bold">Import Companies</span>
             </div>
-            <a href="[[=URL('employees/employee_directory')]]"
+            <a href="[[=URL('administration/companies')]]"
                 class="h-7 px-2.5 bg-slate-200 hover:bg-slate-300 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 rounded-md text-xs font-semibold transition-all inline-flex items-center gap-1 shrink-0">
                 <span class="material-symbols-outlined text-[15px]">arrow_back</span>
                 Back
@@ -22,7 +22,7 @@
         <!-- STATS DASHBOARD (IF IMPORTED) -->
         [[ if stats: ]]
         <div class="space-y-3.5">
-            <h3 class="text-xs font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500">Import Results</h3>
+            <h3 class="text-xs font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500">Import Execution Summary</h3>
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5">
                 <!-- Total Rows -->
                 <div class="bg-white dark:bg-slate-900 rounded-xl border border-slate-200/80 dark:border-slate-800/80 p-3.5 flex items-center gap-3 shadow-2xs">
@@ -38,10 +38,10 @@
                 <!-- Successfully Created -->
                 <div class="bg-white dark:bg-slate-900 rounded-xl border border-slate-200/80 dark:border-slate-800/80 p-3.5 flex items-center gap-3 shadow-2xs">
                     <div class="w-9 h-9 rounded-lg bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shrink-0">
-                        <span class="material-symbols-outlined text-[20px]">person_add</span>
+                        <span class="material-symbols-outlined text-[20px]">domain_add</span>
                     </div>
                     <div>
-                        <div class="text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500">New Records</div>
+                        <div class="text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500">New Companies</div>
                         <div class="text-lg font-bold text-emerald-600 dark:text-emerald-400 mt-0.5">[[= stats["created"] ]]</div>
                     </div>
                 </div>
@@ -52,7 +52,7 @@
                         <span class="material-symbols-outlined text-[20px]">edit</span>
                     </div>
                     <div>
-                        <div class="text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500">Updated Records</div>
+                        <div class="text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500">Updated Companies</div>
                         <div class="text-lg font-bold text-sky-600 dark:text-sky-400 mt-0.5">[[= stats["updated"] ]]</div>
                     </div>
                 </div>
@@ -81,16 +81,16 @@
                         <thead>
                             <tr class="bg-slate-50 dark:bg-slate-800/50 text-[10px] font-bold uppercase text-slate-500 dark:text-slate-400 border-b border-slate-100 dark:border-slate-800">
                                 <th class="py-2 px-4 w-20">Row No</th>
-                                <th class="py-2 px-4 w-40">Official ID</th>
-                                <th class="py-2 px-4">Error Details</th>
+                                <th class="py-2 px-4 w-40">Company ID (CID)</th>
+                                <th class="py-2 px-4">Error Description</th>
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-slate-100 dark:divide-slate-800/60 font-mono text-slate-600 dark:text-slate-400">
                             [[ for err in stats["errors"]: ]]
                             <tr class="hover:bg-slate-50/50 dark:hover:bg-slate-800/20">
                                 <td class="py-2 px-4 font-semibold text-slate-800 dark:text-slate-200">[[= err["row"] ]]</td>
-                                <td class="py-2 px-4">[[= err["emp_id"] ]]</td>
-                                <td class="py-2 px-4 text-rose-600 dark:text-rose-400">[[= err["error"] ]]</td>
+                                <td class="py-2 px-4">[[= err["cid"] ]]</td>
+                                <td class="py-2 px-4 text-rose-600 dark:text-rose-400 font-sans">[[= err["error"] ]]</td>
                             </tr>
                             [[ pass ]]
                         </tbody>
@@ -112,7 +112,7 @@
                             <span class="material-symbols-outlined text-primary text-[20px]">info</span>
                             CSV Import Instructions
                         </h3>
-                        <p class="text-xs text-slate-500 mt-1">Please read carefully before preparing your CSV file for import.</p>
+                        <p class="text-xs text-slate-500 mt-1">Please read carefully before preparing your CSV file for company import.</p>
                     </div>
 
                     <div class="border-t border-slate-100 dark:border-slate-800 pt-3.5 space-y-3 text-xs leading-relaxed">
@@ -120,11 +120,7 @@
                             <span class="w-5 h-5 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center font-bold text-[10px] text-slate-600 dark:text-slate-400 shrink-0 mt-0.5">1</span>
                             <div>
                                 <span class="font-semibold text-slate-800 dark:text-slate-200">Required Fields:</span>
-                                [[ if not user_cid: ]]
-                                <p class="text-slate-500 mt-0.5">As System Admin, your CSV file <span class="font-bold text-rose-500">MUST</span> contain <code class="bg-slate-100 dark:bg-slate-850 px-1 py-0.5 rounded text-[10px]">Company ID (CID)</code>, <code class="bg-slate-100 dark:bg-slate-850 px-1 py-0.5 rounded text-[10px]">Official ID</code> and <code class="bg-slate-100 dark:bg-slate-850 px-1 py-0.5 rounded text-[10px]">Full Name</code>.</p>
-                                [[ else: ]]
-                                <p class="text-slate-500 mt-0.5">Your CSV file <span class="font-bold text-rose-500">MUST</span> contain <code class="bg-slate-100 dark:bg-slate-850 px-1 py-0.5 rounded text-[10px]">Official ID</code> and <code class="bg-slate-100 dark:bg-slate-850 px-1 py-0.5 rounded text-[10px]">Full Name</code>. Other columns are optional.</p>
-                                [[ pass ]]
+                                <p class="text-slate-500 mt-0.5">Your CSV file <span class="font-bold text-rose-500">MUST</span> contain <code class="bg-slate-100 dark:bg-slate-850 px-1 py-0.5 rounded text-[10px]">Company ID (CID)</code> and <code class="bg-slate-100 dark:bg-slate-850 px-1 py-0.5 rounded text-[10px]">Company Name</code>. Other columns are optional.</p>
                             </div>
                         </div>
 
@@ -132,23 +128,23 @@
                             <span class="w-5 h-5 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center font-bold text-[10px] text-slate-600 dark:text-slate-400 shrink-0 mt-0.5">2</span>
                             <div>
                                 <span class="font-semibold text-slate-800 dark:text-slate-200">Automatic Mapping:</span>
-                                <p class="text-slate-500 mt-0.5">Headers are matched case-insensitively. Feel free to use headers like "Official ID", "Full Name", "Mobile", "Email", "Status", or their SQL column counterparts.</p>
+                                <p class="text-slate-500 mt-0.5">Headers are matched case-insensitively. Feel free to use headers like "Company ID (CID)", "Company Name", "Legal Name", "Email", "Phone", "Website", "Timezone", "Status", or their SQL column counterparts.</p>
                             </div>
                         </div>
 
                         <div class="flex items-start gap-2">
                             <span class="w-5 h-5 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center font-bold text-[10px] text-slate-600 dark:text-slate-400 shrink-0 mt-0.5">3</span>
                             <div>
-                                <span class="font-semibold text-slate-800 dark:text-slate-200">Upsert Logic:</span>
-                                <p class="text-slate-500 mt-0.5">If the Official ID already exists, the record will be updated. If it does not exist, a new record will be created.</p>
+                                <span class="font-semibold text-slate-800 dark:text-slate-200">Automatic Upsert Logic:</span>
+                                <p class="text-slate-500 mt-0.5">If the matching <code class="bg-slate-100 dark:bg-slate-850 px-1 py-0.5 rounded text-[10px]">CID</code> already exists, the company record will be updated. If it does not exist, a new company record will be created.</p>
                             </div>
                         </div>
 
                         <div class="flex items-start gap-2">
                             <span class="w-5 h-5 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center font-bold text-[10px] text-slate-600 dark:text-slate-400 shrink-0 mt-0.5">4</span>
                             <div>
-                                <span class="font-semibold text-slate-800 dark:text-slate-200">Date Formats:</span>
-                                <p class="text-slate-500 mt-0.5">Dates should be formatted as <code class="bg-slate-100 dark:bg-slate-850 px-1 py-0.5 rounded text-[10px]">YYYY-MM-DD</code>. However, common formats like DD-MM-YYYY, DD/MM/YYYY, or MM/DD/YYYY are parsed automatically.</p>
+                                <span class="font-semibold text-slate-800 dark:text-slate-200">Fiscal Year Month:</span>
+                                <p class="text-slate-500 mt-0.5">Specify an integer between <code class="bg-slate-100 dark:bg-slate-850 px-1 py-0.5 rounded text-[10px]">1</code> and <code class="bg-slate-100 dark:bg-slate-850 px-1 py-0.5 rounded text-[10px]">12</code> (1 = January, 7 = July, etc.). Default is 1.</p>
                             </div>
                         </div>
 
@@ -156,7 +152,7 @@
                             <span class="w-5 h-5 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center font-bold text-[10px] text-slate-600 dark:text-slate-400 shrink-0 mt-0.5">5</span>
                             <div>
                                 <span class="font-semibold text-slate-800 dark:text-slate-200">Status Values:</span>
-                                <p class="text-slate-500 mt-0.5">Set the status as <code class="bg-slate-100 dark:bg-slate-850 px-1 py-0.5 rounded text-[10px]">ACTIVE</code>, <code class="bg-slate-100 dark:bg-slate-850 px-1 py-0.5 rounded text-[10px]">PROBATIONARY</code>, or <code class="bg-slate-100 dark:bg-slate-850 px-1 py-0.5 rounded text-[10px]">INACTIVE</code>.</p>
+                                <p class="text-slate-500 mt-0.5">Set the status as <code class="bg-slate-100 dark:bg-slate-850 px-1 py-0.5 rounded text-[10px]">ACTIVE</code> or <code class="bg-slate-100 dark:bg-slate-850 px-1 py-0.5 rounded text-[10px]">INACTIVE</code>.</p>
                             </div>
                         </div>
 
@@ -164,11 +160,7 @@
                             <span class="w-5 h-5 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center font-bold text-[10px] text-slate-600 dark:text-slate-400 shrink-0 mt-0.5">6</span>
                             <div>
                                 <span class="font-semibold text-slate-800 dark:text-slate-200">Import Limits:</span>
-                                [[ if not user_cid: ]]
                                 <p class="text-slate-500 mt-0.5">CSV files must be under <span class="font-bold">10MB</span> in size and contain a maximum of <span class="font-bold">10,000 rows</span>.</p>
-                                [[ else: ]]
-                                <p class="text-slate-500 mt-0.5">CSV files must be under <span class="font-bold">2MB</span> in size and contain a maximum of <span class="font-bold">1,000 rows</span>.</p>
-                                [[ pass ]]
                             </div>
                         </div>
 
@@ -182,7 +174,7 @@
                     </div>
 
                     <div class="border-t border-slate-100 dark:border-slate-800 pt-3.5">
-                        <a href="[[=URL('employees/import_directory', vars={'template': 'csv'})]]" 
+                        <a href="[[=URL('administration/import_companies', vars={'template': 'csv'})]]" 
                            class="w-full h-8.5 px-3 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 rounded-lg text-xs font-bold transition-all inline-flex items-center justify-center gap-1.5 border border-slate-200 dark:border-slate-700">
                             <span class="material-symbols-outlined text-[16px] text-emerald-600 dark:text-emerald-400">download</span>
                             Download Sample CSV Template
@@ -207,7 +199,7 @@
                 </div>
 
                 <!-- Tab Content 1: File Upload Form -->
-                <form action="[[=URL('employees/import_directory')]]" method="POST" enctype="multipart/form-data" id="importFileForm"
+                <form action="[[=URL('administration/import_companies')]]" method="POST" enctype="multipart/form-data" id="importFileForm"
                       class="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-2xs overflow-hidden flex flex-col justify-between">
                     
                     <div class="p-4 space-y-4 flex flex-col">
@@ -216,7 +208,7 @@
                                 <span class="material-symbols-outlined text-primary text-[20px]">upload_file</span>
                                 Upload CSV File
                             </h3>
-                            <p class="text-xs text-slate-500 mt-1">Select your completed employee record CSV sheet to begin the batch upload.</p>
+                            <p class="text-xs text-slate-500 mt-1">Select your completed company record CSV sheet to begin the batch upload.</p>
                         </div>
 
                         <div class="border-t border-slate-100 dark:border-slate-800 pt-3.5 space-y-4 flex flex-col">
@@ -226,11 +218,7 @@
                                 <span class="material-symbols-outlined text-[36px] text-slate-400 dark:text-slate-600 drop-icon">cloud_upload</span>
                                 <div class="text-center">
                                     <span class="text-xs font-semibold text-slate-700 dark:text-slate-300">Click to upload or drag & drop</span>
-                                    [[ if not user_cid: ]]
                                     <p class="text-[10px] text-slate-400 dark:text-slate-500 mt-0.5">Only .csv files are supported (Max 10MB, 10,000 rows)</p>
-                                    [[ else: ]]
-                                    <p class="text-[10px] text-slate-400 dark:text-slate-500 mt-0.5">Only .csv files are supported (Max 2MB, 1,000 rows)</p>
-                                    [[ pass ]]
                                 </div>
                                 <input type="file" name="csv_file" id="fileInput" accept=".csv" required class="hidden">
                             </div>
@@ -260,7 +248,7 @@
                 </form>
 
                 <!-- Tab Content 2: Copy-Paste Text Area (Hidden by default) -->
-                <form action="[[=URL('employees/import_directory')]]" method="POST" id="importTextForm"
+                <form action="[[=URL('administration/import_companies')]]" method="POST" id="importTextForm"
                       class="hidden bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-2xs overflow-hidden flex flex-col justify-between flex-1">
                     
                     <div class="p-4 space-y-4 flex-1 flex flex-col">
@@ -274,13 +262,8 @@
 
                         <div class="border-t border-slate-100 dark:border-slate-800 pt-3.5 space-y-2 flex flex-col flex-1">
                             <label class="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider">Paste Data Below:</label>
-                            [[ if not user_cid: ]]
-                            <textarea name="csv_text" id="pasteTextArea" placeholder="Company ID&#9;Official ID&#9;Full Name&#9;Department&#9;Designation&#10;EON&#9;OFF1001&#9;Abul Kalam&#9;Administration&#9;Senior Officer"
+                            <textarea name="csv_text" id="pasteTextArea" placeholder="Company ID (CID)&#9;Company Name&#9;Legal Name&#9;Email&#9;Phone&#9;Website&#10;EON&#9;Eon Systems&#9;Eon Systems Ltd&#9;info@eonsystems.com&#9;+8801700000000&#9;https://eonsystems.com"
                                       class="w-full px-3 py-2 text-xs font-mono bg-slate-50 dark:bg-slate-950/60 border border-slate-200 dark:border-slate-800 rounded-lg focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary transition-all resize-y text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 flex-1"></textarea>
-                            [[ else: ]]
-                            <textarea name="csv_text" id="pasteTextArea" placeholder="Official ID&#9;Full Name&#9;Department&#9;Designation&#10;OFF1001&#9;Abul Kalam&#9;Administration&#9;Senior Officer"
-                                      class="w-full px-3 py-2 text-xs font-mono bg-slate-50 dark:bg-slate-950/60 border border-slate-200 dark:border-slate-800 rounded-lg focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary transition-all resize-y text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 flex-1"></textarea>
-                            [[ pass ]]
                             <div class="flex items-center justify-between text-[10px] text-slate-400 dark:text-slate-500 mt-1">
                                 <span>Tip: Delimiters like tabs (Excel format), commas, or semicolons are parsed automatically.</span>
                                 <span id="pasteStats" class="font-semibold text-right shrink-0">0 chars (0.0 KB) / 0 lines</span>
@@ -400,10 +383,10 @@
                     return;
                 }
 
-                // Front-end File Size check (2MB limit)
-                const maxSizeBytes = 2 * 1024 * 1024;
+                // Front-end File Size check (10MB limit)
+                const maxSizeBytes = 10 * 1024 * 1024;
                 if (file.size > maxSizeBytes) {
-                    alert("File size exceeds the maximum limit of 2MB.");
+                    alert("File size exceeds the maximum limit of 10MB.");
                     fileInput.value = "";
                     resetFileState();
                     return;
@@ -455,9 +438,9 @@
 
             pasteStats.textContent = `${charCount} chars (${(byteSize / 1024).toFixed(1)} KB) / ${lineCount} lines`;
 
-            // Enforce constraints (2MB file size, 1 header + 1000 rows limit)
-            const maxBytes = 2 * 1024 * 1024; // 2MB
-            if (charCount > 0 && byteSize <= maxBytes && lineCount <= 1001) {
+            // Enforce constraints (10MB file size, 1 header + 10,000 rows limit)
+            const maxBytes = 10 * 1024 * 1024; // 10MB
+            if (charCount > 0 && byteSize <= maxBytes && lineCount <= 10001) {
                 submitTextBtn.removeAttribute("disabled");
                 submitTextBtn.classList.remove("opacity-50", "cursor-not-allowed");
                 submitTextBtn.classList.add("hover:opacity-90", "active:scale-[0.98]");
@@ -469,13 +452,13 @@
                 submitTextBtn.classList.add("opacity-50", "cursor-not-allowed");
                 submitTextBtn.classList.remove("hover:opacity-90", "active:scale-[0.98]");
 
-                if (byteSize > maxBytes || lineCount > 1001) {
+                if (byteSize > maxBytes || lineCount > 10001) {
                     pasteStats.classList.add("text-rose-500");
                     pasteStats.classList.remove("text-slate-400", "dark:text-slate-500");
-                    if (lineCount > 1001) {
-                        pasteStats.textContent = `Exceeds row limit! ${lineCount - 1} data rows / Max 1000`;
+                    if (lineCount > 10001) {
+                        pasteStats.textContent = `Exceeds row limit! ${lineCount - 1} data rows / Max 10000`;
                     } else {
-                        pasteStats.textContent = `Exceeds size limit! ${(byteSize / 1024).toFixed(1)} KB / Max 2MB`;
+                        pasteStats.textContent = `Exceeds size limit! ${(byteSize / 1024).toFixed(1)} KB / Max 10MB`;
                     }
                 }
             }
@@ -488,7 +471,7 @@
                     <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
                     <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                 </svg>
-                <span>Importing records, please wait...</span>
+                <span>Importing companies, please wait...</span>
             `;
             setTimeout(() => {
                 submitFileBtn.setAttribute("disabled", "true");
@@ -503,7 +486,7 @@
                     <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
                     <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                 </svg>
-                <span>Importing records, please wait...</span>
+                <span>Importing companies, please wait...</span>
             `;
             setTimeout(() => {
                 submitTextBtn.setAttribute("disabled", "true");

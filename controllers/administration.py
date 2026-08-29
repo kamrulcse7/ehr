@@ -4,6 +4,8 @@ from ..utils.common import db, flash, session, view_page
 import math
 import io
 import csv
+import os
+import time
 from datetime import datetime
 
 all_roles = [
@@ -205,19 +207,80 @@ all_roles = [
 ]
 
 
+def _save_company_branding_file(file_obj, prefix, cid_val, max_bytes=120 * 1024):
+    if file_obj and hasattr(file_obj, "filename") and file_obj.filename:
+        UPLOAD_DIR = os.path.join(os.path.dirname(__file__), "..", "static", "uploads", "company")
+        os.makedirs(UPLOAD_DIR, exist_ok=True)
+        ext = os.path.splitext(file_obj.filename)[1].lower()
+        if ext in [".jpg", ".jpeg", ".png", ".gif", ".webp", ".ico", ".svg"]:
+            content = file_obj.file.read()
+            if len(content) > max_bytes:
+                flash.set("Company Logo file size exceeds 120KB limit.", "danger")
+                return None
+            base_prefix = f"{cid_val.lower()}_{prefix}"
+            for f in os.listdir(UPLOAD_DIR):
+                if f.startswith(base_prefix + "."):
+                    try:
+                        os.remove(os.path.join(UPLOAD_DIR, f))
+                    except Exception:
+                        pass
+            saved_filename = f"{base_prefix}{ext}"
+            saved_file_path = os.path.join(UPLOAD_DIR, saved_filename)
+            with open(saved_file_path, "wb") as f:
+                f.write(content)
+            return URL(f"static/uploads/company/{saved_filename}")
+    return None
+
+
+def _delete_company_branding_file(file_url):
+    if not file_url:
+        return
+    if file_url.startswith("http://") or file_url.startswith("https://"):
+        return
+    filename = os.path.basename(file_url)
+    if filename:
+        UPLOAD_DIR = os.path.join(os.path.dirname(__file__), "..", "static", "uploads", "company")
+        file_path = os.path.join(UPLOAD_DIR, filename)
+        if os.path.exists(file_path):
+            try:
+                os.remove(file_path)
+            except Exception:
+                pass
+
 
 @action("administration/companies", method=["GET", "POST"])
 @view_page("administration/companies.html", title="Company Management | Administration")
 @web_auth_required
 def companies():
-    user_cid = session.user.get("cid", "")
-    
-    # 1. Fetch Summary Stats
+    action_type = (request.query.get("action") or "").strip()
+    delete_id = request.query.get("id") or request.query.get("delete_id")
+
+    if action_type == "delete" and delete_id:
+        try:
+            del_id = int(delete_id)
+            comp_rows = db.executesql("SELECT cid, company_name FROM companies WHERE id = %s LIMIT 1", [del_id], as_dict=True)
+            if comp_rows:
+                comp = comp_rows[0]
+                cid = comp["cid"]
+                name = comp["company_name"]
+                updated_by = session.user.get("username") or session.user.get("user_id") or "SYSTEM"
+                db.executesql(
+                    "UPDATE companies SET status_type = 'DELETED', updated_on = NOW(), updated_by = %s WHERE id = %s",
+                    [updated_by, del_id]
+                )
+                flash.set(f"Company '{name}' ({cid}) status updated to DELETED.", "success")
+            else:
+                flash.set("Company record not found.", "danger")
+        except Exception as e:
+            flash.set(f"Failed to delete company: {str(e)}", "danger")
+        redirect(URL("administration/companies"))
+
+    # 1. Fetch Summary Stats (excluding soft-deleted)
     stats_sql = """
     SELECT 
-        COUNT(*) AS total,
+        COUNT(CASE WHEN status_type != 'DELETED' THEN 1 END) AS total,
         SUM(CASE WHEN status_type = 'ACTIVE' THEN 1 ELSE 0 END) AS active,
-        SUM(CASE WHEN status_type != 'ACTIVE' THEN 1 ELSE 0 END) AS inactive
+        SUM(CASE WHEN status_type = 'INACTIVE' THEN 1 ELSE 0 END) AS inactive
     FROM companies;
     """
     stats_rows = db.executesql(stats_sql, as_dict=True)
@@ -239,6 +302,8 @@ def companies():
     if status:
         where_clauses.append("status_type = %s")
         placeholders.append(status)
+    else:
+        where_clauses.append("status_type != 'DELETED'")
 
     where_sql = " AND ".join(where_clauses)
 
@@ -317,12 +382,446 @@ def companies():
     }
 
     return dict(
-        user_cid=user_cid,
         companies=paginated_companies,
         stats=stats,
         pagination=pagination,
     )
 
+@action("administration/add_company", method=["GET", "POST"])
+@view_page("administration/add_company.html", title="Add New Company | Administration")
+@web_auth_required
+def add_company():
+    form_data = {}
+
+    if request.method == "POST":
+        form_data = dict(request.forms)
+        def clean_val(val):
+            val = str(val).strip() if val else None
+            return val if val != "" else None
+
+        cid = clean_val(request.forms.get("cid"))
+        company_name = clean_val(request.forms.get("company_name"))
+        legal_name = clean_val(request.forms.get("legal_name"))
+        email = clean_val(request.forms.get("email"))
+        phone = clean_val(request.forms.get("phone"))
+        website = clean_val(request.forms.get("website"))
+        address_line1 = clean_val(request.forms.get("address_line1"))
+        address_line2 = clean_val(request.forms.get("address_line2"))
+        city = clean_val(request.forms.get("city"))
+        state = clean_val(request.forms.get("state"))
+        country = clean_val(request.forms.get("country")) or "Bangladesh"
+        postal_code = clean_val(request.forms.get("postal_code"))
+        timezone = clean_val(request.forms.get("timezone")) or "UTC+06:00"
+        language_code = clean_val(request.forms.get("language_code")) or "en"
+        
+        try:
+            fiscal_year_start_month = int(request.forms.get("fiscal_year_start_month") or 1)
+        except (ValueError, TypeError):
+            fiscal_year_start_month = 1
+
+        favicon_url = clean_val(request.forms.get("favicon_url"))
+        logo_url = clean_val(request.forms.get("logo_url"))
+        banner_url = clean_val(request.forms.get("banner_url"))
+
+        status_type = clean_val(request.forms.get("status_type")) or "ACTIVE"
+        note = clean_val(request.forms.get("note"))
+
+        if not cid:
+            flash.set("Company ID (CID) is required.", "danger")
+            return dict(form_data=form_data)
+
+        if not company_name:
+            flash.set("Company Name is required.", "danger")
+            return dict(form_data=form_data)
+
+        # Check duplicate CID
+        comp_check = db.executesql("SELECT id FROM companies WHERE LOWER(cid) = LOWER(%s) LIMIT 1", [cid])
+        if comp_check:
+            flash.set(f"Company ID '{cid}' already exists.", "danger")
+            return dict(form_data=form_data)
+
+        # Handle File Upload for Company Logo
+        logo_file = request.files.get("logo_file")
+        logo_url = _save_company_branding_file(logo_file, "logo", cid)
+        favicon_url = None
+        banner_url = None
+
+        try:
+            insert_sql = """
+            INSERT INTO companies (
+                cid, company_name, legal_name, email, phone, website,
+                address_line1, address_line2, city, state, country, postal_code,
+                timezone, language_code, fiscal_year_start_month,
+                favicon_url, logo_url, banner_url, status_type, note,
+                created_on, created_by
+            ) VALUES (
+                %s, %s, %s, %s, %s, %s,
+                %s, %s, %s, %s, %s, %s,
+                %s, %s, %s,
+                %s, %s, %s, %s, %s,
+                NOW(), %s
+            )
+            """
+            created_by = session.user.get("username") or session.user.get("user_id") or "SYSTEM"
+            db.executesql(insert_sql, [
+                cid.upper(), company_name, legal_name, email, phone, website,
+                address_line1, address_line2, city, state, country, postal_code,
+                timezone, language_code, fiscal_year_start_month,
+                favicon_url, logo_url, banner_url, status_type, note,
+                created_by
+            ])
+            flash.set(f"Company '{company_name}' ({cid.upper()}) added successfully!", "success")
+            redirect(URL("administration/companies"))
+        except Exception as e:
+            flash.set(f"Database error adding company: {str(e)}", "danger")
+            return dict(form_data=form_data)
+
+    return dict(form_data=form_data)
+
+@action("administration/edit_company/<company_id:int>", method=["GET", "POST"])
+@action("administration/edit_company", method=["GET", "POST"])
+@view_page("administration/edit_company.html", title="Edit Company | Administration")
+@web_auth_required
+def edit_company(company_id=None):
+    if company_id is None:
+        company_id = request.query.get("id") or request.query.get("company_id")
+    
+    if not company_id:
+        flash.set("No company specified for editing.", "danger")
+        redirect(URL("administration/companies"))
+
+    comp_rows = db.executesql("SELECT * FROM companies WHERE id = %s LIMIT 1", [company_id], as_dict=True)
+    if not comp_rows:
+        flash.set("Company record not found.", "danger")
+        redirect(URL("administration/companies"))
+
+    company = comp_rows[0]
+    form_data = dict(company)
+
+    if request.method == "POST":
+        form_data = dict(request.forms)
+        def clean_val(val):
+            val = str(val).strip() if val else None
+            return val if val != "" else None
+
+        company_name = clean_val(request.forms.get("company_name"))
+        legal_name = clean_val(request.forms.get("legal_name"))
+        email = clean_val(request.forms.get("email"))
+        phone = clean_val(request.forms.get("phone"))
+        website = clean_val(request.forms.get("website"))
+        address_line1 = clean_val(request.forms.get("address_line1"))
+        address_line2 = clean_val(request.forms.get("address_line2"))
+        city = clean_val(request.forms.get("city"))
+        state = clean_val(request.forms.get("state"))
+        country = clean_val(request.forms.get("country")) or "Bangladesh"
+        postal_code = clean_val(request.forms.get("postal_code"))
+        timezone = clean_val(request.forms.get("timezone")) or "UTC+06:00"
+        language_code = clean_val(request.forms.get("language_code")) or company.get("language_code") or "en"
+        
+        try:
+            fiscal_year_start_month = int(request.forms.get("fiscal_year_start_month") or 1)
+        except (ValueError, TypeError):
+            fiscal_year_start_month = 1
+
+        status_type = clean_val(request.forms.get("status_type")) or "ACTIVE"
+        note = clean_val(request.forms.get("note"))
+
+        if not company_name:
+            flash.set("Company Name is required.", "danger")
+            return dict(company=company, form_data=form_data)
+
+        # Handle File Upload for Company Logo
+        cid = company.get("cid", "comp")
+        logo_file = request.files.get("logo_file")
+        remove_logo = request.forms.get("remove_logo") == "1"
+        old_logo_url = company.get("logo_url")
+
+        uploaded_logo = _save_company_branding_file(logo_file, "logo", cid)
+
+        if uploaded_logo:
+            logo_url = uploaded_logo
+            if old_logo_url and old_logo_url != uploaded_logo:
+                _delete_company_branding_file(old_logo_url)
+        elif remove_logo:
+            logo_url = None
+            if old_logo_url:
+                _delete_company_branding_file(old_logo_url)
+        else:
+            logo_url = old_logo_url
+
+        favicon_url = company.get("favicon_url")
+        banner_url = company.get("banner_url")
+
+        try:
+            update_sql = """
+            UPDATE companies SET
+                company_name = %s, legal_name = %s, email = %s, phone = %s, website = %s,
+                address_line1 = %s, address_line2 = %s, city = %s, state = %s, country = %s, postal_code = %s,
+                timezone = %s, language_code = %s, fiscal_year_start_month = %s,
+                favicon_url = %s, logo_url = %s, banner_url = %s, status_type = %s, note = %s,
+                updated_on = NOW(), updated_by = %s
+            WHERE id = %s
+            """
+            updated_by = session.user.get("username") or session.user.get("user_id") or "SYSTEM"
+            db.executesql(update_sql, [
+                company_name, legal_name, email, phone, website,
+                address_line1, address_line2, city, state, country, postal_code,
+                timezone, language_code, fiscal_year_start_month,
+                favicon_url, logo_url, banner_url, status_type, note,
+                updated_by, company_id
+            ])
+            flash.set(f"Company '{company_name}' updated successfully!", "success")
+            redirect(URL("administration/companies"))
+        except Exception as e:
+            flash.set(f"Database error updating company: {str(e)}", "danger")
+            return dict(company=company, form_data=form_data)
+
+    return dict(company=company, form_data=form_data)
+
+@action("administration/company_view/<company_id:int>")
+@action("administration/company_view")
+@view_page("administration/company_view.html", title="Company Details | Administration")
+@web_auth_required
+def company_view(company_id=None):
+    if company_id is None:
+        company_id = request.query.get("id") or request.query.get("company_id")
+
+    if not company_id:
+        flash.set("No company specified.", "danger")
+        redirect(URL("administration/companies"))
+
+    comp_rows = db.executesql("SELECT * FROM companies WHERE id = %s LIMIT 1", [company_id], as_dict=True)
+    if not comp_rows:
+        flash.set("Company record not found.", "danger")
+        redirect(URL("administration/companies"))
+
+    return dict(company=comp_rows[0])
+
+@action("administration/import_companies", method=["GET", "POST"])
+@view_page("administration/import_companies.html", title="Import Companies | Administration")
+@web_auth_required
+def import_companies():
+
+    # Template download handler
+    if request.query.get("template") == "csv":
+        headers = [
+            "Company ID (CID)", "Company Name", "Legal Name", "Email", "Phone", "Website",
+            "Address Line 1", "Address Line 2", "City", "State", "Country", "Postal Code",
+            "Timezone", "Fiscal Year Start Month", "Status", "Note"
+        ]
+        example = [
+            "EON", "Eon Systems", "Eon Systems Limited", "info@eonsystems.com", "+8801700000000", "https://eonsystems.com",
+            "House 12, Road 5", "Dhanmondi", "Dhaka", "Dhaka", "Bangladesh", "1205",
+            "UTC+06:00", "1", "ACTIVE", "Headquarters office"
+        ]
+        output = io.StringIO()
+        writer = csv.writer(output)
+        writer.writerow(headers)
+        writer.writerow(example)
+
+        response.headers['Content-Type'] = 'text/csv; charset=utf-8'
+        response.headers['Content-Disposition'] = 'attachment; filename="Companies_Import_Template.csv"'
+        return output.getvalue()
+
+    stats = None
+    active_tab = "file"
+
+    if request.method == "POST":
+        csv_file = request.files.get("csv_file")
+        csv_text = request.forms.get("csv_text")
+
+        content = None
+        if csv_file and csv_file.filename:
+            active_tab = "file"
+            if not csv_file.filename.lower().endswith('.csv'):
+                flash.set("Only CSV files are allowed.", "danger")
+                return dict(stats=None, active_tab=active_tab)
+            try:
+                content = csv_file.file.read().decode('utf-8-sig')
+            except Exception as e:
+                flash.set(f"Failed to read CSV file: {str(e)}", "danger")
+                return dict(stats=None, active_tab=active_tab)
+
+        elif csv_text and csv_text.strip():
+            active_tab = "text"
+            content = csv_text.strip()
+
+        if not content:
+            flash.set("Please upload a CSV file or paste CSV text.", "danger")
+            return dict(stats=None, active_tab=active_tab)
+
+        # Parse CSV
+        try:
+            reader = csv.reader(io.StringIO(content))
+            rows = list(reader)
+        except Exception as e:
+            flash.set(f"Invalid CSV structure: {str(e)}", "danger")
+            return dict(stats=None, active_tab=active_tab)
+
+        if not rows:
+            flash.set("The provided CSV file is empty.", "danger")
+            return dict(stats=None, active_tab=active_tab)
+
+        # Header mapping
+        raw_headers = [h.strip().lower() for h in rows[0]]
+        data_rows = rows[1:]
+
+        def get_header_idx(*names):
+            for name in names:
+                name_clean = name.lower()
+                for idx, h in enumerate(raw_headers):
+                    if h == name_clean or name_clean in h:
+                        return idx
+            return -1
+
+        idx_cid = get_header_idx("company id (cid)", "cid", "company id", "company_id")
+        idx_name = get_header_idx("company name", "company_name", "name")
+        idx_legal = get_header_idx("legal name", "legal_name")
+        idx_email = get_header_idx("email", "contact email")
+        idx_phone = get_header_idx("phone", "phone number")
+        idx_website = get_header_idx("website")
+        idx_addr1 = get_header_idx("address line 1", "address_line1", "address line1")
+        idx_addr2 = get_header_idx("address line 2", "address_line2", "address line2")
+        idx_city = get_header_idx("city")
+        idx_state = get_header_idx("state", "division")
+        idx_country = get_header_idx("country")
+        idx_postal = get_header_idx("postal code", "postal_code", "zip")
+        idx_tz = get_header_idx("timezone")
+        idx_lang = get_header_idx("language code", "language_code", "language")
+        idx_fiscal = get_header_idx("fiscal year start month", "fiscal_year_start_month", "fiscal month")
+        idx_favicon = get_header_idx("favicon url", "favicon_url")
+        idx_logo = get_header_idx("logo url", "logo_url")
+        idx_banner = get_header_idx("banner url", "banner_url")
+        idx_status = get_header_idx("status", "status_type")
+        idx_note = get_header_idx("note", "note / remarks", "remarks")
+
+        if idx_cid == -1 or idx_name == -1:
+            flash.set("Required header columns missing: 'Company ID (CID)' and 'Company Name' are required.", "danger")
+            return dict(stats=None, active_tab=active_tab, user_cid=user_cid)
+
+        # Pre-fetch existing companies map
+        comp_rows = db.executesql("SELECT id, cid FROM companies")
+        existing_companies = {r[1].upper(): r[0] for r in comp_rows}
+
+        total_cnt = 0
+        created_cnt = 0
+        updated_cnt = 0
+        failed_cnt = 0
+        errors = []
+
+        current_user = session.user.get("username") or session.user.get("user_id") or "SYSTEM"
+
+        for row_idx, r in enumerate(data_rows, start=2):
+            if not any(cell.strip() for cell in r):
+                continue
+            total_cnt += 1
+
+            def val_at(idx):
+                if idx != -1 and idx < len(r):
+                    v = r[idx].strip()
+                    return v if v != "" else None
+                return None
+
+            r_cid = val_at(idx_cid)
+            r_name = val_at(idx_name)
+
+            if not r_cid:
+                failed_cnt += 1
+                errors.append({"row": row_idx, "cid": r_cid or "--", "error": "Company ID (CID) is missing."})
+                continue
+            if not r_name:
+                failed_cnt += 1
+                errors.append({"row": row_idx, "cid": r_cid, "error": "Company Name is missing."})
+                continue
+
+            r_cid = r_cid.upper()
+            r_legal = val_at(idx_legal)
+            r_email = val_at(idx_email)
+            r_phone = val_at(idx_phone)
+            r_website = val_at(idx_website)
+            r_addr1 = val_at(idx_addr1)
+            r_addr2 = val_at(idx_addr2)
+            r_city = val_at(idx_city)
+            r_state = val_at(idx_state)
+            r_country = val_at(idx_country) or "Bangladesh"
+            r_postal = val_at(idx_postal)
+            r_tz = val_at(idx_tz) or "UTC+06:00"
+            r_lang = val_at(idx_lang) or "en"
+            
+            raw_fiscal = val_at(idx_fiscal)
+            try:
+                r_fiscal = int(raw_fiscal) if raw_fiscal else 1
+            except (ValueError, TypeError):
+                r_fiscal = 1
+
+            r_favicon = val_at(idx_favicon)
+            r_logo = val_at(idx_logo)
+            r_banner = val_at(idx_banner)
+            raw_status = (val_at(idx_status) or "ACTIVE").upper()
+            r_status = "ACTIVE" if raw_status in ["ACTIVE", "1", "TRUE", "ENABLED"] else "INACTIVE"
+            r_note = val_at(idx_note)
+
+            try:
+                if r_cid in existing_companies:
+                    # Update existing record (COALESCE preserves existing branding/language if omitted)
+                    company_id = existing_companies[r_cid]
+                    update_sql = """
+                    UPDATE companies SET
+                        company_name = %s, legal_name = %s, email = %s, phone = %s, website = %s,
+                        address_line1 = %s, address_line2 = %s, city = %s, state = %s, country = %s, postal_code = %s,
+                        timezone = %s, language_code = COALESCE(%s, language_code), fiscal_year_start_month = %s,
+                        favicon_url = COALESCE(%s, favicon_url), logo_url = COALESCE(%s, logo_url), banner_url = COALESCE(%s, banner_url), status_type = %s, note = %s,
+                        updated_on = NOW(), updated_by = %s
+                    WHERE id = %s
+                    """
+                    db.executesql(update_sql, [
+                        r_name, r_legal, r_email, r_phone, r_website,
+                        r_addr1, r_addr2, r_city, r_state, r_country, r_postal,
+                        r_tz, r_lang, r_fiscal,
+                        r_favicon, r_logo, r_banner, r_status, r_note,
+                        current_user, company_id
+                    ])
+                    updated_cnt += 1
+                else:
+                    # Insert new record
+                    insert_sql = """
+                    INSERT INTO companies (
+                        cid, company_name, legal_name, email, phone, website,
+                        address_line1, address_line2, city, state, country, postal_code,
+                        timezone, language_code, fiscal_year_start_month,
+                        favicon_url, logo_url, banner_url, status_type, note,
+                        created_on, created_by
+                    ) VALUES (
+                        %s, %s, %s, %s, %s, %s,
+                        %s, %s, %s, %s, %s, %s,
+                        %s, %s, %s,
+                        %s, %s, %s, %s, %s,
+                        NOW(), %s
+                    )
+                    """
+                    db.executesql(insert_sql, [
+                        r_cid, r_name, r_legal, r_email, r_phone, r_website,
+                        r_addr1, r_addr2, r_city, r_state, r_country, r_postal,
+                        r_tz, r_lang, r_fiscal,
+                        r_favicon, r_logo, r_banner, r_status, r_note,
+                        current_user
+                    ])
+                    existing_companies[r_cid] = True
+                    created_cnt += 1
+            except Exception as e:
+                failed_cnt += 1
+                errors.append({"row": row_idx, "cid": r_cid, "error": str(e)})
+
+        stats = {
+            "total": total_cnt,
+            "created": created_cnt,
+            "updated": updated_cnt,
+            "failed": failed_cnt,
+            "errors": errors
+        }
+        flash.set(f"Import finished: {created_cnt} created, {updated_cnt} updated, {failed_cnt} failed.", "success" if failed_cnt == 0 else "warning")
+
+    return dict(stats=stats, active_tab=active_tab)
 
 @action("administration/roles_permisions")
 @view_page("administration/roles_permisions.html")
@@ -712,6 +1211,4 @@ def edit_user(user_id=None):
     if user_id is None:
         user_id = request.query.get("id") or request.query.get("user_id")
     return dict(user_cid=user_cid, user_id=user_id)
-
-
 

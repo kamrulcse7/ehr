@@ -67,15 +67,24 @@
                             class="w-full h-[28px] py-0 pl-7 pr-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-md text-[11px] font-medium text-slate-800 dark:text-slate-200 placeholder:text-slate-400 focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary transition-all leading-none">
                     </div>
 
-                    <!-- Status Filter -->
-                    <div class="relative flex items-center w-32">
-                        <select name="status"
-                            class="w-full h-[28px] py-0 pl-2.5 pr-7 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-md text-[11px] font-medium text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary transition-all cursor-pointer appearance-none leading-none">
-                            <option value="">All Status</option>
-                            <option value="ACTIVE" [[='selected' if request.query.get('status')=='ACTIVE' else '' ]]>Active</option>
-                            <option value="INACTIVE" [[='selected' if request.query.get('status')=='INACTIVE' else '' ]]>Inactive</option>
-                        </select>
-                        <span class="material-symbols-outlined absolute right-1.5 top-1/2 -translate-y-1/2 text-slate-400 text-[14px] pointer-events-none z-10 leading-none">expand_more</span>
+                    <!-- Status Filter (Custom Dropdown) -->
+                    <div class="relative custom-dropdown-container w-32">
+                        [[ cur_status = request.query.get('status') or '' ]]
+                        [[ display_status = 'Active' if cur_status == 'ACTIVE' else 'Inactive' if cur_status == 'INACTIVE' else 'Deleted' if cur_status == 'DELETED' else 'All Status' ]]
+                        <input type="hidden" name="status" id="status_hidden_input" value="[[= cur_status ]]">
+
+                        <button type="button" onclick="toggleCustomDropdown('status', false)"
+                            class="w-full h-[28px] py-0 pl-2.5 pr-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-md text-[11px] font-medium text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary transition-all flex items-center justify-between cursor-pointer leading-none">
+                            <span id="status_selected_text" class="truncate">[[= display_status ]]</span>
+                            <span class="material-symbols-outlined text-slate-400 text-[14px] shrink-0 transition-transform duration-200 custom-dropdown-arrow" id="status_arrow_icon">expand_more</span>
+                        </button>
+
+                        <div id="status_dropdown_menu" class="custom-dropdown-menu hidden absolute left-0 right-0 top-full mt-1 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl shadow-xl z-50 p-1.5 space-y-0.5 min-w-[120px]">
+                            <button type="button" onclick="selectCustomOption('status', '', 'All Status')" class="status-option-item w-full text-left px-2.5 py-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 font-medium text-xs transition-colors">All Status</button>
+                            <button type="button" onclick="selectCustomOption('status', 'ACTIVE', 'Active')" class="status-option-item w-full text-left px-2.5 py-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 font-medium text-xs transition-colors">Active</button>
+                            <button type="button" onclick="selectCustomOption('status', 'INACTIVE', 'Inactive')" class="status-option-item w-full text-left px-2.5 py-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 font-medium text-xs transition-colors">Inactive</button>
+                            <button type="button" onclick="selectCustomOption('status', 'DELETED', 'Deleted')" class="status-option-item w-full text-left px-2.5 py-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 font-medium text-xs transition-colors">Deleted</button>
+                        </div>
                     </div>
 
                     <!-- Filter Action Button -->
@@ -164,7 +173,8 @@
                                     <!-- COMPANY DETAILS -->
                                     <td class="py-2.5 px-4">
                                         <div class="flex items-center gap-2.5">
-                                            [[ logo = comp.get('logo_url') or '' ]]
+                                            [[ logo_raw = comp.get('logo_url') or '' ]]
+                                            [[ logo = logo_raw if (logo_raw.startswith('http://') or logo_raw.startswith('https://') or logo_raw.startswith('/ehr/')) else URL(logo_raw[1:]) if logo_raw.startswith('/static/') else URL(logo_raw) if logo_raw.startswith('static/') else URL('static/' + logo_raw) if logo_raw.startswith('uploads/') else URL('static' + logo_raw) if logo_raw.startswith('/uploads/') else logo_raw ]]
                                             [[ if logo: ]]
                                             <img src="[[= logo ]]" alt="[[= comp.get('company_name') ]]"
                                                 onerror="this.style.display='none'; if(this.nextElementSibling) this.nextElementSibling.style.display='flex';"
@@ -208,9 +218,13 @@
                                         <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-700 dark:bg-emerald-950/50 dark:text-emerald-400">
                                             <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> Active
                                         </span>
+                                        [[ elif status == 'DELETED': ]]
+                                        <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-rose-50 text-rose-700 dark:bg-rose-950/50 dark:text-rose-400">
+                                            <span class="w-1.5 h-1.5 rounded-full bg-rose-600"></span> Deleted
+                                        </span>
                                         [[ else: ]]
-                                        <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-rose-50 text-rose-600 dark:bg-rose-950/50 dark:text-rose-400">
-                                            <span class="w-1.5 h-1.5 rounded-full bg-rose-500"></span> Inactive
+                                        <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400">
+                                            <span class="w-1.5 h-1.5 rounded-full bg-slate-400"></span> Inactive
                                         </span>
                                         [[ pass ]]
                                     </td>
@@ -231,12 +245,12 @@
                                             </a>
 
                                             <!-- Delete Button -->
-                                            <a href="[[=URL('administration/company_delete')]]/[[= comp.get('id') ]]"
-                                                onclick="return confirm('Are you sure you want to delete this company?');"
+                                            <button type="button"
+                                                onclick="confirmDeleteCompany('[[=URL('administration/companies', vars={'action': 'delete', 'id': comp.get('id')})]]', '[[= comp.get('company_name', '').replace('\'', '\\\'') ]]', '[[= comp.get('cid', '') ]]');"
                                                 title="Delete Company"
-                                                class="p-1 rounded text-slate-400 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/40 transition-colors">
+                                                class="p-1 rounded text-slate-400 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/40 transition-colors cursor-pointer">
                                                 <span class="material-symbols-outlined text-[16px] block">delete</span>
-                                            </a>
+                                            </button>
                                         </div>
                                     </td>
                                 </tr>
@@ -331,6 +345,57 @@
 </div>
 
 <script>
+    function toggleCustomDropdown(id, hasSearch) {
+        const menu = document.getElementById(id + '_dropdown_menu');
+        const arrow = document.getElementById(id + '_arrow_icon');
+        if (!menu) return;
+
+        document.querySelectorAll('.custom-dropdown-menu').forEach(m => {
+            if (m.id !== id + '_dropdown_menu') {
+                m.classList.add('hidden');
+                const otherId = m.id.replace('_dropdown_menu', '');
+                const otherArrow = document.getElementById(otherId + '_arrow_icon');
+                if (otherArrow) otherArrow.classList.remove('rotate-180');
+            }
+        });
+
+        const isHidden = menu.classList.contains('hidden');
+        if (isHidden) {
+            menu.classList.remove('hidden');
+            if (arrow) arrow.classList.add('rotate-180');
+        } else {
+            closeCustomDropdown(id);
+        }
+    }
+
+    function closeCustomDropdown(id) {
+        const menu = document.getElementById(id + '_dropdown_menu');
+        const arrow = document.getElementById(id + '_arrow_icon');
+        if (menu) menu.classList.add('hidden');
+        if (arrow) arrow.classList.remove('rotate-180');
+    }
+
+    function selectCustomOption(id, val, label) {
+        const hiddenInput = document.getElementById(id + '_hidden_input');
+        const textSpan = document.getElementById(id + '_selected_text');
+        if (hiddenInput) hiddenInput.value = val;
+        if (textSpan) textSpan.textContent = label;
+        closeCustomDropdown(id);
+    }
+
+    function confirmDeleteCompany(deleteUrl, companyName, cid) {
+        showConfirmModal({
+            title: 'Delete Company',
+            message: `Are you sure you want to delete <strong>${companyName || 'this company'}</strong> ${cid ? '(' + cid + ')' : ''}? This action is permanent and cannot be undone.`,
+            type: 'danger',
+            confirmText: 'Yes, Delete',
+            cancelText: 'Cancel',
+            onConfirm: function() {
+                window.location.href = deleteUrl;
+            }
+        });
+    }
+
     function toggleExportDropdown(event) {
         event.stopPropagation();
         const menu = document.getElementById('exportDropdownMenu');
@@ -338,6 +403,11 @@
     }
 
     document.addEventListener('click', function(event) {
+        if (!event.target.closest('.custom-dropdown-container')) {
+            document.querySelectorAll('.custom-dropdown-menu').forEach(m => m.classList.add('hidden'));
+            document.querySelectorAll('.custom-dropdown-arrow').forEach(a => a.classList.remove('rotate-180'));
+        }
+
         const menu = document.getElementById('exportDropdownMenu');
         const btn = document.getElementById('exportDropdownBtn');
         if (menu && !menu.classList.contains('hidden')) {

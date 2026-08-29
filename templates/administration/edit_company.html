@@ -1,0 +1,473 @@
+[[ extend 'layout.html' ]]
+
+<div class="w-full space-y-4 text-slate-700 dark:text-slate-200">
+    <div class="max-w-[1800px] mx-auto space-y-4">
+
+        <!-- HEADER SECTION (Breadcrumb) -->
+        <div class="pb-2 border-b border-slate-200/80 dark:border-slate-800/80 flex items-center justify-between h-7">
+            <div class="flex items-center gap-0.5 text-xs font-medium">
+                <a href="[[=URL('administration/companies')]]" class="text-slate-400 dark:text-slate-500 hover:text-primary transition-colors">Administration</a>
+                <span class="material-symbols-outlined text-[12px] text-slate-400 dark:text-slate-600 select-none -mx-0.5">chevron_right</span>
+                <a href="[[=URL('administration/companies')]]" class="text-slate-400 dark:text-slate-500 hover:text-primary transition-colors">Company Management</a>
+                <span class="material-symbols-outlined text-[12px] text-slate-400 dark:text-slate-600 select-none -mx-0.5">chevron_right</span>
+                <span class="text-primary font-bold">Edit Company</span>
+            </div>
+            <a href="[[=URL('administration/companies')]]"
+                class="h-7 px-2.5 bg-slate-200 hover:bg-slate-300 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 rounded-md text-xs font-semibold transition-all inline-flex items-center gap-1 shrink-0">
+                <span class="material-symbols-outlined text-[15px]">arrow_back</span>
+                Back
+            </a>
+        </div>
+
+        <!-- FORM START -->
+        <form action="[[=URL('administration/edit_company')]]/[[= company.get('id') ]]" method="POST" enctype="multipart/form-data" autocomplete="off" class="space-y-4">
+
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
+
+                <!-- LEFT COLUMN (SPAN 2) -->
+                <div class="lg:col-span-2 space-y-4">
+
+                    <!-- 1. PRIMARY INFORMATION CARD WITH COMPACT LOGO UPLOAD -->
+                    <div class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-800/80 p-5 shadow-xs space-y-4">
+                        <div class="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
+                            <div class="flex items-center gap-2">
+                                <span class="material-symbols-outlined text-primary text-[20px]">domain</span>
+                                <h3 class="font-bold text-sm text-slate-900 dark:text-white">Primary Information</h3>
+                            </div>
+                        </div>
+
+                        <div class="flex flex-col sm:flex-row gap-4 items-start">
+                            <!-- Compact Logo Upload Box (Aligned Flush with Text Inputs) -->
+                            <div class="shrink-0 w-full sm:w-32">
+                                [[ cur_logo_raw = company.get('logo_url') or '' ]]
+                                [[ cur_logo = cur_logo_raw if (cur_logo_raw.startswith('http://') or cur_logo_raw.startswith('https://') or cur_logo_raw.startswith('/ehr/')) else URL(cur_logo_raw[1:]) if cur_logo_raw.startswith('/static/') else URL(cur_logo_raw) if cur_logo_raw.startswith('static/') else URL('static/' + cur_logo_raw) if cur_logo_raw.startswith('uploads/') else URL('static' + cur_logo_raw) if cur_logo_raw.startswith('/uploads/') else cur_logo_raw ]]
+                                <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 mb-1">
+                                    Company Logo
+                                </label>
+                                <input type="hidden" name="remove_logo" id="remove_logo_input" value="0">
+                                <div class="relative w-full h-[114px] border-2 border-dashed border-slate-200 dark:border-slate-800 hover:border-primary dark:hover:border-primary rounded-2xl flex flex-col items-center justify-center bg-slate-50/50 dark:bg-slate-800/30 transition-all duration-200 group cursor-pointer overflow-hidden p-2">
+                                    <input type="file" name="logo_file" id="logoFileInput" accept="image/*"
+                                        class="absolute inset-0 opacity-0 cursor-pointer w-full h-full z-10"
+                                        onchange="previewCardImage(this, 'logo_preview_img', 'logo_preview_img_container')">
+
+                                    <!-- Placeholder State -->
+                                    <div id="logo_placeholder" class="flex flex-col items-center text-center space-y-1 pointer-events-none">
+                                        <div class="w-8 h-8 rounded-full bg-slate-100 dark:bg-slate-800 group-hover:bg-primary/10 flex items-center justify-center transition-colors shadow-2xs">
+                                            <span class="material-symbols-outlined text-[18px] text-slate-400 group-hover:text-primary transition-colors">cloud_upload</span>
+                                        </div>
+                                        <div>
+                                            <p class="text-[11px] font-bold text-slate-700 dark:text-slate-200 group-hover:text-primary transition-colors">[[= 'Change Logo' if cur_logo else 'Upload Logo' ]]</p>
+                                            <p class="text-[8px] text-slate-400">JPG/PNG (120KB)</p>
+                                        </div>
+                                    </div>
+
+                                    <!-- Preview State -->
+                                    <div id="logo_preview_img_container" class="[[= '' if cur_logo else 'hidden' ]] absolute inset-0 flex items-center justify-center bg-white dark:bg-slate-900 p-2 z-20">
+                                        <img id="logo_preview_img" src="[[= cur_logo or '#' ]]" alt="Logo Preview" class="w-full h-full object-contain rounded-xl">
+                                        <button type="button" onclick="clearCardImage('logoFileInput', 'logo_preview_img', 'logo_preview_img_container')" title="Remove Logo"
+                                            class="absolute top-1.5 right-1.5 w-5 h-5 bg-slate-900/70 hover:bg-rose-600 text-white rounded-full flex items-center justify-center transition-all shadow-md z-30 cursor-pointer">
+                                            <span class="material-symbols-outlined text-[12px]">close</span>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Fields beside logo -->
+                            <div class="flex-1 w-full space-y-3">
+                                <!-- Top Row: CID (Compact Width) + Company Display Name (Fills remaining width) -->
+                                <div class="flex flex-col sm:flex-row gap-3">
+                                    <!-- Company Reference ID (CID) - Compact Width -->
+                                    <div class="w-full sm:w-44 shrink-0">
+                                        <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 mb-1">
+                                            Company ID (CID)
+                                        </label>
+                                        <input type="text" value="[[= company.get('cid') or '' ]]" disabled
+                                            class="w-full px-3 py-2 bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-bold text-sky-600 dark:text-sky-400 uppercase cursor-not-allowed">
+                                        <span class="text-[10px] text-slate-400 mt-0.5 block truncate">Cannot be changed</span>
+                                    </div>
+
+                                    <!-- Display Company Name - Takes Remaining Width -->
+                                    <div class="flex-1 min-w-0">
+                                        <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 mb-1">
+                                            Company Display Name <span class="text-rose-500">*</span>
+                                        </label>
+                                        <input type="text" name="company_name" value="[[= form_data.get('company_name') or company.get('company_name') or '' ]]" placeholder="e.g. Eon Systems" required autocomplete="new-password" readonly onfocus="this.removeAttribute('readonly');"
+                                            class="w-full px-3 py-2 bg-slate-50/50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-semibold text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all">
+                                        <span class="text-[10px] text-slate-400 mt-0.5 block">Public display name</span>
+                                    </div>
+                                </div>
+
+                                <!-- Bottom Row: Registered Legal Name (Full Width) -->
+                                <div>
+                                    <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 mb-1">
+                                        Registered Legal Name
+                                    </label>
+                                    <input type="text" name="legal_name" value="[[= form_data.get('legal_name') or company.get('legal_name') or '' ]]" placeholder="e.g. Eon Systems Bangladesh Limited" autocomplete="new-password" readonly onfocus="this.removeAttribute('readonly');"
+                                        class="w-full px-3 py-2 bg-slate-50/50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-medium text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 2. CONTACT DETAILS CARD -->
+                    <div class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-800/80 p-5 shadow-xs space-y-4">
+                        <div class="flex items-center gap-2 border-b border-slate-100 dark:border-slate-800 pb-3">
+                            <span class="material-symbols-outlined text-primary text-[20px]">contact_mail</span>
+                            <h3 class="font-bold text-sm text-slate-900 dark:text-white">Contact & Online Presence</h3>
+                        </div>
+
+                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3.5">
+                            <!-- Primary Email -->
+                            <div>
+                                <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 mb-1">
+                                    Primary Email
+                                </label>
+                                <input type="email" name="email" value="[[= form_data.get('email') or company.get('email') or '' ]]" placeholder="info@company.com" autocomplete="new-password" readonly onfocus="this.removeAttribute('readonly');"
+                                    class="w-full px-3 py-2 bg-slate-50/50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-medium text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all">
+                            </div>
+
+                            <!-- Phone Number -->
+                            <div>
+                                <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 mb-1">
+                                    Phone Number
+                                </label>
+                                <input type="tel" name="phone" value="[[= form_data.get('phone') or company.get('phone') or '' ]]" placeholder="+880 1700-000000" autocomplete="new-password" readonly onfocus="this.removeAttribute('readonly');"
+                                    class="w-full px-3 py-2 bg-slate-50/50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-medium text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all">
+                            </div>
+
+                            <!-- Website -->
+                            <div>
+                                <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 mb-1">
+                                    Website URL
+                                </label>
+                                <input type="url" name="website" value="[[= form_data.get('website') or company.get('website') or '' ]]" placeholder="https://www.company.com" autocomplete="new-password" readonly onfocus="this.removeAttribute('readonly');"
+                                    class="w-full px-3 py-2 bg-slate-50/50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-medium text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 3. ADDRESS & LOCATION CARD -->
+                    <div class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-800/80 p-5 shadow-xs space-y-4">
+                        <div class="flex items-center gap-2 border-b border-slate-100 dark:border-slate-800 pb-3">
+                            <span class="material-symbols-outlined text-primary text-[20px]">location_on</span>
+                            <h3 class="font-bold text-sm text-slate-900 dark:text-white">Address & Location</h3>
+                        </div>
+
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                            <div>
+                                <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 mb-1">
+                                    Address Line 1
+                                </label>
+                                <input type="text" name="address_line1" value="[[= form_data.get('address_line1') or company.get('address_line1') or '' ]]" placeholder="Street Address, Building, Suite" autocomplete="new-password" readonly onfocus="this.removeAttribute('readonly');"
+                                    class="w-full px-3 py-2 bg-slate-50/50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-medium text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all">
+                            </div>
+
+                            <div>
+                                <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 mb-1">
+                                    Address Line 2
+                                </label>
+                                <input type="text" name="address_line2" value="[[= form_data.get('address_line2') or company.get('address_line2') or '' ]]" placeholder="Area, Landmark" autocomplete="new-password" readonly onfocus="this.removeAttribute('readonly');"
+                                    class="w-full px-3 py-2 bg-slate-50/50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-medium text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all">
+                            </div>
+
+                            <div>
+                                <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 mb-1">
+                                    City
+                                </label>
+                                <input type="text" name="city" value="[[= form_data.get('city') or company.get('city') or '' ]]" placeholder="e.g. Dhaka" autocomplete="new-password" readonly onfocus="this.removeAttribute('readonly');"
+                                    class="w-full px-3 py-2 bg-slate-50/50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-medium text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all">
+                            </div>
+
+                            <div>
+                                <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 mb-1">
+                                    State / Division
+                                </label>
+                                <input type="text" name="state" value="[[= form_data.get('state') or company.get('state') or '' ]]" placeholder="e.g. Dhaka" autocomplete="new-password" readonly onfocus="this.removeAttribute('readonly');"
+                                    class="w-full px-3 py-2 bg-slate-50/50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-medium text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all">
+                            </div>
+
+                            <div>
+                                <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 mb-1">
+                                    Country
+                                </label>
+                                <input type="text" name="country" value="[[= form_data.get('country') or company.get('country') or 'Bangladesh' ]]" placeholder="e.g. Bangladesh" autocomplete="new-password" readonly onfocus="this.removeAttribute('readonly');"
+                                    class="w-full px-3 py-2 bg-slate-50/50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-medium text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all">
+                            </div>
+
+                            <div>
+                                <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 mb-1">
+                                    Postal / ZIP Code
+                                </label>
+                                <input type="text" name="postal_code" value="[[= form_data.get('postal_code') or company.get('postal_code') or '' ]]" placeholder="e.g. 1205" autocomplete="new-password" readonly onfocus="this.removeAttribute('readonly');"
+                                    class="w-full px-3 py-2 bg-slate-50/50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-medium text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all">
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+
+                <!-- RIGHT COLUMN (SPAN 1) -->
+                <div class="space-y-4">
+
+                    <!-- STATUS & SYSTEM SETTINGS CARD -->
+                    <div class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-800/80 p-5 shadow-xs space-y-4">
+                        <div class="flex items-center gap-2 border-b border-slate-100 dark:border-slate-800 pb-3">
+                            <span class="material-symbols-outlined text-primary text-[20px]">tune</span>
+                            <h3 class="font-bold text-sm text-slate-900 dark:text-white">Status & Settings</h3>
+                        </div>
+
+                        <!-- Status Type (Custom Dropdown without Search) -->
+                        <div class="relative w-full custom-dropdown-container">
+                            [[ cur_status = form_data.get('status_type') or company.get('status_type') or 'ACTIVE' ]]
+                            <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 mb-1">
+                                Status <span class="text-rose-500">*</span>
+                            </label>
+
+                            <input type="hidden" name="status_type" id="status_hidden_input" value="[[= cur_status ]]">
+
+                            <button type="button" onclick="toggleCustomDropdown('status', false)"
+                                class="w-full h-[34px] px-3 bg-slate-50/50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-semibold text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all flex items-center justify-between cursor-pointer">
+                                <span id="status_selected_text">[[= cur_status ]]</span>
+                                <span class="material-symbols-outlined text-slate-400 text-[18px] shrink-0 transition-transform duration-200 custom-dropdown-arrow" id="status_arrow_icon">expand_more</span>
+                            </button>
+
+                            <div id="status_dropdown_menu" class="custom-dropdown-menu hidden absolute left-0 right-0 top-full mt-1 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl shadow-xl z-50 p-1.5 space-y-0.5">
+                                <button type="button" onclick="selectCustomOption('status', 'ACTIVE', 'ACTIVE')" class="status-option-item w-full text-left px-2.5 py-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 font-semibold text-xs transition-colors">ACTIVE</button>
+                                <button type="button" onclick="selectCustomOption('status', 'INACTIVE', 'INACTIVE')" class="status-option-item w-full text-left px-2.5 py-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 font-semibold text-xs transition-colors">INACTIVE</button>
+                            </div>
+                        </div>
+
+                        <!-- Timezone (Custom Bounded & Searchable Dropdown) -->
+                        <div class="relative w-full custom-dropdown-container" id="custom_tz_container">
+                            [[ cur_tz = form_data.get('timezone') or company.get('timezone') or 'UTC+06:00' ]]
+                            [[ tz_label_map = {'UTC-10:00': 'UTC-10:00 (Honolulu)', 'UTC-09:00': 'UTC-09:00 (Anchorage)', 'UTC-08:00': 'UTC-08:00 (Los Angeles)', 'UTC-07:00': 'UTC-07:00 (Denver)', 'UTC-06:00': 'UTC-06:00 (Chicago / Mexico)', 'UTC-05:00': 'UTC-05:00 (New York / Toronto)', 'UTC-04:00': 'UTC-04:00 (Santiago)', 'UTC-03:00': 'UTC-03:00 (Buenos Aires / Rio)', 'UTC-02:00': 'UTC-02:00 (Mid-Atlantic)', 'UTC-01:00': 'UTC-01:00 (Azores)', 'UTC+00:00': 'UTC+00:00 (GMT / London)', 'UTC+01:00': 'UTC+01:00 (Berlin / Paris)', 'UTC+02:00': 'UTC+02:00 (Cairo / Athens)', 'UTC+03:00': 'UTC+03:00 (Riyadh / Moscow)', 'UTC+03:30': 'UTC+03:30 (Tehran)', 'UTC+04:00': 'UTC+04:00 (Dubai / Muscat)', 'UTC+04:30': 'UTC+04:30 (Kabul)', 'UTC+05:00': 'UTC+05:00 (Karachi / Tashkent)', 'UTC+05:30': 'UTC+05:30 (Kolkata / Mumbai)', 'UTC+05:45': 'UTC+05:45 (Kathmandu)', 'UTC+06:00': 'UTC+06:00 (Dhaka)', 'Asia/Dhaka': 'UTC+06:00 (Dhaka)', 'UTC+06:30': 'UTC+06:30 (Yangon)', 'UTC+07:00': 'UTC+07:00 (Bangkok / Jakarta)', 'UTC+08:00': 'UTC+08:00 (Singapore / Beijing)', 'UTC+09:00': 'UTC+09:00 (Tokyo / Seoul)', 'UTC+09:30': 'UTC+09:30 (Adelaide)', 'UTC+10:00': 'UTC+10:00 (Sydney / Melbourne)', 'UTC+11:00': 'UTC+11:00 (Solomon Is.)', 'UTC+12:00': 'UTC+12:00 (Auckland / Fiji)'} ]]
+                            [[ display_tz = tz_label_map.get(cur_tz, cur_tz) ]]
+
+                            <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 mb-1">
+                                Timezone
+                            </label>
+
+                            <input type="hidden" name="timezone" id="tz_hidden_input" value="[[= cur_tz ]]">
+
+                            <!-- Trigger Button -->
+                            <button type="button" id="tz_select_btn" onclick="toggleCustomDropdown('tz', true)"
+                                class="w-full h-[34px] px-3 bg-slate-50/50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-medium text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all flex items-center justify-between cursor-pointer">
+                                <span id="tz_selected_text" class="truncate">[[= display_tz ]]</span>
+                                <span class="material-symbols-outlined text-slate-400 text-[18px] shrink-0 transition-transform duration-200 custom-dropdown-arrow" id="tz_arrow_icon">expand_more</span>
+                            </button>
+
+                            <!-- Dropdown Menu Popover (Bounded Height: max-h-48 = 192px) -->
+                            <div id="tz_dropdown_menu" class="custom-dropdown-menu hidden absolute left-0 right-0 top-full mt-1 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl shadow-xl z-50 p-2 space-y-1.5">
+                                <!-- Search Input -->
+                                <div class="relative">
+                                    <input type="text" id="tz_search_input" oninput="filterCustomOptions('tz', this.value)" placeholder="Search timezone..."
+                                        class="w-full px-2.5 py-1 text-xs bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-800 dark:text-slate-200 outline-none focus:border-primary">
+                                </div>
+
+                                <!-- Scrollable List -->
+                                <div id="tz_options_list" class="max-h-48 overflow-y-auto space-y-0.5 pr-0.5 text-xs">
+                                    <button type="button" onclick="selectCustomOption('tz', 'UTC-10:00', 'UTC-10:00 (Honolulu)')" class="tz-option-item w-full text-left px-2.5 py-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 font-medium transition-colors">UTC-10:00 (Honolulu)</button>
+                                    <button type="button" onclick="selectCustomOption('tz', 'UTC-09:00', 'UTC-09:00 (Anchorage)')" class="tz-option-item w-full text-left px-2.5 py-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 font-medium transition-colors">UTC-09:00 (Anchorage)</button>
+                                    <button type="button" onclick="selectCustomOption('tz', 'UTC-08:00', 'UTC-08:00 (Los Angeles)')" class="tz-option-item w-full text-left px-2.5 py-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 font-medium transition-colors">UTC-08:00 (Los Angeles)</button>
+                                    <button type="button" onclick="selectCustomOption('tz', 'UTC-07:00', 'UTC-07:00 (Denver)')" class="tz-option-item w-full text-left px-2.5 py-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 font-medium transition-colors">UTC-07:00 (Denver)</button>
+                                    <button type="button" onclick="selectCustomOption('tz', 'UTC-06:00', 'UTC-06:00 (Chicago / Mexico)')" class="tz-option-item w-full text-left px-2.5 py-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 font-medium transition-colors">UTC-06:00 (Chicago / Mexico)</button>
+                                    <button type="button" onclick="selectCustomOption('tz', 'UTC-05:00', 'UTC-05:00 (New York / Toronto)')" class="tz-option-item w-full text-left px-2.5 py-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 font-medium transition-colors">UTC-05:00 (New York / Toronto)</button>
+                                    <button type="button" onclick="selectCustomOption('tz', 'UTC-04:00', 'UTC-04:00 (Santiago)')" class="tz-option-item w-full text-left px-2.5 py-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 font-medium transition-colors">UTC-04:00 (Santiago)</button>
+                                    <button type="button" onclick="selectCustomOption('tz', 'UTC-03:00', 'UTC-03:00 (Buenos Aires / Rio)')" class="tz-option-item w-full text-left px-2.5 py-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 font-medium transition-colors">UTC-03:00 (Buenos Aires / Rio)</button>
+                                    <button type="button" onclick="selectCustomOption('tz', 'UTC-02:00', 'UTC-02:00 (Mid-Atlantic)')" class="tz-option-item w-full text-left px-2.5 py-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 font-medium transition-colors">UTC-02:00 (Mid-Atlantic)</button>
+                                    <button type="button" onclick="selectCustomOption('tz', 'UTC-01:00', 'UTC-01:00 (Azores)')" class="tz-option-item w-full text-left px-2.5 py-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 font-medium transition-colors">UTC-01:00 (Azores)</button>
+                                    <button type="button" onclick="selectCustomOption('tz', 'UTC+00:00', 'UTC+00:00 (GMT / London)')" class="tz-option-item w-full text-left px-2.5 py-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 font-medium transition-colors">UTC+00:00 (GMT / London)</button>
+                                    <button type="button" onclick="selectCustomOption('tz', 'UTC+01:00', 'UTC+01:00 (Berlin / Paris)')" class="tz-option-item w-full text-left px-2.5 py-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 font-medium transition-colors">UTC+01:00 (Berlin / Paris)</button>
+                                    <button type="button" onclick="selectCustomOption('tz', 'UTC+02:00', 'UTC+02:00 (Cairo / Athens)')" class="tz-option-item w-full text-left px-2.5 py-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 font-medium transition-colors">UTC+02:00 (Cairo / Athens)</button>
+                                    <button type="button" onclick="selectCustomOption('tz', 'UTC+03:00', 'UTC+03:00 (Riyadh / Moscow)')" class="tz-option-item w-full text-left px-2.5 py-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 font-medium transition-colors">UTC+03:00 (Riyadh / Moscow)</button>
+                                    <button type="button" onclick="selectCustomOption('tz', 'UTC+03:30', 'UTC+03:30 (Tehran)')" class="tz-option-item w-full text-left px-2.5 py-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 font-medium transition-colors">UTC+03:30 (Tehran)</button>
+                                    <button type="button" onclick="selectCustomOption('tz', 'UTC+04:00', 'UTC+04:00 (Dubai / Muscat)')" class="tz-option-item w-full text-left px-2.5 py-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 font-medium transition-colors">UTC+04:00 (Dubai / Muscat)</button>
+                                    <button type="button" onclick="selectCustomOption('tz', 'UTC+04:30', 'UTC+04:30 (Kabul)')" class="tz-option-item w-full text-left px-2.5 py-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 font-medium transition-colors">UTC+04:30 (Kabul)</button>
+                                    <button type="button" onclick="selectCustomOption('tz', 'UTC+05:00', 'UTC+05:00 (Karachi / Tashkent)')" class="tz-option-item w-full text-left px-2.5 py-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 font-medium transition-colors">UTC+05:00 (Karachi / Tashkent)</button>
+                                    <button type="button" onclick="selectCustomOption('tz', 'UTC+05:30', 'UTC+05:30 (Kolkata / Mumbai)')" class="tz-option-item w-full text-left px-2.5 py-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 font-medium transition-colors">UTC+05:30 (Kolkata / Mumbai)</button>
+                                    <button type="button" onclick="selectCustomOption('tz', 'UTC+05:45', 'UTC+05:45 (Kathmandu)')" class="tz-option-item w-full text-left px-2.5 py-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 font-medium transition-colors">UTC+05:45 (Kathmandu)</button>
+                                    <button type="button" onclick="selectCustomOption('tz', 'UTC+06:00', 'UTC+06:00 (Dhaka)')" class="tz-option-item w-full text-left px-2.5 py-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 font-medium transition-colors">UTC+06:00 (Dhaka)</button>
+                                    <button type="button" onclick="selectCustomOption('tz', 'UTC+06:30', 'UTC+06:30 (Yangon)')" class="tz-option-item w-full text-left px-2.5 py-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 font-medium transition-colors">UTC+06:30 (Yangon)</button>
+                                    <button type="button" onclick="selectCustomOption('tz', 'UTC+07:00', 'UTC+07:00 (Bangkok / Jakarta)')" class="tz-option-item w-full text-left px-2.5 py-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 font-medium transition-colors">UTC+07:00 (Bangkok / Jakarta)</button>
+                                    <button type="button" onclick="selectCustomOption('tz', 'UTC+08:00', 'UTC+08:00 (Singapore / Beijing)')" class="tz-option-item w-full text-left px-2.5 py-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 font-medium transition-colors">UTC+08:00 (Singapore / Beijing)</button>
+                                    <button type="button" onclick="selectCustomOption('tz', 'UTC+09:00', 'UTC+09:00 (Tokyo / Seoul)')" class="tz-option-item w-full text-left px-2.5 py-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 font-medium transition-colors">UTC+09:00 (Tokyo / Seoul)</button>
+                                    <button type="button" onclick="selectCustomOption('tz', 'UTC+09:30', 'UTC+09:30 (Adelaide)')" class="tz-option-item w-full text-left px-2.5 py-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 font-medium transition-colors">UTC+09:30 (Adelaide)</button>
+                                    <button type="button" onclick="selectCustomOption('tz', 'UTC+10:00', 'UTC+10:00 (Sydney / Melbourne)')" class="tz-option-item w-full text-left px-2.5 py-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 font-medium transition-colors">UTC+10:00 (Sydney / Melbourne)</button>
+                                    <button type="button" onclick="selectCustomOption('tz', 'UTC+11:00', 'UTC+11:00 (Solomon Is.)')" class="tz-option-item w-full text-left px-2.5 py-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 font-medium transition-colors">UTC+11:00 (Solomon Is.)</button>
+                                    <button type="button" onclick="selectCustomOption('tz', 'UTC+12:00', 'UTC+12:00 (Auckland / Fiji)')" class="tz-option-item w-full text-left px-2.5 py-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 font-medium transition-colors">UTC+12:00 (Auckland / Fiji)</button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Fiscal Year Start Month (Custom Dropdown without Search) -->
+                        <div class="relative w-full custom-dropdown-container">
+                            [[ cur_fiscal = str(form_data.get('fiscal_year_start_month') or company.get('fiscal_year_start_month') or '1') ]]
+                            [[ months_map = {'1': 'January (Month 1)', '2': 'February (Month 2)', '3': 'March (Month 3)', '4': 'April (Month 4)', '5': 'May (Month 5)', '6': 'June (Month 6)', '7': 'July (Month 7)', '8': 'August (Month 8)', '9': 'September (Month 9)', '10': 'October (Month 10)', '11': 'November (Month 11)', '12': 'December (Month 12)'} ]]
+                            [[ display_fiscal = months_map.get(cur_fiscal, 'January (Month 1)') ]]
+
+                            <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 mb-1">
+                                Fiscal Year Start Month
+                            </label>
+
+                            <input type="hidden" name="fiscal_year_start_month" id="fiscal_hidden_input" value="[[= cur_fiscal ]]">
+
+                            <button type="button" onclick="toggleCustomDropdown('fiscal', false)"
+                                class="w-full h-[34px] px-3 bg-slate-50/50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-medium text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all flex items-center justify-between cursor-pointer">
+                                <span id="fiscal_selected_text" class="truncate">[[= display_fiscal ]]</span>
+                                <span class="material-symbols-outlined text-slate-400 text-[18px] shrink-0 transition-transform duration-200 custom-dropdown-arrow" id="fiscal_arrow_icon">expand_more</span>
+                            </button>
+
+                            <div id="fiscal_dropdown_menu" class="custom-dropdown-menu hidden absolute left-0 right-0 top-full mt-1 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl shadow-xl z-50 p-1.5 space-y-0.5">
+                                <div class="max-h-48 overflow-y-auto space-y-0.5 pr-0.5 text-xs">
+                                    <button type="button" onclick="selectCustomOption('fiscal', '1', 'January (Month 1)')" class="fiscal-option-item w-full text-left px-2.5 py-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 font-medium transition-colors">January (Month 1)</button>
+                                    <button type="button" onclick="selectCustomOption('fiscal', '2', 'February (Month 2)')" class="fiscal-option-item w-full text-left px-2.5 py-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 font-medium transition-colors">February (Month 2)</button>
+                                    <button type="button" onclick="selectCustomOption('fiscal', '3', 'March (Month 3)')" class="fiscal-option-item w-full text-left px-2.5 py-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 font-medium transition-colors">March (Month 3)</button>
+                                    <button type="button" onclick="selectCustomOption('fiscal', '4', 'April (Month 4)')" class="fiscal-option-item w-full text-left px-2.5 py-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 font-medium transition-colors">April (Month 4)</button>
+                                    <button type="button" onclick="selectCustomOption('fiscal', '5', 'May (Month 5)')" class="fiscal-option-item w-full text-left px-2.5 py-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 font-medium transition-colors">May (Month 5)</button>
+                                    <button type="button" onclick="selectCustomOption('fiscal', '6', 'June (Month 6)')" class="fiscal-option-item w-full text-left px-2.5 py-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 font-medium transition-colors">June (Month 6)</button>
+                                    <button type="button" onclick="selectCustomOption('fiscal', '7', 'July (Month 7)')" class="fiscal-option-item w-full text-left px-2.5 py-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 font-medium transition-colors">July (Month 7)</button>
+                                    <button type="button" onclick="selectCustomOption('fiscal', '8', 'August (Month 8)')" class="fiscal-option-item w-full text-left px-2.5 py-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 font-medium transition-colors">August (Month 8)</button>
+                                    <button type="button" onclick="selectCustomOption('fiscal', '9', 'September (Month 9)')" class="fiscal-option-item w-full text-left px-2.5 py-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 font-medium transition-colors">September (Month 9)</button>
+                                    <button type="button" onclick="selectCustomOption('fiscal', '10', 'October (Month 10)')" class="fiscal-option-item w-full text-left px-2.5 py-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 font-medium transition-colors">October (Month 10)</button>
+                                    <button type="button" onclick="selectCustomOption('fiscal', '11', 'November (Month 11)')" class="fiscal-option-item w-full text-left px-2.5 py-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 font-medium transition-colors">November (Month 11)</button>
+                                    <button type="button" onclick="selectCustomOption('fiscal', '12', 'December (Month 12)')" class="fiscal-option-item w-full text-left px-2.5 py-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 font-medium transition-colors">December (Month 12)</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- NOTES / REMARKS CARD -->
+                    <div class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-800/80 p-5 shadow-xs space-y-4">
+                        <div class="flex items-center gap-2 border-b border-slate-100 dark:border-slate-800 pb-3">
+                            <span class="material-symbols-outlined text-primary text-[20px]">notes</span>
+                            <h3 class="font-bold text-sm text-slate-900 dark:text-white">Remarks / Notes</h3>
+                        </div>
+
+                        <div>
+                            <textarea name="note" rows="3" placeholder="Add optional details or remarks..."
+                                class="w-full px-3 py-2 bg-slate-50/50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-medium text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all">[[= form_data.get('note') or company.get('note') or '' ]]</textarea>
+                        </div>
+                    </div>
+
+                    <!-- SUBMIT BUTTONS -->
+                    <div class="flex items-center justify-end gap-2 pt-2">
+                        <a href="[[=URL('administration/companies')]]"
+                            class="h-7 px-3 bg-white dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700 rounded-md text-xs font-semibold transition-all flex items-center justify-center">
+                            Cancel
+                        </a>
+                        <button type="submit" id="submitBtn"
+                            class="h-7 px-3.5 bg-primary hover:opacity-90 active:scale-[0.98] text-white rounded-md text-xs font-semibold shadow-xs transition-all flex items-center gap-1 justify-center cursor-pointer">
+                            <span class="material-symbols-outlined text-[15px]">save</span>
+                            Save Changes
+                        </button>
+                    </div>
+
+                </div>
+
+            </div>
+
+        </form>
+
+    </div>
+</div>
+
+<script>
+function previewCardImage(input, imgId, containerId) {
+    if (input.files && input.files[0]) {
+        const file = input.files[0];
+        if (file.size > 120 * 1024) {
+            alert("Company Logo image size exceeds 120KB limit. Please select a smaller image file.");
+            input.value = "";
+            return;
+        }
+        const removeInput = document.getElementById('remove_logo_input');
+        if (removeInput) removeInput.value = '0';
+
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            const img = document.getElementById(imgId);
+            const container = document.getElementById(containerId);
+            if (img) img.src = e.target.result;
+            if (container) container.classList.remove('hidden');
+        };
+        reader.readAsDataURL(file);
+    }
+}
+
+function clearCardImage(inputId, imgId, containerId) {
+    const input = document.getElementById(inputId);
+    const img = document.getElementById(imgId);
+    const container = document.getElementById(containerId);
+    const removeInput = document.getElementById('remove_logo_input');
+    if (input) input.value = '';
+    if (img) img.src = '#';
+    if (container) container.classList.add('hidden');
+    if (removeInput) removeInput.value = '1';
+}
+
+function toggleCustomDropdown(id, hasSearch) {
+    const menu = document.getElementById(id + '_dropdown_menu');
+    const arrow = document.getElementById(id + '_arrow_icon');
+    if (!menu) return;
+
+    document.querySelectorAll('.custom-dropdown-menu').forEach(m => {
+        if (m.id !== id + '_dropdown_menu') {
+            m.classList.add('hidden');
+            const otherId = m.id.replace('_dropdown_menu', '');
+            const otherArrow = document.getElementById(otherId + '_arrow_icon');
+            if (otherArrow) otherArrow.classList.remove('rotate-180');
+        }
+    });
+
+    const isHidden = menu.classList.contains('hidden');
+    if (isHidden) {
+        menu.classList.remove('hidden');
+        if (arrow) arrow.classList.add('rotate-180');
+        if (hasSearch) {
+            const searchInput = document.getElementById(id + '_search_input');
+            if (searchInput) {
+                searchInput.value = '';
+                filterCustomOptions(id, '');
+                setTimeout(() => searchInput.focus(), 50);
+            }
+        }
+    } else {
+        closeCustomDropdown(id);
+    }
+}
+
+function closeCustomDropdown(id) {
+    const menu = document.getElementById(id + '_dropdown_menu');
+    const arrow = document.getElementById(id + '_arrow_icon');
+    if (menu) menu.classList.add('hidden');
+    if (arrow) arrow.classList.remove('rotate-180');
+}
+
+function selectCustomOption(id, val, label) {
+    const hiddenInput = document.getElementById(id + '_hidden_input');
+    const textSpan = document.getElementById(id + '_selected_text');
+    if (hiddenInput) hiddenInput.value = val;
+    if (textSpan) textSpan.textContent = label;
+    closeCustomDropdown(id);
+}
+
+function filterCustomOptions(id, query) {
+    const q = query.toLowerCase().trim();
+    const items = document.querySelectorAll('.' + id + '-option-item');
+    items.forEach(item => {
+        const text = item.textContent.toLowerCase();
+        if (!q || text.includes(q)) {
+            item.classList.remove('hidden');
+        } else {
+            item.classList.add('hidden');
+        }
+    });
+}
+
+document.addEventListener('click', function(e) {
+    if (!e.target.closest('.custom-dropdown-container')) {
+        document.querySelectorAll('.custom-dropdown-menu').forEach(m => m.classList.add('hidden'));
+        document.querySelectorAll('.custom-dropdown-arrow').forEach(a => a.classList.remove('rotate-180'));
+    }
+});
+</script>
