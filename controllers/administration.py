@@ -286,11 +286,16 @@ def company_manage(company_id=None):
 
         status_type = clean_val(request.forms.get("status_type")) or "ACTIVE"
         note = clean_val(request.forms.get("note"))
+        raw_val = request.forms.get("company_modules") if request.forms else None
+        if raw_val is None and hasattr(request, "POST") and request.POST:
+            raw_val = request.POST.get("company_modules")
 
-        raw_selected_modules = request.forms.getall("company_modules")
-        if isinstance(raw_selected_modules, str):
-            raw_selected_modules = [raw_selected_modules]
-        selected_modules = [m for m in raw_selected_modules if m]
+        if isinstance(raw_val, list):
+            selected_modules = [str(m).strip() for m in raw_val if str(m).strip()]
+        elif isinstance(raw_val, (str, bytes)) and str(raw_val).strip():
+            selected_modules = [str(raw_val).strip()]
+        else:
+            selected_modules = []
 
         parent_map = {m["module_id"]: m["parent_module_id"] for m in all_modules}
         final_module_ids = set(selected_modules)
