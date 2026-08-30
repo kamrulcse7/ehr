@@ -789,7 +789,7 @@ def import_companies():
 @web_auth_required
 def roles_permisions():
     roles_rows = db.executesql(
-        "SELECT id, role_id, role_name, note as description FROM roles WHERE status_type = 'ACTIVE' ORDER BY id ASC",
+        "SELECT id, cid, role_id, role_name, note as description FROM roles WHERE status_type = 'ACTIVE' ORDER BY id ASC",
         as_dict=True
     )
 
@@ -814,6 +814,16 @@ def roles_permisions():
 
         groups_dict = {}
         for p in perm_rows:
+            can_v = bool(p.get("can_view"))
+            can_c = bool(p.get("can_add") or p.get("can_create"))
+            can_e = bool(p.get("can_edit"))
+            can_d = bool(p.get("can_delete"))
+            can_ex = bool(p.get("can_export"))
+            can_app = bool(p.get("can_approve"))
+
+            if not (can_v or can_c or can_e or can_d or can_ex or can_app):
+                continue
+
             p_id = p.get("parent_module_id")
             g_name = parent_map.get(p_id) or p.get("module_group") or "General"
             if g_name not in groups_dict:
@@ -823,18 +833,19 @@ def roles_permisions():
                 "module_id": p.get("module_id"),
                 "module_name": p.get("module_name"),
                 "module_icon": p.get("module_icon") or "extension",
-                "can_view": bool(p.get("can_view")),
-                "can_create": bool(p.get("can_add") or p.get("can_create")),
-                "can_edit": bool(p.get("can_edit")),
-                "can_delete": bool(p.get("can_delete")),
-                "can_export": bool(p.get("can_export")),
-                "can_approve": bool(p.get("can_approve")),
+                "can_view": can_v,
+                "can_create": can_c,
+                "can_edit": can_e,
+                "can_delete": can_d,
+                "can_export": can_ex,
+                "can_approve": can_app,
             })
 
         r["permissions"] = list(groups_dict.values())
         all_roles.append(r)
 
-    return dict(all_roles=all_roles)
+    selected_role_id = str(request.query.get("role_id") or request.params.get("role_id") or "").strip()
+    return dict(all_roles=all_roles, selected_role_id=selected_role_id)
 
 
 @action("administration/role_manage", method=["GET", "POST"])
@@ -843,47 +854,83 @@ def roles_permisions():
 @web_auth_required
 def role_manage(role_id=None):
     user_id = session.user.get("user_id", "SYSTEM") if (session and session.user) else "SYSTEM"
+    db_datetime = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
     if request.method == "POST":
         data = request.json if request.json else request.forms
-        raw_role_id = str(data.get("role_id") or "").strip()
-        custom_role_id = str(data.get("custom_role_id") or "").strip()
+        raw_role_id = str(data.get("role_id") or "").strip().upper()
+        custom_role_id = str(data.get("custom_role_id") or "").strip().upper()
+        cid = str(data.get("cid") or "").strip().upper() or None
         role_name = str(data.get("role_name") or "").strip()
         description = str(data.get("description") or "").strip()
         status_type = str(data.get("status_type") or "ACTIVE").strip().upper()
-        permissions = data.get("permissions") or []
+
+        permissions = data.get("permissions")
+        if not permissions and "permissions_json" in data:
+            perm_raw = data.get("permissions_json")
+            if isinstance(perm_raw, str) and perm_raw.strip():
+                try:
+                    import json
+                    permissions = json.loads(perm_raw)
+                except Exception:
+                    permissions = []
+            elif isinstance(perm_raw, list):
+                permissions = perm_raw
+        if not permissions or not isinstance(permissions, list):
+            permissions = []
 
         if not role_name:
             flash.set("Role Name is required.", "danger")
-            return response.json({"status": "error", "message": "Role Name is required."})
-
-        target_role_id = raw_role_id or custom_role_id
+            redirect(URL("administration/role_manage"))
 
         if raw_role_id:
             # Updating existing role
-            db.executesql(
-                "UPDATE roles SET role_name = %s, note = %s, status_type = %s, updated_on = %s, updated_by = %s WHERE role_id = %s",
-                [role_name, description, status_type, db_datetime, user_id, raw_role_id]
-            )
             target_role_id = raw_role_id
+            db.executesql(
+                "UPDATE roles SET cid = %s, role_name = %s, note = %s, status_type = %s, updated_on = %s, updated_by = %s WHERE role_id = %s",
+                [cid, role_name, description, status_type, db_datetime, user_id, target_role_id]
+            )
         else:
             # Creating new role
+            target_role_id = custom_role_id
             if not target_role_id:
+                import re
                 slug = "".join([c if c.isalnum() else "_" for c in role_name.upper()]).strip("_")
-                target_role_id = f"ROLE_{slug}" if slug else f"ROLE_{int(time.time())}"
+                slug = re.sub(r"_+", "_", slug)
+                target_role_id = slug if slug else "NEW_ROLE"
             
-            check_exist = db.executesql("SELECT role_id FROM roles WHERE role_id = %s LIMIT 1", [target_role_id], as_dict=True)
+            target_role_id = target_role_id.upper()[:30]
+
+            # Check if role_id and cid combination already exists
+            if cid:
+                check_exist = db.executesql(
+                    "SELECT role_id FROM roles WHERE role_id = %s AND cid = %s LIMIT 1",
+                    [target_role_id, cid],
+                    as_dict=True
+                )
+            else:
+                check_exist = db.executesql(
+                    "SELECT role_id FROM roles WHERE role_id = %s AND (cid IS NULL OR cid = '') LIMIT 1",
+                    [target_role_id],
+                    as_dict=True
+                )
+
             if check_exist:
-                target_role_id = f"{target_role_id}_{int(time.time())}"
+                scope_name = f"Company '{cid}'" if cid else "Global scope"
+                flash.set(f"Role ID '{target_role_id}' already exists for {scope_name}. Duplicate role creation is not allowed.", "danger")
+                redirect(URL("administration/role_manage"))
 
             db.executesql(
-                "INSERT INTO roles (role_id, role_name, note, status_type, created_on, created_by) VALUES (%s, %s, %s, %s, %s, %s)",
-                [target_role_id, role_name, description, status_type, db_datetime, user_id]
+                "INSERT INTO roles (cid, role_id, role_name, note, status_type, created_on, created_by) VALUES (%s, %s, %s, %s, %s, %s, %s)",
+                [cid, target_role_id, role_name, description, status_type, db_datetime, user_id]
             )
 
+        # Re-insert role module permissions
         db.executesql("DELETE FROM role_module_permissions WHERE role_id = %s", [target_role_id])
 
         for perm in permissions:
+            if not isinstance(perm, dict):
+                continue
             mod_id = perm.get("module_id")
             if not mod_id:
                 continue
@@ -902,21 +949,33 @@ def role_manage(role_id=None):
             )
 
         db.commit()
-        flash.set(f"Role '{role_name}' saved successfully!", "success")
-        return response.json({"status": "success", "message": "Role saved successfully!", "role_id": target_role_id})
+
+        try:
+            from ..utils.menu_utils import clear_menu_cache
+            clear_menu_cache()
+        except Exception:
+            pass
+
+        action_msg = "updated" if raw_role_id else "created"
+        flash.set(f"Role '{role_name}' {action_msg} successfully!", "success")
+        redirect(URL("administration/roles_permisions", vars=dict(role_id=target_role_id)))
 
     # GET Request
     role_id = role_id or request.query.get("role_id") or request.params.get("role_id") or ""
+    cid = ""
     role_name = ""
     description = ""
     status_type = "ACTIVE"
 
     if role_id:
-        r_rows = db.executesql("SELECT role_id, role_name, note as description, status_type FROM roles WHERE role_id = %s LIMIT 1", [role_id], as_dict=True)
+        r_rows = db.executesql("SELECT cid, role_id, role_name, note as description, status_type FROM roles WHERE role_id = %s LIMIT 1", [role_id], as_dict=True)
         if r_rows:
+            cid = r_rows[0].get("cid", "") or ""
             role_name = r_rows[0].get("role_name", "")
             description = r_rows[0].get("description", "")
             status_type = r_rows[0].get("status_type", "ACTIVE") or "ACTIVE"
+
+    companies = db.executesql("SELECT cid, company_name FROM companies WHERE status_type = 'ACTIVE' ORDER BY company_name ASC", as_dict=True)
 
     all_mods = db.executesql(
         "SELECT module_id, module_name, parent_module_id, module_group, icon as module_icon, is_clickable FROM modules WHERE status_type = 'ACTIVE' ORDER BY display_order ASC",
@@ -973,6 +1032,8 @@ def role_manage(role_id=None):
 
     return dict(
         role_id=role_id,
+        cid=cid,
+        companies=companies,
         role_name=role_name,
         description=description,
         status_type=status_type,

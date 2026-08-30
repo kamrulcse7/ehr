@@ -9,6 +9,7 @@ from ..core.db import db, db_datetime
 @view_page("dashboard/index.html", title="Dashboard | EMS")
 @web_auth_required
 def dashboard():
+    flash.set("Welcome to HRMS", "success")
     recent_employee_records_sql = """
     SELECT 
         e.emp_id, 

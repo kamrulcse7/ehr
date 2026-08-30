@@ -16,7 +16,7 @@
                 <span class="material-symbols-outlined text-[12px] text-slate-400 dark:text-slate-600 select-none -mx-0.5">chevron_right</span>
                 <a href="[[=URL('administration/roles_permisions')]]" class="text-slate-400 hover:text-primary dark:text-slate-500 truncate transition-colors">[[= globals().get('active_child_title') or 'Roles & Permissions' ]]</a>
                 <span class="material-symbols-outlined text-[12px] text-slate-400 dark:text-slate-600 select-none -mx-0.5">chevron_right</span>
-                <span class="text-primary font-bold truncate">[[= 'Edit Role' if role_id else 'Create Role' ]]</span>
+                <span class="text-primary font-bold truncate">[[= 'Edit Role' if role_id else 'Add Role' ]]</span>
             </div>
 
             <!-- Back Button -->
@@ -28,49 +28,60 @@
         </div>
 
         <!-- MAIN FORM -->
-        <form id="role-form" onsubmit="handleFormSubmit(event)" autocomplete="off" class="space-y-4">
+        <form id="role-form" action="[[=URL('administration/role_manage')]]" method="POST" onsubmit="return handleFormSubmit(event)" autocomplete="off" class="space-y-4">
 
-            <input type="hidden" id="role_id" value="[[= role_id or '' ]]">
+            <input type="hidden" id="role_id" name="role_id" value="[[= role_id or '' ]]">
+            <input type="hidden" id="permissions_json" name="permissions_json" value="">
 
             <!-- SECTION 1: BASIC INFORMATION CARD -->
             <div class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-800/80 p-5 shadow-xs space-y-4">
                 <div class="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
                     <div class="flex items-center gap-2">
-                        <span class="material-symbols-outlined text-primary text-[20px]">info</span>
+                        <span class="material-symbols-outlined text-primary text-[20px]">badge</span>
                         <h3 class="font-bold text-sm text-slate-900 dark:text-white">Basic Information</h3>
                     </div>
                 </div>
 
-                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5">
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-12 gap-3.5">
+                    <!-- Company ID (CID) -->
+                    <div class="lg:col-span-2">
+                        <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 mb-1">
+                            Company ID (CID) <span class="text-[9px] text-slate-400 font-normal lowercase">(optional)</span>
+                        </label>
+                        <input type="text" id="cid" name="cid" value="[[= cid or '' ]]"
+                            placeholder="e.g. EON, AIBL" autocomplete="off"
+                            class="w-full px-3 py-2 bg-slate-50/50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-bold uppercase text-sky-600 dark:text-sky-400 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all">
+                    </div>
+
                     <!-- Role ID -->
-                    <div>
+                    <div class="lg:col-span-2">
                         <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 mb-1">
                             Role ID <span class="text-[9px] text-slate-400 font-normal lowercase">[[= '(auto)' if not role_id else '(read-only)' ]]</span>
                         </label>
-                        <input type="text" id="custom_role_id" value="[[= role_id or '' ]]"
+                        <input type="text" id="custom_role_id" name="custom_role_id" value="[[= role_id or '' ]]"
                             [[= 'readonly' if role_id else '' ]]
-                            placeholder="e.g. ROLE_HR_MANAGER" autocomplete="off"
-                            class="w-full px-3 py-2 bg-slate-50/50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-medium text-slate-800 dark:text-slate-200 [[= 'bg-slate-100 dark:bg-slate-800 text-slate-500 font-semibold cursor-not-allowed' if role_id else '' ]] focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all">
+                            placeholder="e.g. HR_MANAGER" autocomplete="off"
+                            class="w-full px-3 py-2 bg-slate-50/50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-mono font-bold uppercase text-slate-800 dark:text-slate-200 [[= 'bg-slate-100 dark:bg-slate-800 text-slate-500 cursor-not-allowed' if role_id else '' ]] focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all">
                     </div>
 
                     <!-- Role Name -->
-                    <div>
+                    <div class="lg:col-span-3">
                         <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 mb-1">
                             Role Name <span class="text-rose-500">*</span>
                         </label>
-                        <input type="text" id="role_name" required value="[[= role_name or '' ]]"
+                        <input type="text" id="role_name" name="role_name" required value="[[= role_name or '' ]]"
                             placeholder="e.g. HR Manager, Auditor" autocomplete="off"
                             class="w-full px-3 py-2 bg-slate-50/50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-semibold text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all">
                     </div>
 
                     <!-- Status Dropdown -->
-                    <div class="relative w-full custom-dropdown-container">
+                    <div class="relative w-full custom-dropdown-container lg:col-span-2">
                         [[ cur_stype = status_type or 'ACTIVE' ]]
                         <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 mb-1">
                             Status <span class="text-rose-500">*</span>
                         </label>
                         
-                        <input type="hidden" id="status_type_hidden_input" value="[[= cur_stype ]]" required>
+                        <input type="hidden" id="status_type_hidden_input" name="status_type" value="[[= cur_stype ]]" required>
                         
                         <button type="button" onclick="toggleCustomDropdown('status_type', false)"
                             class="w-full h-[34px] px-3 bg-slate-50/50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-semibold text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all flex items-center justify-between cursor-pointer">
@@ -85,11 +96,11 @@
                     </div>
 
                     <!-- Note / Remarks -->
-                    <div>
+                    <div class="lg:col-span-3">
                         <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 mb-1">
                             Note / Remarks
                         </label>
-                        <input type="text" id="description" value="[[= description or '' ]]"
+                        <input type="text" id="description" name="description" value="[[= description or '' ]]"
                             placeholder="Short summary of responsibilities" autocomplete="off"
                             class="w-full px-3 py-2 bg-slate-50/50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-medium text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all">
                     </div>
@@ -113,17 +124,48 @@
                     </div>
                 </div>
 
+                <!-- TABLE WRAPPER -->
                 <div class="overflow-x-auto rounded-xl border border-slate-200/80 dark:border-slate-800/80 bg-white dark:bg-slate-900">
                     <table class="w-full text-left border-collapse">
                         <thead>
                             <tr class="bg-slate-50 dark:bg-slate-800/50 text-[10px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 border-b border-slate-200 dark:border-slate-800">
                                 <th class="py-2.5 px-4 min-w-[200px]">Navigation / Module</th>
-                                <th class="py-2.5 px-2 text-center w-16">View</th>
-                                <th class="py-2.5 px-2 text-center w-16">Create</th>
-                                <th class="py-2.5 px-2 text-center w-16">Edit</th>
-                                <th class="py-2.5 px-2 text-center w-16">Delete</th>
-                                <th class="py-2.5 px-2 text-center w-16">Export</th>
-                                <th class="py-2.5 px-2 text-center w-16">Approve</th>
+                                <th class="py-2 px-2 text-center w-20">
+                                    <div class="flex flex-col items-center gap-1">
+                                        <span>View</span>
+                                        <input type="checkbox" id="hdr-can_view" onclick="toggleColumnCheckboxes('can_view', this.checked)" title="Select/Deselect all View" class="w-3.5 h-3.5 text-primary accent-primary border-slate-300 rounded focus:ring-primary cursor-pointer">
+                                    </div>
+                                </th>
+                                <th class="py-2 px-2 text-center w-20">
+                                    <div class="flex flex-col items-center gap-1">
+                                        <span>Create</span>
+                                        <input type="checkbox" id="hdr-can_create" onclick="toggleColumnCheckboxes('can_create', this.checked)" title="Select/Deselect all Create" class="w-3.5 h-3.5 text-primary accent-primary border-slate-300 rounded focus:ring-primary cursor-pointer">
+                                    </div>
+                                </th>
+                                <th class="py-2 px-2 text-center w-20">
+                                    <div class="flex flex-col items-center gap-1">
+                                        <span>Edit</span>
+                                        <input type="checkbox" id="hdr-can_edit" onclick="toggleColumnCheckboxes('can_edit', this.checked)" title="Select/Deselect all Edit" class="w-3.5 h-3.5 text-primary accent-primary border-slate-300 rounded focus:ring-primary cursor-pointer">
+                                    </div>
+                                </th>
+                                <th class="py-2 px-2 text-center w-20">
+                                    <div class="flex flex-col items-center gap-1">
+                                        <span>Delete</span>
+                                        <input type="checkbox" id="hdr-can_delete" onclick="toggleColumnCheckboxes('can_delete', this.checked)" title="Select/Deselect all Delete" class="w-3.5 h-3.5 text-primary accent-primary border-slate-300 rounded focus:ring-primary cursor-pointer">
+                                    </div>
+                                </th>
+                                <th class="py-2 px-2 text-center w-20">
+                                    <div class="flex flex-col items-center gap-1">
+                                        <span>Export</span>
+                                        <input type="checkbox" id="hdr-can_export" onclick="toggleColumnCheckboxes('can_export', this.checked)" title="Select/Deselect all Export" class="w-3.5 h-3.5 text-primary accent-primary border-slate-300 rounded focus:ring-primary cursor-pointer">
+                                    </div>
+                                </th>
+                                <th class="py-2 px-2 text-center w-20">
+                                    <div class="flex flex-col items-center gap-1">
+                                        <span>Approve</span>
+                                        <input type="checkbox" id="hdr-can_approve" onclick="toggleColumnCheckboxes('can_approve', this.checked)" title="Select/Deselect all Approve" class="w-3.5 h-3.5 text-primary accent-primary border-slate-300 rounded focus:ring-primary cursor-pointer">
+                                    </div>
+                                </th>
                             </tr>
                         </thead>
                         <tbody id="permissions-editor-tbody"
@@ -143,7 +185,7 @@
                 <button type="submit" id="save-btn"
                     class="h-7 px-3.5 bg-primary hover:opacity-90 active:scale-[0.98] text-white rounded-md text-xs font-semibold shadow-xs transition-all flex items-center gap-1 justify-center cursor-pointer">
                     <span class="material-symbols-outlined text-[15px]">save</span>
-                    <span>[[= 'Update Role' if role_id else 'Save Role' ]]</span>
+                    <span>[[= 'Update' if role_id else 'Save' ]]</span>
                 </button>
             </div>
 
@@ -157,18 +199,38 @@
         'can_export', 'can_approve'
     ];
 
+    function updateHeaderCheckboxes() {
+        actionKeys.forEach(key => {
+            const allCbs = document.querySelectorAll(`.perm-checkbox[data-action="${key}"]`);
+            const colHeader = document.getElementById(`hdr-${key}`);
+            if (colHeader && allCbs.length > 0) {
+                const allChecked = Array.from(allCbs).every(cb => cb.checked);
+                colHeader.checked = allChecked;
+            }
+        });
+    }
+
     function renderPermissionsForm() {
         const tbody = document.getElementById('permissions-editor-tbody');
         if (!window.MODULE_GROUPS || window.MODULE_GROUPS.length === 0) {
-            tbody.innerHTML = `<tr><td colspan="10" class="text-center py-6 text-slate-400">No modules available.</td></tr>`;
+            tbody.innerHTML = `<tr><td colspan="7" class="text-center py-6 text-slate-400 font-medium">No modules available.</td></tr>`;
             return;
         }
 
         let html = '';
-        window.MODULE_GROUPS.forEach(group => {
+        window.MODULE_GROUPS.forEach((group, gIdx) => {
             html += `
                 <tr class="bg-slate-50/80 dark:bg-slate-800/40 text-[10px] font-bold tracking-wider text-slate-400 dark:text-slate-500 uppercase">
-                    <td colspan="10" class="py-2 px-4">${group.module_group || ''}</td>
+                    <td colspan="7" class="py-2 px-4">
+                        <div class="flex items-center gap-3">
+                            <span>${group.module_group || ''}</span>
+                            <div class="flex items-center gap-2">
+                                <button type="button" onclick="toggleGroupCheckboxes(${gIdx}, true)" class="text-[10px] text-primary hover:underline font-semibold cursor-pointer">Select Group</button>
+                                <span class="text-slate-300 dark:text-slate-700">|</span>
+                                <button type="button" onclick="toggleGroupCheckboxes(${gIdx}, false)" class="text-[10px] text-slate-400 hover:underline font-normal cursor-pointer">Clear</button>
+                            </div>
+                        </div>
+                    </td>
                 </tr>`;
 
             (group.modules || []).forEach(module => {
@@ -190,7 +252,8 @@
                             <input type="checkbox" 
                                    data-module-id="${module.module_id}" 
                                    data-action="${key}" 
-                                   class="perm-checkbox w-4 h-4 text-primary bg-slate-100 border-slate-300 rounded focus:ring-primary focus:ring-1 dark:bg-slate-800 dark:border-slate-700 cursor-pointer"
+                                   onchange="onCheckboxChange(this)"
+                                   class="perm-checkbox w-4 h-4 text-primary accent-primary bg-slate-100 border-slate-300 rounded focus:ring-primary focus:ring-1 dark:bg-slate-800 dark:border-slate-700 cursor-pointer"
                                    ${isChecked ? 'checked' : ''}>
                         </td>`;
                 });
@@ -200,25 +263,71 @@
         });
 
         tbody.innerHTML = html;
+        updateHeaderCheckboxes();
+    }
+
+    function onCheckboxChange(cb) {
+        const action = cb.getAttribute('data-action');
+        const row = cb.closest('tr');
+        if (!row) return;
+
+        const viewCb = row.querySelector(`.perm-checkbox[data-action="can_view"]`);
+
+        if (action !== 'can_view') {
+            // If user checks Create, Edit, Delete, Export, or Approve, auto-check View!
+            if (cb.checked && viewCb && !viewCb.checked) {
+                viewCb.checked = true;
+            }
+        } else {
+            // If user unchecks View, auto-uncheck all other actions in this row!
+            if (!cb.checked) {
+                row.querySelectorAll(`.perm-checkbox`).forEach(otherCb => {
+                    if (otherCb !== viewCb) {
+                        otherCb.checked = false;
+                    }
+                });
+            }
+        }
+
+        updateHeaderCheckboxes();
     }
 
     function toggleAllCheckboxes(status) {
-        document.querySelectorAll('.perm-checkbox').forEach(cb => cb.checked = status);
+        document.querySelectorAll('.perm-checkbox').forEach(cb => {
+            cb.checked = status;
+            onCheckboxChange(cb);
+        });
+        updateHeaderCheckboxes();
     }
 
-    async function handleFormSubmit(e) {
-        e.preventDefault();
+    function toggleColumnCheckboxes(actionKey, status) {
+        document.querySelectorAll(`.perm-checkbox[data-action="${actionKey}"]`).forEach(cb => {
+            cb.checked = status;
+            onCheckboxChange(cb);
+        });
+        updateHeaderCheckboxes();
+    }
 
-        const roleId = document.getElementById('role_id').value;
-        const customRoleId = document.getElementById('custom_role_id') ? document.getElementById('custom_role_id').value.trim() : '';
-        const roleName = document.getElementById('role_name').value.trim();
-        const description = document.getElementById('description').value.trim();
-        const statusType = document.getElementById('status_type_hidden_input') ? document.getElementById('status_type_hidden_input').value : 'ACTIVE';
+    function toggleGroupCheckboxes(groupIndex, status) {
+        const group = window.MODULE_GROUPS[groupIndex];
+        if (!group || !group.modules) return;
+        const moduleIds = group.modules.map(m => m.module_id);
+        document.querySelectorAll('.perm-checkbox').forEach(cb => {
+            if (moduleIds.includes(cb.getAttribute('data-module-id'))) {
+                cb.checked = status;
+                onCheckboxChange(cb);
+            }
+        });
+        updateHeaderCheckboxes();
+    }
 
+    function handleFormSubmit(e) {
+        const roleName = (document.getElementById('role_name').value || '').trim();
         if (!roleName) {
+            if (e) e.preventDefault();
             alert("Role Name is required.");
             document.getElementById('role_name').focus();
-            return;
+            return false;
         }
 
         const modulePerms = {};
@@ -232,33 +341,16 @@
             modulePerms[moduleId][action] = cb.checked;
         });
 
-        const payload = {
-            role_id: roleId ? roleId : null,
-            custom_role_id: customRoleId,
-            role_name: roleName,
-            description: description,
-            status_type: statusType,
-            permissions: Object.values(modulePerms)
-        };
+        document.getElementById('permissions_json').value = JSON.stringify(Object.values(modulePerms));
 
         const saveBtn = document.getElementById('save-btn');
         if (saveBtn) {
-            saveBtn.disabled = true;
-            saveBtn.innerHTML = `<span class="material-symbols-outlined text-[16px] animate-spin">progress_activity</span> Saving...`;
+            setTimeout(() => {
+                saveBtn.disabled = true;
+                saveBtn.innerHTML = `<span class="material-symbols-outlined text-[16px] animate-spin">progress_activity</span> Saving...`;
+            }, 10);
         }
-
-        try {
-            const res = await fetch("[[=URL('administration/role_manage')]]", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(payload)
-            });
-            await res.json();
-            window.location.href = "[[=URL('administration/roles_permisions')]]";
-        } catch (err) {
-            console.error("Save role error:", err);
-            window.location.href = "[[=URL('administration/roles_permisions')]]";
-        }
+        return true;
     }
 
     function toggleCustomDropdown(id, hasSearch) {

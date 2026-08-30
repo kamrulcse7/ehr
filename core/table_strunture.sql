@@ -32,6 +32,7 @@ CREATE TABLE modules (
 
 CREATE TABLE roles (
   id int PRIMARY KEY AUTO_INCREMENT,
+  cid varchar(50) DEFAULT NULL,
   role_id varchar(30) NOT NULL UNIQUE,
   role_name varchar(100) NOT NULL,
   note text DEFAULT NULL,

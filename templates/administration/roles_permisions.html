@@ -25,20 +25,30 @@
                 <div class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-800/80 shadow-sm p-3.5">
                     
                     <!-- AVAILABLE ROLES HEADER WITH MINIMAL PLUS BUTTON -->
-                    <div class="flex items-center justify-between mb-3 px-1">
+                    <div class="flex items-center justify-between mb-2.5 px-1">
                         <div class="flex items-center gap-2">
                             <h2 class="text-[10px] font-bold tracking-wider text-slate-400 dark:text-slate-500 uppercase">Available Roles</h2>
-                            <span class="text-[10px] font-bold bg-slate-100 dark:bg-slate-800 text-slate-500 px-2 py-0.5 rounded-full border border-slate-200/50 dark:border-slate-700/50">
+                            <span id="role-count-badge" class="text-[10px] font-bold bg-slate-100 dark:bg-slate-800 text-slate-500 px-2 py-0.5 rounded-full border border-slate-200/50 dark:border-slate-700/50">
                                 [[=len(all_roles)]]
                             </span>
                         </div>
                         
                         <!-- CLEAN MINIMAL PLUS ACTION BUTTON -->
                         <a href="[[=URL('administration/role_manage')]]" 
-                           title="Create New Role"
+                           title="Add Role"
                            class="w-6 h-6 inline-flex items-center justify-center bg-primary/10 hover:bg-primary text-primary hover:text-white rounded-lg transition-all duration-200 active:scale-90 shrink-0">
                             <span class="material-symbols-outlined text-[16px] font-bold">add</span>
                         </a>
+                    </div>
+
+                    <!-- SEARCH ROLES INPUT BOX -->
+                    <div class="mb-3 px-0.5">
+                        <div class="relative">
+                            <span class="material-symbols-outlined absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400 text-[16px]">search</span>
+                            <input type="text" id="role-search-input" onkeyup="filterRolesList(this.value)"
+                                placeholder="Search roles or CID..." autocomplete="off"
+                                class="w-full pl-8 pr-3 py-1.5 bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-medium text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all">
+                        </div>
                     </div>
                     
                     <div class="space-y-1.5" id="role-list-container">
@@ -50,10 +60,25 @@
                                onclick="switchRole('[[=role.get('role_id')]]')"
                                id="role-btn-[[=role.get('role_id')]]"
                                class="role-card-btn w-full p-2.5 rounded-xl border transition-all cursor-pointer flex items-center justify-between group text-left
-                               [[= 'bg-primary/10 border-primary/40 text-primary dark:text-primary-light shadow-sm' if idx == 0 else 'bg-white dark:bg-slate-900 border-slate-100 dark:border-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800/40' ]]">
-                                <div class="min-w-0 pr-2">
-                                    <h3 class="text-xs font-bold text-slate-900 dark:text-white group-hover:text-primary transition-colors truncate">[[=role.get('role_name', '')]]</h3>
-                                    <p class="text-[10px] text-slate-500 dark:text-slate-400 mt-0.5 truncate">[[=role.get('description', '')]]</p>
+                               [[= 'bg-primary/10 border-primary/40 text-primary dark:text-primary-light shadow-xs' if idx == 0 else 'bg-white dark:bg-slate-900 border-slate-200/60 dark:border-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800/40' ]]">
+                                <div class="min-w-0 pr-2 flex-1 space-y-0.5">
+                                    <h3 class="text-xs font-bold text-slate-900 dark:text-white group-hover:text-primary transition-colors truncate">
+                                        [[=role.get('role_name', '')]]
+                                    </h3>
+                                    <div class="text-[10px] text-slate-400 dark:text-slate-500 truncate flex items-center gap-1.5">
+                                        <span class="font-mono">[[=role.get('role_id', '')]]</span>
+                                        <span class="text-slate-300 dark:text-slate-700 select-none">•</span>
+                                        [[ if role.get('cid'): ]]
+                                        <span class="font-bold text-sky-600 dark:text-sky-400">[[=role.get('cid')]]</span>
+                                        [[ else: ]]
+                                        <span class="text-slate-400 dark:text-slate-600 font-medium">Global</span>
+                                        [[ pass ]]
+                                    </div>
+                                    [[ if role.get('description'): ]]
+                                    <p class="text-[10px] text-slate-500 dark:text-slate-400 truncate pt-0.5">
+                                        [[=role.get('description', '')]]
+                                    </p>
+                                    [[ pass ]]
                                 </div>
                                 <span class="material-symbols-outlined text-[16px] text-slate-400 group-hover:text-primary shrink-0 transition-transform group-hover:translate-x-0.5">chevron_right</span>
                             </button>
@@ -71,6 +96,8 @@
                         <div class="flex items-center gap-2">
                             <span class="text-xs font-bold text-slate-800 dark:text-slate-100">
                                 Permissions for: <span class="text-primary" id="selected-role-name">--</span>
+                                <span id="selected-role-id-badge" class="ml-1 px-1.5 py-0.5 text-[9px] font-mono font-medium text-slate-500 dark:text-slate-400 bg-slate-100 dark:bg-slate-800 rounded border border-slate-200/60 dark:border-slate-700/60"></span>
+                                <span id="selected-role-cid-badge" class="ml-1"></span>
                             </span>
                         </div>
                         
@@ -113,6 +140,8 @@
     function renderPermissions(role) {
         const tbody = document.getElementById('permission-table-body');
         const roleNameSpan = document.getElementById('selected-role-name');
+        const roleIdBadge = document.getElementById('selected-role-id-badge');
+        const cidBadgeSpan = document.getElementById('selected-role-cid-badge');
         const editBtn = document.getElementById('edit-role-link');
 
         if (!role) {
@@ -121,6 +150,12 @@
         }
 
         roleNameSpan.textContent = role.role_name || '--';
+        if (roleIdBadge) roleIdBadge.textContent = role.role_id || '';
+        if (role.cid) {
+            cidBadgeSpan.innerHTML = `<span class="px-1.5 py-0.5 text-[9px] font-mono font-bold bg-sky-100 dark:bg-sky-950 text-sky-700 dark:text-sky-300 rounded border border-sky-200/60 dark:border-sky-800/60">${role.cid}</span>`;
+        } else {
+            cidBadgeSpan.innerHTML = `<span class="px-1.5 py-0.5 text-[9px] font-mono font-medium bg-slate-100 dark:bg-slate-800 text-slate-500 rounded">Global</span>`;
+        }
         editBtn.href = `${EDIT_URL_BASE}?role_id=${role.role_id}`;
 
         if (!role.permissions || role.permissions.length === 0) {
@@ -135,14 +170,22 @@
 
         let html = '';
         const actionKeys = ['can_view', 'can_create', 'can_edit', 'can_delete', 'can_export', 'can_approve'];
+        let hasAnyActivePerm = false;
 
         role.permissions.forEach(group => {
+            const activeModules = (group.modules || []).filter(module => {
+                return actionKeys.some(key => module[key] === true);
+            });
+
+            if (activeModules.length === 0) return;
+            hasAnyActivePerm = true;
+
             html += `
                 <tr class="bg-slate-50/80 dark:bg-slate-800/40 text-[10px] font-bold tracking-wider text-slate-400 dark:text-slate-500 uppercase">
                     <td colspan="7" class="py-1.5 px-4">${group.module_group || ''}</td>
                 </tr>`;
 
-            (group.modules || []).forEach(module => {
+            activeModules.forEach(module => {
                 html += `
                     <tr class="hover:bg-slate-50/70 dark:hover:bg-slate-800/40 transition-colors">
                         <td class="py-2.5 px-4 whitespace-nowrap">
@@ -172,6 +215,16 @@
             });
         });
 
+        if (!hasAnyActivePerm) {
+            tbody.innerHTML = `
+                <tr>
+                    <td colspan="7" class="text-center py-6 text-slate-400 text-xs">
+                        No permissions assigned for this role.
+                    </td>
+                </tr>`;
+            return;
+        }
+
         tbody.innerHTML = html;
     }
 
@@ -195,9 +248,38 @@
         renderPermissions(selectedRole);
     }
 
+    function filterRolesList(query) {
+        const q = (query || '').toLowerCase().trim();
+        const roleBtns = document.querySelectorAll('.role-card-btn');
+        let matchCount = 0;
+
+        roleBtns.forEach(btn => {
+            const roleId = btn.id.replace('role-btn-', '');
+            const roleObj = (window.ROLE_DATA || []).find(r => String(r.role_id) === String(roleId));
+            if (!roleObj) return;
+
+            const name = (roleObj.role_name || '').toLowerCase();
+            const desc = (roleObj.description || '').toLowerCase();
+            const cid = (roleObj.cid || '').toLowerCase();
+
+            if (!q || name.includes(q) || desc.includes(q) || cid.includes(q)) {
+                btn.style.display = 'flex';
+                matchCount++;
+            } else {
+                btn.style.display = 'none';
+            }
+        });
+
+        const countBadge = document.getElementById('role-count-badge');
+        if (countBadge) countBadge.textContent = matchCount;
+    }
+
     // Initialize Page
     document.addEventListener('DOMContentLoaded', () => {
-        if (window.ROLE_DATA && window.ROLE_DATA.length > 0) {
+        const initialRoleId = "[[= selected_role_id or '' ]]";
+        if (initialRoleId) {
+            switchRole(initialRoleId);
+        } else if (window.ROLE_DATA && window.ROLE_DATA.length > 0) {
             renderPermissions(window.ROLE_DATA[0]);
         }
     });
