@@ -51,6 +51,32 @@ def _delete_company_branding_file(file_url):
                 pass
 
 
+def _save_user_avatar_file(file_obj, user_id_val, max_bytes=120 * 1024):
+    if file_obj and hasattr(file_obj, "filename") and file_obj.filename:
+        UPLOAD_DIR = os.path.join(os.path.dirname(__file__), "..", "static", "uploads", "user_photos")
+        os.makedirs(UPLOAD_DIR, exist_ok=True)
+        ext = os.path.splitext(file_obj.filename)[1].lower()
+        if ext in [".jpg", ".jpeg", ".png", ".gif", ".webp"]:
+            content = file_obj.file.read()
+            if len(content) > max_bytes:
+                flash.set("User avatar file size exceeds 120KB limit.", "danger")
+                return None
+            clean_uid = "".join(c for c in str(user_id_val).lower() if c.isalnum() or c in ("-", "_"))
+            base_prefix = f"user_{clean_uid}"
+            for f in os.listdir(UPLOAD_DIR):
+                if f.startswith(base_prefix + "."):
+                    try:
+                        os.remove(os.path.join(UPLOAD_DIR, f))
+                    except Exception:
+                        pass
+            saved_filename = f"{base_prefix}_{int(time.time())}{ext}"
+            saved_file_path = os.path.join(UPLOAD_DIR, saved_filename)
+            with open(saved_file_path, "wb") as f:
+                f.write(content)
+            return URL(f"static/uploads/user_photos/{saved_filename}")
+    return None
+
+
 @action("administration/companies", method=["GET", "POST"])
 @view_page("administration/companies.html", title="Company Management | Administration")
 @web_auth_required
@@ -1236,14 +1262,48 @@ def import_users():
     return dict(stats=stats, active_tab=active_tab, user_cid=user_cid)
 
 
+@action("administration/user_manage", method=["GET", "POST"])
+@action("administration/user_manage/<user_id>", method=["GET", "POST"])
 @action("administration/add_user", method=["GET", "POST"])
-@view_page("administration/add_user.html", title="Add New User | Administration")
+@action("administration/edit_user", method=["GET", "POST"])
+@action("administration/edit_user/<user_id>", method=["GET", "POST"])
+@view_page("administration/user_manage.html", title="User Management | Administration")
 @web_auth_required
-def add_user():
+def user_manage(user_id=None):
     user_cid = session.user.get("cid", "")
     current_user_id = session.user.get("user_id", "SYSTEM")
 
-    # Handle AJAX Employee Lookup inside add_user
+    if user_id is None:
+        user_id = request.query.get("id") or request.query.get("user_id") or request.query.get("edit_id")
+
+    target_user = None
+    if user_id:
+        if str(user_id).isdigit():
+            user_rows = db.executesql("""
+                SELECT u.*, e.emp_name, e.emp_designation, e.emp_department, e.photo_url as emp_photo, e.mobile as emp_mobile, e.email as emp_email
+                FROM users u
+                LEFT JOIN employees e ON u.emp_id = e.emp_id AND (u.cid IS NULL OR LOWER(u.cid) = LOWER(e.cid))
+                WHERE u.id = %s OR UPPER(u.user_id) = %s
+                LIMIT 1
+            """, [int(user_id), str(user_id).upper()], as_dict=True)
+        else:
+            user_rows = db.executesql("""
+                SELECT u.*, e.emp_name, e.emp_designation, e.emp_department, e.photo_url as emp_photo, e.mobile as emp_mobile, e.email as emp_email
+                FROM users u
+                LEFT JOIN employees e ON u.emp_id = e.emp_id AND (u.cid IS NULL OR LOWER(u.cid) = LOWER(e.cid))
+                WHERE UPPER(u.user_id) = %s
+                LIMIT 1
+            """, [str(user_id).upper()], as_dict=True)
+
+        if user_rows:
+            target_user = user_rows[0]
+        else:
+            flash.set(f"User account '{user_id}' not found.", "danger")
+            redirect(URL("administration/users"))
+
+    mode = request.query.get("mode", "")
+
+    # Handle AJAX Employee Lookup inside user_manage
     if request.query.get("action") == "lookup":
         import json
         response.headers['Content-Type'] = 'application/json'
@@ -1278,7 +1338,7 @@ def add_user():
     if request.method == "POST":
         creation_mode = request.forms.get("creation_mode", "direct")
         target_cid = user_cid or request.forms.get("cid", "").strip()
-        selected_emp_id = request.forms.get("employee_id", "").strip()
+        selected_emp_id = request.forms.get("lookup_emp_id", "").strip() or request.forms.get("emp_id", "").strip()
         
         r_user_id = request.forms.get("user_id", "").strip()
         r_full_name = request.forms.get("full_name", "").strip()
@@ -1290,59 +1350,109 @@ def add_user():
         
         r_role = request.forms.get("role", "").strip().upper()
         r_status = (request.forms.get("status") or "ACTIVE").strip().upper()
+        r_note = request.forms.get("note", "").strip()
 
-        if not r_user_id or not r_full_name:
-            flash.set("User ID and Full Name are required.", "danger")
-            redirect(URL("administration/add_user"))
+        avatar_file = request.files.get("avatar")
+        remove_avatar = request.forms.get("remove_avatar") == "1"
 
         if r_password and r_confirm_password and r_password != r_confirm_password:
             flash.set("Passwords do not match. Please try again.", "danger")
-            redirect(URL("administration/add_user"))
+            redirect(URL("administration/user_manage", vars={'id': target_user['id']} if target_user else {}))
 
-        if not r_password:
-            r_password = "123456"
+        if target_user:
+            # Edit existing user
+            if target_user.get("emp_id"):
+                r_full_name = target_user.get("emp_name") or target_user.get("user_name") or "User"
+                r_email = target_user.get("emp_email") or target_user.get("email") or r_email
+                r_mobile = target_user.get("emp_mobile") or target_user.get("mobile") or r_mobile
 
-        # Check existing user_id
-        chk = db.executesql("SELECT id FROM users WHERE UPPER(user_id) = %s LIMIT 1", [r_user_id.upper()], as_dict=True)
-        if chk:
-            flash.set(f"User ID '{r_user_id}' already exists! Please use a different User ID.", "danger")
-            redirect(URL("administration/add_user"))
+            if not r_full_name:
+                flash.set("Full Name is required.", "danger")
+                redirect(URL("administration/user_manage", vars={'id': target_user['id']}))
 
-        r_note = request.forms.get("note", "").strip()
+            uploaded_avatar = _save_user_avatar_file(avatar_file, target_user.get("user_id", r_user_id))
 
-        # Link emp_id if creation_mode == 'employee'
-        emp_id_to_link = None
-        linked_emp_id = request.forms.get("emp_id", "").strip() or selected_emp_id
-        if creation_mode == "employee" and linked_emp_id:
-            emp_id_to_link = linked_emp_id
+            emp_id_to_link = None
+            if creation_mode == "employee" and selected_emp_id:
+                emp_id_to_link = selected_emp_id
+            elif target_user.get("emp_id"):
+                emp_id_to_link = target_user.get("emp_id")
 
-        try:
-            db.executesql("""
-                INSERT INTO users (cid, user_id, user_name, user_pass, role_id, emp_id, email, mobile, note, status_type, created_on, created_by)
-                VALUES (%s, %s, %s, %s, NULLIF(%s, ''), NULLIF(%s, ''), %s, %s, %s, %s, %s, %s)
-            """, [target_cid, r_user_id, r_full_name, r_password, r_role, emp_id_to_link, r_email, r_mobile, r_note, r_status, db_datetime, current_user_id])
-            db.commit()
-            flash.set(f"User account '{r_full_name}' ({r_user_id}) created successfully!", "success")
-            redirect(URL("administration/users"))
-        except Exception as e:
-            flash.set(f"Failed to create user account: {str(e)}", "danger")
-            redirect(URL("administration/add_user"))
+            try:
+                update_fields = [
+                    "cid = COALESCE(NULLIF(%s, ''), cid)",
+                    "user_name = %s",
+                    "email = %s",
+                    "mobile = %s",
+                    "role_id = NULLIF(%s, '')",
+                    "emp_id = NULLIF(%s, '')",
+                    "note = %s",
+                    "status_type = %s",
+                    "updated_on = %s",
+                    "updated_by = %s"
+                ]
+                params = [target_cid, r_full_name, r_email, r_mobile, r_role, emp_id_to_link or '', r_note, r_status, db_datetime, current_user_id]
 
-    # GET Request: Prepare dropdown lists
+                if r_password:
+                    update_fields.append("user_pass = %s")
+                    params.append(r_password)
+
+                if uploaded_avatar:
+                    update_fields.append("profile_image = %s")
+                    params.append(uploaded_avatar)
+                elif remove_avatar:
+                    update_fields.append("profile_image = NULL")
+
+                params.append(target_user["id"])
+
+                sql = f"UPDATE users SET {', '.join(update_fields)} WHERE id = %s"
+                db.executesql(sql, params)
+                db.commit()
+                flash.set(f"User account '{r_full_name}' ({target_user.get('user_id')}) updated successfully!", "success")
+                redirect(URL("administration/users"))
+            except Exception as e:
+                flash.set(f"Failed to update user account: {str(e)}", "danger")
+                redirect(URL("administration/user_manage", vars={'id': target_user['id']}))
+        else:
+            # Add new user
+            if not r_user_id or not r_full_name:
+                flash.set("User ID and Full Name are required.", "danger")
+                redirect(URL("administration/user_manage"))
+
+            if not r_password:
+                r_password = "123456"
+
+            chk = db.executesql("SELECT id FROM users WHERE UPPER(user_id) = %s LIMIT 1", [r_user_id.upper()], as_dict=True)
+            if chk:
+                flash.set(f"User ID '{r_user_id}' already exists! Please use a different User ID.", "danger")
+                redirect(URL("administration/user_manage"))
+
+            uploaded_avatar = _save_user_avatar_file(avatar_file, r_user_id)
+            emp_id_to_link = selected_emp_id if (creation_mode == "employee" and selected_emp_id) else None
+
+            try:
+                db.executesql("""
+                    INSERT INTO users (cid, user_id, user_name, user_pass, role_id, emp_id, email, mobile, note, status_type, profile_image, created_on, created_by)
+                    VALUES (%s, %s, %s, %s, NULLIF(%s, ''), NULLIF(%s, ''), %s, %s, %s, %s, %s, %s, %s)
+                """, [target_cid, r_user_id, r_full_name, r_password, r_role, emp_id_to_link, r_email, r_mobile, r_note, r_status, uploaded_avatar, db_datetime, current_user_id])
+                db.commit()
+                flash.set(f"User account '{r_full_name}' ({r_user_id}) created successfully!", "success")
+                redirect(URL("administration/users"))
+            except Exception as e:
+                flash.set(f"Failed to create user account: {str(e)}", "danger")
+                redirect(URL("administration/user_manage"))
+
     roles_rows = db.executesql("""
         SELECT role_id, role_name, cid FROM roles WHERE status_type = 'ACTIVE' ORDER BY role_name ASC
     """, as_dict=True)
 
-    return dict(user_cid=user_cid, roles=roles_rows)
+    page_title = "Edit User" if target_user else "Add User"
 
-
-@action("administration/edit_user", method=["GET", "POST"])
-@action("administration/edit_user/<user_id>", method=["GET", "POST"])
-@view_page("administration/edit_user.html", title="Edit User | Administration")
-@web_auth_required
-def edit_user(user_id=None):
-    user_cid = session.user.get("cid", "")
-    if user_id is None:
-        user_id = request.query.get("id") or request.query.get("user_id")
-    return dict(user_cid=user_cid, user_id=user_id)
+    return dict(
+        user_cid=user_cid,
+        roles=roles_rows,
+        target_user=target_user,
+        page_title=page_title,
+        mode=mode
+    )
 
