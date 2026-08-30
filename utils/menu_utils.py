@@ -33,10 +33,12 @@ def get_user_menu_tree(user):
                 COALESCE(cm.custom_name, m.module_name) AS display_title, 
                 COALESCE(cm.custom_icon, m.icon, 'grid_view') AS icon, 
                 COALESCE(cm.custom_route_path, m.route_path, '') AS route_path, 
-                m.is_clickable
+                m.is_clickable,
+                COALESCE(NULLIF(cm.display_order, 0), m.display_order, 0) AS display_order
             FROM modules m
-            LEFT JOIN company_modules cm ON m.module_id = cm.module_id AND cm.cid = %s
+            LEFT JOIN company_modules cm ON m.module_id = cm.module_id AND LOWER(cm.cid) = LOWER(%s)
             WHERE m.status_type = 'ACTIVE'
+              AND (cm.status_type IS NULL OR cm.status_type = 'ACTIVE')
             ORDER BY COALESCE(NULLIF(cm.display_order, 0), m.display_order) ASC, m.display_order ASC;
             """
             modules_list = db.executesql(menu_sql, placeholders=[cid], as_dict=True)
@@ -48,7 +50,8 @@ def get_user_menu_tree(user):
                 m.module_name AS display_title, 
                 COALESCE(icon, 'grid_view') AS icon, 
                 COALESCE(route_path, '') AS route_path, 
-                is_clickable
+                is_clickable,
+                display_order
             FROM modules m
             WHERE m.status_type = 'ACTIVE'
             ORDER BY m.display_order ASC;
@@ -62,36 +65,100 @@ def get_user_menu_tree(user):
             COALESCE(cm.custom_name, m.module_name) AS display_title,
             COALESCE(cm.custom_icon, m.icon, 'folder') AS icon,
             COALESCE(cm.custom_route_path, m.route_path, '') AS route_path,
-            m.is_clickable
-        FROM company_modules cm
-        JOIN modules m ON cm.module_id = m.module_id
-        JOIN role_module_permissions rmp ON m.module_id = rmp.module_id
-        WHERE cm.cid = %s
-          AND rmp.role_id = %s
-          AND cm.status_type = 'ACTIVE'
+            m.is_clickable,
+            COALESCE(NULLIF(cm.display_order, 0), m.display_order, 0) AS display_order
+        FROM role_module_permissions rmp
+        JOIN modules m ON rmp.module_id = m.module_id
+        LEFT JOIN company_modules cm ON m.module_id = cm.module_id AND LOWER(cm.cid) = LOWER(%s)
+        WHERE rmp.role_id = %s
           AND rmp.can_view = 1
           AND m.status_type = 'ACTIVE'
+          AND (cm.status_type IS NULL OR cm.status_type = 'ACTIVE')
         ORDER BY COALESCE(NULLIF(cm.display_order, 0), m.display_order) ASC, m.display_order ASC;
         """
         modules_list = db.executesql(menu_sql, placeholders=[cid, role_id], as_dict=True)
 
     # Convert flat list into Parent-Child Menu Tree
     parent_map = {}
-    parents = []
-
     for item in modules_list:
         item["children"] = []
         parent_map[item["module_id"]] = item
 
+    # Auto-resolve parent modules if child modules are allowed but parent header is omitted from role permissions / company modules
+    missing_p_ids = {
+        item["parent_module_id"] 
+        for item in modules_list 
+        if item.get("parent_module_id") and item["parent_module_id"] not in parent_map
+    }
+
+    if missing_p_ids:
+        in_clause = ",".join(["%s"] * len(missing_p_ids))
+        if cid:
+            parent_sql = f"""
+            SELECT 
+                m.module_id, 
+                m.parent_module_id, 
+                COALESCE(cm.custom_name, m.module_name) AS display_title, 
+                COALESCE(cm.custom_icon, m.icon, 'folder') AS icon, 
+                COALESCE(cm.custom_route_path, m.route_path, '') AS route_path, 
+                m.is_clickable,
+                COALESCE(NULLIF(cm.display_order, 0), m.display_order, 0) AS display_order
+            FROM modules m
+            LEFT JOIN company_modules cm ON m.module_id = cm.module_id AND LOWER(cm.cid) = LOWER(%s)
+            WHERE m.module_id IN ({in_clause}) AND m.status_type = 'ACTIVE'
+            ORDER BY COALESCE(NULLIF(cm.display_order, 0), m.display_order) ASC, m.display_order ASC;
+            """
+            parent_modules = db.executesql(parent_sql, placeholders=[cid] + list(missing_p_ids), as_dict=True)
+        else:
+            parent_sql = f"""
+            SELECT 
+                m.module_id, 
+                m.parent_module_id, 
+                m.module_name AS display_title, 
+                COALESCE(m.icon, 'folder') AS icon, 
+                COALESCE(m.route_path, '') AS route_path, 
+                m.is_clickable,
+                m.display_order
+            FROM modules m
+            WHERE m.module_id IN ({in_clause}) AND m.status_type = 'ACTIVE'
+            ORDER BY m.display_order ASC;
+            """
+            parent_modules = db.executesql(parent_sql, placeholders=list(missing_p_ids), as_dict=True)
+
+        for p_item in parent_modules:
+            p_item["children"] = []
+            parent_map[p_item["module_id"]] = p_item
+
+    # Build final hierarchy
+    parents = []
+    parent_ids_added = set()
+
+    for item in list(parent_map.values()):
+        p_id = item.get("parent_module_id")
+        if not p_id and item["module_id"] not in parent_ids_added:
+            parents.append(item)
+            parent_ids_added.add(item["module_id"])
+
     for item in modules_list:
         p_id = item.get("parent_module_id")
         if p_id and p_id in parent_map:
-            parent_map[p_id]["children"].append(item)
-        elif not p_id:
-            parents.append(item)
+            if not any(c["module_id"] == item["module_id"] for c in parent_map[p_id]["children"]):
+                parent_map[p_id]["children"].append(item)
+        elif p_id and p_id not in parent_map:
+            if item["module_id"] not in parent_ids_added:
+                parents.append(item)
+                parent_ids_added.add(item["module_id"])
 
-    _MENU_CACHE[cache_key] = (now, copy.deepcopy(parents))
-    return parents
+    # Sort root modules and submodules by display_order
+    parents.sort(key=lambda x: int(x.get("display_order") or 0))
+    for p in parents:
+        if p.get("children"):
+            p["children"].sort(key=lambda x: int(x.get("display_order") or 0))
+
+    final_tree = [p for p in parents if p.get("children") or p.get("is_clickable")]
+
+    _MENU_CACHE[cache_key] = (now, copy.deepcopy(final_tree))
+    return final_tree
 
 
 def get_active_module_info(user_menu, current_path):
