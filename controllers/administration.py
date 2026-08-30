@@ -784,10 +784,32 @@ def import_companies():
 
     return dict(stats=stats, active_tab=active_tab)
 
-@action("administration/roles_permisions")
+@action("administration/roles_permisions", method=["GET", "POST"])
 @view_page("administration/roles_permisions.html", title="Roles & Permissions | Administration")
 @web_auth_required
 def roles_permisions():
+    action_type = (request.query.get("action") or "").strip().lower()
+    delete_role_id = (request.query.get("delete_role_id") or request.query.get("role_id") or "").strip().upper()
+
+    if action_type == "delete" and delete_role_id:
+        try:
+            db.executesql("UPDATE users SET role_id = NULL WHERE UPPER(role_id) = %s", [delete_role_id])
+            db.executesql("DELETE FROM role_module_permissions WHERE UPPER(role_id) = %s", [delete_role_id])
+            db.executesql("DELETE FROM roles WHERE UPPER(role_id) = %s", [delete_role_id])
+            db.commit()
+            try:
+                from ..utils.menu_utils import clear_menu_cache
+                clear_menu_cache()
+            except Exception:
+                pass
+
+            flash.set(f"Role '{delete_role_id}' deleted successfully.", "success")
+
+        except Exception as e:
+            flash.set(f"Error deleting role: {str(e)}", "danger")
+
+        redirect(URL("administration/roles_permisions"))
+
     roles_rows = db.executesql(
         "SELECT id, cid, role_id, role_name, note as description FROM roles WHERE status_type = 'ACTIVE' ORDER BY id ASC",
         as_dict=True

@@ -56,12 +56,14 @@ def login():
             user_pass = user.get("user_pass")
             user_email = user.get("user_email")
             user_mobile = user.get("user_mobile")
+            user_role = (user.get("user_role") or "").upper()
+            is_root_user = user_role in ("SYSTEM_ADMIN", "SUPER_ADMIN", "ROOT")
             account_status = (user.get("account_status") or "").upper()
-            role_status = user.get("role_status", "")
+            role_status = (user.get("role_status") or "").upper()
 
             if account_status != "ACTIVE":
                 error = f"Your account is {account_status}. Please contact the administrator."
-            elif role_status != "ACTIVE":
+            elif not is_root_user and role_status != "ACTIVE":
                 error = "Your assigned role is inactive or invalid. Please contact the administrator."
             elif cid:
                 company_record_sql = "SELECT legal_name FROM companies WHERE cid = %s AND status_type = 'ACTIVE' LIMIT 1"

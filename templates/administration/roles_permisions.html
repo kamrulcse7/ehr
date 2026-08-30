@@ -101,11 +101,18 @@
                             </span>
                         </div>
                         
-                        <a id="edit-role-link" href="#" 
-                           class="inline-flex items-center gap-1 px-2.5 py-1 text-[11px] font-semibold text-primary bg-primary/10 hover:bg-primary hover:text-white rounded-lg transition-all duration-200">
-                            <span class="material-symbols-outlined text-[15px]">edit</span>
-                            <span>Edit Role</span>
-                        </a>
+                        <div class="flex items-center gap-2">
+                            <a id="edit-role-link" href="#" 
+                               class="inline-flex items-center gap-1 px-2.5 py-1 text-[11px] font-semibold text-primary bg-primary/10 hover:bg-primary hover:text-white rounded-lg transition-all duration-200">
+                                <span class="material-symbols-outlined text-[15px]">edit</span>
+                                <span>Edit</span>
+                            </a>
+                            <button id="delete-role-btn" type="button" onclick="confirmDeleteRole()"
+                               class="inline-flex items-center gap-1 px-2.5 py-1 text-[11px] font-semibold text-rose-600 bg-rose-50 hover:bg-rose-600 hover:text-white dark:bg-rose-950/40 dark:text-rose-400 dark:hover:bg-rose-600 dark:hover:text-white rounded-lg transition-all duration-200 cursor-pointer">
+                                <span class="material-symbols-outlined text-[15px]">delete</span>
+                                <span>Delete</span>
+                            </button>
+                        </div>
                     </div>
 
                     <div class="overflow-x-auto">
@@ -136,6 +143,24 @@
 <!-- INSTANT CLIENT-SIDE SWITCHING SCRIPT -->
 <script>
     const EDIT_URL_BASE = "[[=URL('administration/role_manage')]]";
+    const ROLES_PERM_URL_BASE = "[[=URL('administration/roles_permisions')]]";
+    let activeRoleId = "";
+
+    function confirmDeleteRole() {
+        if (!activeRoleId) {
+            return;
+        }
+        showConfirmModal({
+            title: 'Delete Role',
+            message: `Are you sure you want to delete role <strong>'${activeRoleId}'</strong>? Users currently assigned to this role will have their role updated.`,
+            type: 'danger',
+            confirmText: 'Yes, Delete Role',
+            cancelText: 'Cancel',
+            onConfirm: function() {
+                window.location.href = `${ROLES_PERM_URL_BASE}?action=delete&role_id=${encodeURIComponent(activeRoleId)}`;
+            }
+        });
+    }
 
     function renderPermissions(role) {
         const tbody = document.getElementById('permission-table-body');
@@ -143,12 +168,15 @@
         const roleIdBadge = document.getElementById('selected-role-id-badge');
         const cidBadgeSpan = document.getElementById('selected-role-cid-badge');
         const editBtn = document.getElementById('edit-role-link');
+        const deleteBtn = document.getElementById('delete-role-btn');
 
         if (!role) {
+            activeRoleId = "";
             tbody.innerHTML = `<tr><td colspan="7" class="text-center py-6 text-slate-400 text-xs">No role selected.</td></tr>`;
             return;
         }
 
+        activeRoleId = role.role_id || "";
         roleNameSpan.textContent = role.role_name || '--';
         if (roleIdBadge) roleIdBadge.textContent = role.role_id || '';
         if (role.cid) {
@@ -157,6 +185,10 @@
             cidBadgeSpan.innerHTML = `<span class="px-1.5 py-0.5 text-[9px] font-mono font-medium bg-slate-100 dark:bg-slate-800 text-slate-500 rounded">Global</span>`;
         }
         editBtn.href = `${EDIT_URL_BASE}?role_id=${role.role_id}`;
+
+        if (deleteBtn) {
+            deleteBtn.style.display = 'inline-flex';
+        }
 
         if (!role.permissions || role.permissions.length === 0) {
             tbody.innerHTML = `

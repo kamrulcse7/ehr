@@ -24,7 +24,8 @@ def get_user_menu_tree(user):
         if now - cached_time < _CACHE_TTL:
             return copy.deepcopy(cached_tree)
 
-    if role_id in ("SUPER_ADMIN", "SYSTEM_ADMIN"):
+    role_id_upper = (role_id or "").upper()
+    if role_id_upper in ("SUPER_ADMIN", "SYSTEM_ADMIN", "ROOT") or not role_id:
         if cid:
             menu_sql = """
             SELECT 
