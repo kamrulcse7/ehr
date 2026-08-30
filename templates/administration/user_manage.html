@@ -94,6 +94,7 @@
                                     </button>
                                     [[ pass ]]
                                 </div>
+                                <p id="avatar_error_msg" class="w-[104px] text-[10px] text-rose-500 dark:text-rose-400 font-bold mt-1.5 hidden text-center shrink-0 leading-tight break-words"></p>
                             </div>
 
                             <!-- User Input Fields -->
@@ -239,6 +240,7 @@
                                         <span class="material-symbols-outlined text-[14px]">close</span>
                                     </button>
                                 </div>
+                                <p id="avatar_error_msg" class="w-[104px] text-[10px] text-rose-500 dark:text-rose-400 font-bold mt-1.5 hidden text-center shrink-0 leading-tight break-words"></p>
                             </div>
 
                             <!-- User Input Fields in Add Mode -->
@@ -672,33 +674,67 @@
     }
 
     function previewAvatar(input) {
+        const errorEl = document.getElementById('avatar_error_msg');
+        if (errorEl) {
+            errorEl.classList.add('hidden');
+            errorEl.textContent = '';
+        }
+
         if (input.files && input.files[0]) {
             const file = input.files[0];
             const maxBytes = 120 * 1024;
             if (file.size > maxBytes) {
-                alert("File size exceeds 120KB limit. Please choose a smaller photo.");
+                if (errorEl) {
+                    errorEl.textContent = `File size (${(file.size / 1024).toFixed(1)}KB) exceeds 120KB limit!`;
+                    errorEl.classList.remove('hidden');
+                }
                 input.value = '';
+                // Reset preview image without clearing error message
+                const previewImg = document.getElementById('avatar_preview_img');
+                if (previewImg) {
+                    previewImg.src = '';
+                    previewImg.classList.add('hidden');
+                }
+                const placeholder = document.getElementById('avatar_placeholder');
+                if (placeholder) placeholder.classList.remove('hidden');
+                if (document.getElementById('avatar_remove_btn')) document.getElementById('avatar_remove_btn').classList.add('hidden');
+                if (document.getElementById('remove_avatar_input')) document.getElementById('remove_avatar_input').value = '1';
                 return;
             }
+
             const reader = new FileReader();
             reader.onload = function(e) {
-                document.getElementById('avatar_preview_img').src = e.target.result;
-                document.getElementById('avatar_preview_img').classList.remove('hidden');
-                document.getElementById('avatar_placeholder').classList.add('hidden');
+                const previewImg = document.getElementById('avatar_preview_img');
+                if (previewImg) {
+                    previewImg.src = e.target.result;
+                    previewImg.classList.remove('hidden');
+                }
+                const placeholder = document.getElementById('avatar_placeholder');
+                if (placeholder) placeholder.classList.add('hidden');
                 if (document.getElementById('avatar_remove_btn')) document.getElementById('avatar_remove_btn').classList.remove('hidden');
-                document.getElementById('remove_avatar_input').value = '0';
-            }
+                if (document.getElementById('remove_avatar_input')) document.getElementById('remove_avatar_input').value = '0';
+            };
             reader.readAsDataURL(file);
         }
     }
 
     function removeAvatarPreview() {
         if (document.getElementById('avatar_file_input')) document.getElementById('avatar_file_input').value = '';
-        document.getElementById('avatar_preview_img').src = '';
-        document.getElementById('avatar_preview_img').classList.add('hidden');
-        document.getElementById('avatar_placeholder').classList.remove('hidden');
+        const previewImg = document.getElementById('avatar_preview_img');
+        if (previewImg) {
+            previewImg.src = '';
+            previewImg.classList.add('hidden');
+        }
+        const placeholder = document.getElementById('avatar_placeholder');
+        if (placeholder) placeholder.classList.remove('hidden');
         if (document.getElementById('avatar_remove_btn')) document.getElementById('avatar_remove_btn').classList.add('hidden');
-        document.getElementById('remove_avatar_input').value = '1';
+        if (document.getElementById('remove_avatar_input')) document.getElementById('remove_avatar_input').value = '1';
+
+        const errorEl = document.getElementById('avatar_error_msg');
+        if (errorEl) {
+            errorEl.classList.add('hidden');
+            errorEl.textContent = '';
+        }
     }
 
     document.addEventListener("DOMContentLoaded", function() {
