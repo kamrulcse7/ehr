@@ -611,10 +611,10 @@ def import_companies():
 
     return dict(stats=stats, active_tab=active_tab)
 
-@action("administration/roles_permisions", method=["GET", "POST"])
-@view_page("administration/roles_permisions.html", title="Roles & Permissions | Administration")
+@action("administration/roles_permissions", method=["GET", "POST"])
+@view_page("administration/roles_permissions.html", title="Roles & Permissions | Administration")
 @web_auth_required
-def roles_permisions():
+def roles_permissions():
     action_type = (request.query.get("action") or "").strip().lower()
     delete_role_id = (request.query.get("delete_role_id") or request.query.get("role_id") or "").strip().upper()
 
@@ -635,7 +635,7 @@ def roles_permisions():
         except Exception as e:
             flash.set(f"Error deleting role: {str(e)}", "danger")
 
-        redirect(URL("administration/roles_permisions"))
+        redirect(URL("administration/roles_permissions"))
 
     roles_rows = db.executesql(
         "SELECT id, cid, role_id, role_name, note as description FROM roles WHERE status_type = 'ACTIVE' ORDER BY id ASC",
@@ -807,7 +807,7 @@ def role_manage(role_id=None):
 
         action_msg = "updated" if raw_role_id else "created"
         flash.set(f"Role '{role_name}' {action_msg} successfully!", "success")
-        redirect(URL("administration/roles_permisions", vars=dict(role_id=target_role_id)))
+        redirect(URL("administration/roles_permissions", vars=dict(role_id=target_role_id)))
 
     # GET Request
     role_id = role_id or request.query.get("role_id") or request.params.get("role_id") or ""

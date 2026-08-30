@@ -333,7 +333,7 @@ INSERT INTO modules (module_id, module_name, parent_module_id, module_group, ico
 -- 3. Administration
 ('ADMINISTRATION', 'Administration', NULL, 'System', 'tune', 0, NULL, 3, 'ACTIVE'),
 ('COMPANY_MGMT', 'Company Management', 'ADMINISTRATION', 'System', 'domain', 1, '/administration/companies', 1, 'ACTIVE'),
-('ROLES_PERM', 'Roles & Permissions', 'ADMINISTRATION', 'System', 'key', 1, '/administration/roles_permisions', 2, 'ACTIVE'),
+('ROLES_PERM', 'Roles & Permissions', 'ADMINISTRATION', 'System', 'key', 1, '/administration/roles_permissions', 2, 'ACTIVE'),
 ('USER_MGMT', 'User Management', 'ADMINISTRATION', 'System', 'manage_accounts', 1, '/administration/users', 3, 'ACTIVE'),
 ('AUDIT_LOGS', 'Audit Logs', 'ADMINISTRATION', 'System', 'history', 1, '/administration/audit_logs', 4, 'ACTIVE'),
 
