@@ -24,9 +24,31 @@ def get_user_menu_tree(user):
         if now - cached_time < _CACHE_TTL:
             return copy.deepcopy(cached_tree)
 
+    has_comp_mods = False
+    if cid:
+        cm_check = db.executesql("SELECT 1 FROM company_modules WHERE LOWER(cid) = LOWER(%s) LIMIT 1", [cid])
+        if cm_check:
+            has_comp_mods = True
+
     role_id_upper = (role_id or "").upper()
     if role_id_upper in ("SUPER_ADMIN", "SYSTEM_ADMIN", "ROOT") or not role_id:
-        if cid:
+        if cid and has_comp_mods:
+            menu_sql = """
+            SELECT 
+                m.module_id, 
+                m.parent_module_id, 
+                COALESCE(cm.custom_name, m.module_name) AS display_title, 
+                COALESCE(cm.custom_icon, m.icon, 'grid_view') AS icon, 
+                COALESCE(cm.custom_route_path, m.route_path, '') AS route_path, 
+                m.is_clickable,
+                COALESCE(NULLIF(cm.display_order, 0), m.display_order, 0) AS display_order
+            FROM modules m
+            JOIN company_modules cm ON m.module_id = cm.module_id AND LOWER(cm.cid) = LOWER(%s) AND cm.status_type = 'ACTIVE'
+            WHERE m.status_type = 'ACTIVE'
+            ORDER BY COALESCE(NULLIF(cm.display_order, 0), m.display_order) ASC, m.display_order ASC;
+            """
+            modules_list = db.executesql(menu_sql, placeholders=[cid], as_dict=True)
+        elif cid:
             menu_sql = """
             SELECT 
                 m.module_id, 
@@ -59,25 +81,45 @@ def get_user_menu_tree(user):
             """
             modules_list = db.executesql(menu_sql, as_dict=True)
     else:
-        menu_sql = """
-        SELECT 
-            m.module_id,
-            m.parent_module_id,
-            COALESCE(cm.custom_name, m.module_name) AS display_title,
-            COALESCE(cm.custom_icon, m.icon, 'folder') AS icon,
-            COALESCE(cm.custom_route_path, m.route_path, '') AS route_path,
-            m.is_clickable,
-            COALESCE(NULLIF(cm.display_order, 0), m.display_order, 0) AS display_order
-        FROM role_module_permissions rmp
-        JOIN modules m ON rmp.module_id = m.module_id
-        LEFT JOIN company_modules cm ON m.module_id = cm.module_id AND LOWER(cm.cid) = LOWER(%s)
-        WHERE rmp.role_id = %s
-          AND rmp.can_view = 1
-          AND m.status_type = 'ACTIVE'
-          AND (cm.status_type IS NULL OR cm.status_type = 'ACTIVE')
-        ORDER BY COALESCE(NULLIF(cm.display_order, 0), m.display_order) ASC, m.display_order ASC;
-        """
-        modules_list = db.executesql(menu_sql, placeholders=[cid, role_id], as_dict=True)
+        if cid and has_comp_mods:
+            menu_sql = """
+            SELECT 
+                m.module_id,
+                m.parent_module_id,
+                COALESCE(cm.custom_name, m.module_name) AS display_title,
+                COALESCE(cm.custom_icon, m.icon, 'folder') AS icon,
+                COALESCE(cm.custom_route_path, m.route_path, '') AS route_path,
+                m.is_clickable,
+                COALESCE(NULLIF(cm.display_order, 0), m.display_order, 0) AS display_order
+            FROM role_module_permissions rmp
+            JOIN modules m ON rmp.module_id = m.module_id
+            JOIN company_modules cm ON m.module_id = cm.module_id AND LOWER(cm.cid) = LOWER(%s) AND cm.status_type = 'ACTIVE'
+            WHERE rmp.role_id = %s
+              AND rmp.can_view = 1
+              AND m.status_type = 'ACTIVE'
+            ORDER BY COALESCE(NULLIF(cm.display_order, 0), m.display_order) ASC, m.display_order ASC;
+            """
+            modules_list = db.executesql(menu_sql, placeholders=[cid, role_id], as_dict=True)
+        else:
+            menu_sql = """
+            SELECT 
+                m.module_id,
+                m.parent_module_id,
+                COALESCE(cm.custom_name, m.module_name) AS display_title,
+                COALESCE(cm.custom_icon, m.icon, 'folder') AS icon,
+                COALESCE(cm.custom_route_path, m.route_path, '') AS route_path,
+                m.is_clickable,
+                COALESCE(NULLIF(cm.display_order, 0), m.display_order, 0) AS display_order
+            FROM role_module_permissions rmp
+            JOIN modules m ON rmp.module_id = m.module_id
+            LEFT JOIN company_modules cm ON m.module_id = cm.module_id AND LOWER(cm.cid) = LOWER(%s)
+            WHERE rmp.role_id = %s
+              AND rmp.can_view = 1
+              AND m.status_type = 'ACTIVE'
+              AND (cm.status_type IS NULL OR cm.status_type = 'ACTIVE')
+            ORDER BY COALESCE(NULLIF(cm.display_order, 0), m.display_order) ASC, m.display_order ASC;
+            """
+            modules_list = db.executesql(menu_sql, placeholders=[cid, role_id], as_dict=True)
 
     # Convert flat list into Parent-Child Menu Tree
     parent_map = {}

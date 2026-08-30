@@ -233,6 +233,30 @@ def company_manage(company_id=None):
             redirect(URL("administration/companies"))
         company = comp_rows[0]
 
+    all_modules = db.executesql(
+        "SELECT module_id, module_name, parent_module_id, module_group, icon, is_clickable FROM modules WHERE status_type = 'ACTIVE' ORDER BY display_order ASC",
+        as_dict=True
+    )
+
+    grouped_modules = {}
+    parent_map_names = {m["module_id"]: m["module_name"] for m in all_modules if not m.get("is_clickable")}
+    for m in all_modules:
+        if m.get("is_clickable"):
+            p_id = m.get("parent_module_id")
+            g_key = parent_map_names.get(p_id) or m.get("module_group") or "General"
+            if g_key not in grouped_modules:
+                grouped_modules[g_key] = []
+            grouped_modules[g_key].append(m)
+
+    company_module_ids = []
+    if company and company.get("cid"):
+        cm_rows = db.executesql(
+            "SELECT module_id FROM company_modules WHERE LOWER(cid) = LOWER(%s) AND status_type = 'ACTIVE'",
+            [company.get("cid")],
+            as_dict=True
+        )
+        company_module_ids = [r["module_id"] for r in cm_rows]
+
     form_data = dict(company) if company else {}
 
     if request.method == "POST":
@@ -263,11 +287,23 @@ def company_manage(company_id=None):
         status_type = clean_val(request.forms.get("status_type")) or "ACTIVE"
         note = clean_val(request.forms.get("note"))
 
+        raw_selected_modules = request.forms.getall("company_modules")
+        if isinstance(raw_selected_modules, str):
+            raw_selected_modules = [raw_selected_modules]
+        selected_modules = [m for m in raw_selected_modules if m]
+
+        parent_map = {m["module_id"]: m["parent_module_id"] for m in all_modules}
+        final_module_ids = set(selected_modules)
+        for mod_id in list(final_module_ids):
+            p_id = parent_map.get(mod_id)
+            if p_id:
+                final_module_ids.add(p_id)
+
         if company:
             # Edit existing company
             if not company_name:
                 flash.set("Company Name is required.", "danger")
-                return dict(company=company, form_data=form_data)
+                return dict(company=company, form_data=form_data, all_modules=all_modules, grouped_modules=grouped_modules, company_module_ids=selected_modules)
 
             cid = company.get("cid", "comp")
             logo_file = request.files.get("logo_file")
@@ -308,26 +344,43 @@ def company_manage(company_id=None):
                     favicon_url, logo_url, banner_url, status_type, note,
                     updated_by, company_id
                 ])
+
+                # Update company_modules
+                db.executesql("DELETE FROM company_modules WHERE LOWER(cid) = LOWER(%s)", [cid])
+                for mod_id in final_module_ids:
+                    if mod_id:
+                        db.executesql(
+                            "INSERT INTO company_modules (cid, module_id, status_type, created_on, created_by) VALUES (%s, %s, 'ACTIVE', NOW(), %s)",
+                            [cid.upper(), mod_id, updated_by]
+                        )
+                db.commit()
+
+                try:
+                    from ..utils.menu_utils import clear_menu_cache
+                    clear_menu_cache()
+                except Exception:
+                    pass
+
                 flash.set(f"Company '{company_name}' updated successfully!", "success")
                 redirect(URL("administration/companies"))
             except Exception as e:
                 flash.set(f"Database error updating company: {str(e)}", "danger")
-                return dict(company=company, form_data=form_data)
+                return dict(company=company, form_data=form_data, all_modules=all_modules, grouped_modules=grouped_modules, company_module_ids=selected_modules)
         else:
             # Add new company
             cid = clean_val(request.forms.get("cid"))
             if not cid:
                 flash.set("Company ID (CID) is required.", "danger")
-                return dict(company=None, form_data=form_data)
+                return dict(company=None, form_data=form_data, all_modules=all_modules, grouped_modules=grouped_modules, company_module_ids=selected_modules)
 
             if not company_name:
                 flash.set("Company Name is required.", "danger")
-                return dict(company=None, form_data=form_data)
+                return dict(company=None, form_data=form_data, all_modules=all_modules, grouped_modules=grouped_modules, company_module_ids=selected_modules)
 
             comp_check = db.executesql("SELECT id FROM companies WHERE LOWER(cid) = LOWER(%s) LIMIT 1", [cid])
             if comp_check:
                 flash.set(f"Company ID '{cid}' already exists.", "danger")
-                return dict(company=None, form_data=form_data)
+                return dict(company=None, form_data=form_data, all_modules=all_modules, grouped_modules=grouped_modules, company_module_ids=selected_modules)
 
             logo_file = request.files.get("logo_file")
             logo_url = _save_company_branding_file(logo_file, "logo", cid)
@@ -358,13 +411,36 @@ def company_manage(company_id=None):
                     favicon_url, logo_url, banner_url, status_type, note,
                     created_by
                 ])
+
+                # Insert company_modules
+                db.executesql("DELETE FROM company_modules WHERE LOWER(cid) = LOWER(%s)", [cid.upper()])
+                for mod_id in final_module_ids:
+                    if mod_id:
+                        db.executesql(
+                            "INSERT INTO company_modules (cid, module_id, status_type, created_on, created_by) VALUES (%s, %s, 'ACTIVE', NOW(), %s)",
+                            [cid.upper(), mod_id, created_by]
+                        )
+                db.commit()
+
+                try:
+                    from ..utils.menu_utils import clear_menu_cache
+                    clear_menu_cache()
+                except Exception:
+                    pass
+
                 flash.set(f"Company '{company_name}' ({cid.upper()}) added successfully!", "success")
                 redirect(URL("administration/companies"))
             except Exception as e:
                 flash.set(f"Database error adding company: {str(e)}", "danger")
-                return dict(company=None, form_data=form_data)
+                return dict(company=None, form_data=form_data, all_modules=all_modules, grouped_modules=grouped_modules, company_module_ids=selected_modules)
 
-    return dict(company=company, form_data=form_data)
+    return dict(
+        company=company,
+        form_data=form_data,
+        all_modules=all_modules,
+        grouped_modules=grouped_modules,
+        company_module_ids=company_module_ids
+    )
 
 @action("administration/company_view/<company_id:int>")
 @action("administration/company_view")

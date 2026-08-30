@@ -116,44 +116,7 @@
                         </div>
                     </div>
 
-                    <!-- 2. CONTACT DETAILS CARD -->
-                    <div class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-800/80 p-5 shadow-xs space-y-4">
-                        <div class="flex items-center gap-2 border-b border-slate-100 dark:border-slate-800 pb-3">
-                            <span class="material-symbols-outlined text-primary text-[20px]">contact_mail</span>
-                            <h3 class="font-bold text-sm text-slate-900 dark:text-white">Contact & Online Presence</h3>
-                        </div>
-
-                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3.5">
-                            <!-- Primary Email -->
-                            <div>
-                                <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 mb-1">
-                                    Primary Email
-                                </label>
-                                <input type="email" name="email" value="[[= form_data.get('email') or (company.get('email') if company else '') or '' ]]" placeholder="info@company.com" autocomplete="new-password" readonly onfocus="this.removeAttribute('readonly');"
-                                    class="w-full px-3 py-2 bg-slate-50/50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-medium text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all">
-                            </div>
-
-                            <!-- Phone Number -->
-                            <div>
-                                <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 mb-1">
-                                    Phone Number
-                                </label>
-                                <input type="tel" name="phone" value="[[= form_data.get('phone') or (company.get('phone') if company else '') or '' ]]" placeholder="+880 1700-000000" autocomplete="new-password" readonly onfocus="this.removeAttribute('readonly');"
-                                    class="w-full px-3 py-2 bg-slate-50/50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-medium text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all">
-                            </div>
-
-                            <!-- Website -->
-                            <div>
-                                <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 mb-1">
-                                    Website URL
-                                </label>
-                                <input type="url" name="website" value="[[= form_data.get('website') or (company.get('website') if company else '') or '' ]]" placeholder="https://www.company.com" autocomplete="new-password" readonly onfocus="this.removeAttribute('readonly');"
-                                    class="w-full px-3 py-2 bg-slate-50/50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-medium text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all">
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- 3. ADDRESS & LOCATION CARD -->
+                    <!-- 2. ADDRESS & LOCATION CARD -->
                     <div class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-800/80 p-5 shadow-xs space-y-4">
                         <div class="flex items-center gap-2 border-b border-slate-100 dark:border-slate-800 pb-3">
                             <span class="material-symbols-outlined text-primary text-[20px]">location_on</span>
@@ -211,12 +174,107 @@
                         </div>
                     </div>
 
+                    <!-- 3. SUBSCRIBED MODULES / FEATURE ACCESS CARD -->
+                    <div class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-800/80 p-5 shadow-xs space-y-4">
+                        <div class="flex flex-col sm:flex-row sm:items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3 gap-2">
+                            <div class="flex items-center gap-2">
+                                <span class="material-symbols-outlined text-primary text-[20px]">widgets</span>
+                                <div>
+                                    <h3 class="font-bold text-sm text-slate-900 dark:text-white">Subscribed Modules & Feature Access</h3>
+                                    <p class="text-[11px] text-slate-400">Select modules this company has access to. Company users will only see selected modules.</p>
+                                </div>
+                            </div>
+                            <div class="flex items-center gap-2 shrink-0">
+                                <button type="button" onclick="toggleAllCompanyModules(true)" class="text-[11px] font-semibold text-primary hover:underline cursor-pointer">Select All</button>
+                                <span class="text-slate-300 dark:text-slate-700">|</span>
+                                <button type="button" onclick="toggleAllCompanyModules(false)" class="text-[11px] font-semibold text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:underline cursor-pointer">Clear All</button>
+                            </div>
+                        </div>
+
+                        <!-- Modules Grid -->
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-3.5 pt-1">
+                            [[ group_idx = 0 ]]
+                            [[ for group_name, mods in (grouped_modules or {}).items(): ]]
+                            [[ group_idx += 1 ]]
+                            <div class="bg-slate-50/70 dark:bg-slate-800/40 rounded-xl p-3 border border-slate-100 dark:border-slate-800/60 space-y-2 flex flex-col justify-between">
+                                <div>
+                                    <div class="flex items-center justify-between border-b border-slate-200/60 dark:border-slate-700/60 pb-1.5 mb-2 gap-2">
+                                        <div class="flex items-center gap-1.5 min-w-0">
+                                            <span class="text-xs font-bold text-slate-800 dark:text-slate-200 tracking-wide truncate">[[= group_name ]]</span>
+                                            <span class="text-[10px] font-semibold bg-primary/10 text-primary px-1.5 py-0.5 rounded-full shrink-0">[[= len(mods) ]] modules</span>
+                                        </div>
+                                        <div class="flex items-center gap-1.5 text-[10px] font-semibold shrink-0">
+                                            <button type="button" onclick="toggleGroupModules('group_chk_[[= group_idx ]]', true)" class="text-primary hover:underline cursor-pointer">Select All</button>
+                                            <span class="text-slate-300 dark:text-slate-700">|</span>
+                                            <button type="button" onclick="toggleGroupModules('group_chk_[[= group_idx ]]', false)" class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:underline cursor-pointer">Clear All</button>
+                                        </div>
+                                    </div>
+                                    <div class="space-y-1.5">
+                                        [[ for mod in mods: ]]
+                                        [[ mod_id = mod.get('module_id') ]]
+                                        [[ is_checked = (mod_id in (company_module_ids or [])) ]]
+                                        <label class="flex items-center justify-between p-2 rounded-lg bg-white/60 dark:bg-slate-800/60 hover:bg-white dark:hover:bg-slate-800 border border-slate-200/50 dark:border-slate-700/40 hover:border-slate-300 dark:hover:border-slate-700 transition-all cursor-pointer group shadow-2xs">
+                                            <div class="flex items-center gap-2.5 min-w-0">
+                                                <span class="material-symbols-outlined text-[18px] text-slate-400 group-hover:text-primary transition-colors shrink-0">[[= mod.get('icon') or 'extension' ]]</span>
+                                                <div class="truncate">
+                                                    <p class="text-xs font-semibold text-slate-700 dark:text-slate-200 truncate">[[= mod.get('module_name') ]]</p>
+                                                    <p class="text-[9px] font-mono text-slate-400">[[= mod_id ]]</p>
+                                                </div>
+                                            </div>
+                                            <input type="checkbox" name="company_modules" value="[[= mod_id ]]" [[= 'checked' if is_checked else '' ]]
+                                                class="company-module-checkbox group_chk_[[= group_idx ]] w-4 h-4 text-primary rounded border-slate-300 dark:border-slate-700 focus:ring-primary/20 accent-primary cursor-pointer shrink-0">
+                                        </label>
+                                        [[ pass ]]
+                                    </div>
+                                </div>
+                            </div>
+                            [[ pass ]]
+                        </div>
+                    </div>
+
                 </div>
 
                 <!-- RIGHT COLUMN (SPAN 1) -->
                 <div class="space-y-4">
 
-                    <!-- STATUS & SYSTEM SETTINGS CARD -->
+                    <!-- 1. CONTACT & ONLINE PRESENCE CARD (RIGHT SIDE, STACKED FIELDS) -->
+                    <div class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-800/80 p-5 shadow-xs space-y-4">
+                        <div class="flex items-center gap-2 border-b border-slate-100 dark:border-slate-800 pb-3">
+                            <span class="material-symbols-outlined text-primary text-[20px]">contact_mail</span>
+                            <h3 class="font-bold text-sm text-slate-900 dark:text-white">Contact & Online Presence</h3>
+                        </div>
+
+                        <div class="space-y-3">
+                            <!-- Primary Email -->
+                            <div>
+                                <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 mb-1">
+                                    Primary Email
+                                </label>
+                                <input type="email" name="email" value="[[= form_data.get('email') or (company.get('email') if company else '') or '' ]]" placeholder="info@company.com" autocomplete="new-password" readonly onfocus="this.removeAttribute('readonly');"
+                                    class="w-full px-3 py-2 bg-slate-50/50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-medium text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all">
+                            </div>
+
+                            <!-- Phone Number -->
+                            <div>
+                                <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 mb-1">
+                                    Phone Number
+                                </label>
+                                <input type="tel" name="phone" value="[[= form_data.get('phone') or (company.get('phone') if company else '') or '' ]]" placeholder="+880 1700-000000" autocomplete="new-password" readonly onfocus="this.removeAttribute('readonly');"
+                                    class="w-full px-3 py-2 bg-slate-50/50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-medium text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all">
+                            </div>
+
+                            <!-- Website -->
+                            <div>
+                                <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 mb-1">
+                                    Website URL
+                                </label>
+                                <input type="url" name="website" value="[[= form_data.get('website') or (company.get('website') if company else '') or '' ]]" placeholder="https://www.company.com" autocomplete="new-password" readonly onfocus="this.removeAttribute('readonly');"
+                                    class="w-full px-3 py-2 bg-slate-50/50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-medium text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 2. STATUS & SYSTEM SETTINGS CARD -->
                     <div class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-800/80 p-5 shadow-xs space-y-4">
                         <div class="flex items-center gap-2 border-b border-slate-100 dark:border-slate-800 pb-3">
                             <span class="material-symbols-outlined text-primary text-[20px]">tune</span>
@@ -289,7 +347,7 @@
                                     <button type="button" onclick="selectCustomOption('tz', 'UTC+03:00', 'UTC+03:00 (Riyadh / Moscow)')" class="tz-option-item w-full text-left px-2.5 py-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 font-medium transition-colors">UTC+03:00 (Riyadh / Moscow)</button>
                                     <button type="button" onclick="selectCustomOption('tz', 'UTC+03:30', 'UTC+03:30 (Tehran)')" class="tz-option-item w-full text-left px-2.5 py-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 font-medium transition-colors">UTC+03:30 (Tehran)</button>
                                     <button type="button" onclick="selectCustomOption('tz', 'UTC+04:00', 'UTC+04:00 (Dubai / Muscat)')" class="tz-option-item w-full text-left px-2.5 py-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 font-medium transition-colors">UTC+04:00 (Dubai / Muscat)</button>
-                                    <button type="button" onclick="selectCustomOption('tz', 'UTC+04:30', 'UTC+04:30 (Kabul)')" class="tz-option-item w-full text-left px-2.5 py-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 font-medium transition-colors">UTC+04:30 (Kabul)</button>
+                                    <button type="button" onclick="selectCustomOption('tz', 'UTC+4:30', 'UTC+04:30 (Kabul)')" class="tz-option-item w-full text-left px-2.5 py-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 font-medium transition-colors">UTC+04:30 (Kabul)</button>
                                     <button type="button" onclick="selectCustomOption('tz', 'UTC+05:00', 'UTC+05:00 (Karachi / Tashkent)')" class="tz-option-item w-full text-left px-2.5 py-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 font-medium transition-colors">UTC+05:00 (Karachi / Tashkent)</button>
                                     <button type="button" onclick="selectCustomOption('tz', 'UTC+05:30', 'UTC+05:30 (Kolkata / Mumbai)')" class="tz-option-item w-full text-left px-2.5 py-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 font-medium transition-colors">UTC+05:30 (Kolkata / Mumbai)</button>
                                     <button type="button" onclick="selectCustomOption('tz', 'UTC+05:45', 'UTC+05:45 (Kathmandu)')" class="tz-option-item w-full text-left px-2.5 py-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 font-medium transition-colors">UTC+05:45 (Kathmandu)</button>
@@ -356,15 +414,15 @@
                         </div>
                     </div>
 
-                    <!-- SUBMIT BUTTONS -->
-                    <div class="flex items-center justify-end gap-2 pt-2">
+                    <!-- SUBMIT ACTION BUTTONS (AT BOTTOM OF RIGHT COLUMN) -->
+                    <div class="flex items-center justify-end gap-2.5 pt-2">
                         <a href="[[=URL('administration/companies')]]"
-                            class="h-7 px-3 bg-white dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700 rounded-md text-xs font-semibold transition-all flex items-center justify-center">
+                            class="h-8 px-4 bg-white dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-semibold transition-all flex items-center justify-center">
                             Cancel
                         </a>
                         <button type="submit" id="submitBtn"
-                            class="h-7 px-3.5 bg-primary hover:opacity-90 active:scale-[0.98] text-white rounded-md text-xs font-semibold shadow-xs transition-all flex items-center gap-1 justify-center cursor-pointer">
-                            <span class="material-symbols-outlined text-[15px]">save</span>
+                            class="h-8 px-5 bg-primary hover:opacity-90 active:scale-[0.98] text-white rounded-xl text-xs font-semibold shadow-md transition-all flex items-center gap-1.5 justify-center cursor-pointer">
+                            <span class="material-symbols-outlined text-[16px]">save</span>
                             <span>[[= 'Update' if company else 'Save' ]]</span>
                         </button>
                     </div>
@@ -379,6 +437,72 @@
 </div>
 
 <script>
+    function toggleCustomDropdown(id, hasSearch) {
+        const menu = document.getElementById(id + '_dropdown_menu');
+        const arrow = document.getElementById(id + '_arrow_icon');
+        if (!menu) return;
+
+        document.querySelectorAll('.custom-dropdown-menu').forEach(m => {
+            if (m.id !== id + '_dropdown_menu') {
+                m.classList.add('hidden');
+                const otherId = m.id.replace('_dropdown_menu', '');
+                const otherArrow = document.getElementById(otherId + '_arrow_icon');
+                if (otherArrow) otherArrow.classList.remove('rotate-180');
+            }
+        });
+
+        const isHidden = menu.classList.contains('hidden');
+        if (isHidden) {
+            menu.classList.remove('hidden');
+            if (arrow) arrow.classList.add('rotate-180');
+            if (hasSearch) {
+                const searchInput = document.getElementById(id + '_search_input');
+                if (searchInput) {
+                    searchInput.value = '';
+                    filterCustomOptions(id, '');
+                    setTimeout(() => searchInput.focus(), 50);
+                }
+            }
+        } else {
+            closeCustomDropdown(id);
+        }
+    }
+
+    function closeCustomDropdown(id) {
+        const menu = document.getElementById(id + '_dropdown_menu');
+        const arrow = document.getElementById(id + '_arrow_icon');
+        if (menu) menu.classList.add('hidden');
+        if (arrow) arrow.classList.remove('rotate-180');
+    }
+
+    function selectCustomOption(id, val, label) {
+        const hiddenInput = document.getElementById(id + '_hidden_input');
+        const textSpan = document.getElementById(id + '_selected_text');
+        if (hiddenInput) hiddenInput.value = val;
+        if (textSpan) textSpan.textContent = label;
+        closeCustomDropdown(id);
+    }
+
+    function filterCustomOptions(id, query) {
+        const q = query.toLowerCase();
+        const items = document.querySelectorAll('.' + id + '-option-item');
+        items.forEach(item => {
+            const txt = item.textContent.toLowerCase();
+            if (txt.includes(q)) {
+                item.classList.remove('hidden');
+            } else {
+                item.classList.add('hidden');
+            }
+        });
+    }
+
+    document.addEventListener('click', function(e) {
+        if (!e.target.closest('.custom-dropdown-container')) {
+            document.querySelectorAll('.custom-dropdown-menu').forEach(m => m.classList.add('hidden'));
+            document.querySelectorAll('.custom-dropdown-arrow').forEach(a => a.classList.remove('rotate-180'));
+        }
+    });
+
     function previewCardImage(input, imgId, containerId) {
         const errorEl = document.getElementById('logo_error_msg');
         if (errorEl) {
@@ -417,5 +541,15 @@
         const container = document.getElementById(containerId);
         if (container) container.classList.add('hidden');
         if (document.getElementById('remove_logo_input')) document.getElementById('remove_logo_input').value = '1';
+    }
+
+    function toggleAllCompanyModules(select) {
+        const checkboxes = document.querySelectorAll('.company-module-checkbox');
+        checkboxes.forEach(cb => cb.checked = select);
+    }
+
+    function toggleGroupModules(groupClass, select) {
+        const checkboxes = document.querySelectorAll('.' + groupClass);
+        checkboxes.forEach(cb => cb.checked = select);
     }
 </script>
