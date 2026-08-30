@@ -14,35 +14,30 @@
         <!-- SUMMARY STATS CARDS -->
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5">
             <!-- Total Users -->
-            <div
-                class="bg-white dark:bg-slate-900 rounded-xl border border-slate-200/80 dark:border-slate-800/80 p-3.5 flex items-center gap-3 shadow-sm">
+            <div class="bg-white dark:bg-slate-900 rounded-xl border border-slate-200/80 dark:border-slate-800/80 p-3.5 flex items-center gap-3 shadow-sm">
                 <div class="w-10 h-10 rounded-lg bg-primary/10 text-primary flex items-center justify-center shrink-0">
                     <span class="material-symbols-outlined text-[20px]">group</span>
                 </div>
                 <div>
-                    <div class="text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500">Total</div>
+                    <div class="text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500">Total Users</div>
                     <div class="text-lg font-bold text-slate-900 dark:text-white mt-0.5">[[= stats.get('total', 0) ]]</div>
                 </div>
             </div>
 
             <!-- Active Users -->
-            <div
-                class="bg-white dark:bg-slate-900 rounded-xl border border-slate-200/80 dark:border-slate-800/80 p-3.5 flex items-center gap-3 shadow-sm">
-                <div
-                    class="w-10 h-10 rounded-lg bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shrink-0">
+            <div class="bg-white dark:bg-slate-900 rounded-xl border border-slate-200/80 dark:border-slate-800/80 p-3.5 flex items-center gap-3 shadow-sm">
+                <div class="w-10 h-10 rounded-lg bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shrink-0">
                     <span class="material-symbols-outlined text-[20px]">check_circle</span>
                 </div>
                 <div>
-                    <div class="text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500">Active</div>
+                    <div class="text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500">Active Accounts</div>
                     <div class="text-lg font-bold text-slate-900 dark:text-white mt-0.5">[[= stats.get('active', 0) ]]</div>
                 </div>
             </div>
 
             <!-- Inactive / Locked -->
-            <div
-                class="bg-white dark:bg-slate-900 rounded-xl border border-slate-200/80 dark:border-slate-800/80 p-3.5 flex items-center gap-3 shadow-sm">
-                <div
-                    class="w-10 h-10 rounded-lg bg-rose-50 dark:bg-rose-950/40 text-rose-500 dark:text-rose-400 flex items-center justify-center shrink-0">
+            <div class="bg-white dark:bg-slate-900 rounded-xl border border-slate-200/80 dark:border-slate-800/80 p-3.5 flex items-center gap-3 shadow-sm">
+                <div class="w-10 h-10 rounded-lg bg-rose-50 dark:bg-rose-950/40 text-rose-500 dark:text-rose-400 flex items-center justify-center shrink-0">
                     <span class="material-symbols-outlined text-[20px]">lock</span>
                 </div>
                 <div>
@@ -52,10 +47,8 @@
             </div>
 
             <!-- Admin Users -->
-            <div
-                class="bg-white dark:bg-slate-900 rounded-xl border border-slate-200/80 dark:border-slate-800/80 p-3.5 flex items-center gap-3 shadow-sm">
-                <div
-                    class="w-10 h-10 rounded-lg bg-sky-50 dark:bg-sky-950/40 text-sky-600 dark:text-sky-400 flex items-center justify-center shrink-0">
+            <div class="bg-white dark:bg-slate-900 rounded-xl border border-slate-200/80 dark:border-slate-800/80 p-3.5 flex items-center gap-3 shadow-sm">
+                <div class="w-10 h-10 rounded-lg bg-sky-50 dark:bg-sky-950/40 text-sky-600 dark:text-sky-400 flex items-center justify-center shrink-0">
                     <span class="material-symbols-outlined text-[20px]">admin_panel_settings</span>
                 </div>
                 <div>
@@ -66,60 +59,73 @@
         </div>
 
         <!-- MAIN TABLE CONTAINER -->
-        <div
-            class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-800/80 shadow-sm overflow-hidden p-4 space-y-3.5">
+        <div class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-800/80 shadow-sm overflow-hidden p-4 space-y-3.5">
 
             <!-- ACTION & FILTER ROW -->
-            <div
-                class="flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-2.5 bg-slate-50/70 dark:bg-slate-800/40 p-2 rounded-xl border border-slate-200/60 dark:border-slate-800/60">
+            <div class="flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-2.5 bg-slate-50/70 dark:bg-slate-800/40 p-2 rounded-xl border border-slate-200/60 dark:border-slate-800/60">
 
                 <!-- LEFT SIDE: FILTER FORM -->
                 <form action="[[=URL('administration/users')]]" method="GET" class="flex flex-wrap items-center gap-2 grow">
                     <input type="hidden" name="limit" value="[[= pagination.get('limit', 10) ]]">
 
+                    <!-- CID Input Filter (Shown when CID is not bound in session) -->
+                    [[ if not user_cid: ]]
+                    <div class="relative flex items-center w-full sm:w-28">
+                        <span class="material-symbols-outlined absolute left-1.5 top-1/2 -translate-y-1/2 text-slate-400 text-xs pointer-events-none z-10 leading-none">domain</span>
+                        <input type="text" name="cid" value="[[= request.query.get('cid', '') ]]"
+                            placeholder="CID..." autocomplete="off"
+                            class="w-full h-[28px] py-0 pl-8 pr-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-md text-[11px] font-medium text-slate-800 dark:text-slate-200 placeholder:text-slate-400 focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary transition-all leading-none">
+                    </div>
+                    [[ pass ]]
+
                     <!-- Search Input -->
                     <div class="relative flex items-center w-full sm:w-60">
-                        <span
-                            class="material-symbols-outlined absolute left-2 top-1/2 -translate-y-1/2 text-slate-400 text-[15px] pointer-events-none z-10 leading-none">search</span>
+                        <span class="material-symbols-outlined absolute left-2 top-1/2 -translate-y-1/2 text-slate-400 text-[15px] pointer-events-none z-10 leading-none">search</span>
                         <input type="text" name="keywords" value="[[= request.query.get('keywords', '') ]]"
-                            placeholder="Search Name, Email or ID..." autocomplete="off"
+                            placeholder="Search Name, ID or Mobile..." autocomplete="off"
                             class="w-full h-[28px] py-0 pl-7 pr-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-md text-[11px] font-medium text-slate-800 dark:text-slate-200 placeholder:text-slate-400 focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary transition-all leading-none">
                     </div>
 
-                    <!-- Status Filter -->
-                    <div class="relative flex items-center w-32">
-                        <select name="status"
-                            class="w-full h-[28px] py-0 pl-2.5 pr-7 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-md text-[11px] font-medium text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary transition-all cursor-pointer appearance-none leading-none">
-                            <option value="">All Status</option>
-                            <option value="ACTIVE" [[='selected' if request.query.get('status', '').upper()=='ACTIVE' else '' ]]>Active</option>
-                            <option value="INACTIVE" [[='selected' if request.query.get('status', '').upper()=='INACTIVE' else '' ]]>Inactive</option>
-                            <option value="LOCKED" [[='selected' if request.query.get('status', '').upper()=='LOCKED' else '' ]]>Locked</option>
-                        </select>
-                        <span class="material-symbols-outlined absolute right-1.5 top-1/2 -translate-y-1/2 text-slate-400 text-[14px] pointer-events-none z-10 leading-none">expand_more</span>
+                    <!-- Custom Status Filter Dropdown -->
+                    <div class="relative custom-dropdown-container w-32">
+                        [[ cur_status = request.query.get('status') or '' ]]
+                        [[ display_status = 'Active' if cur_status.upper() == 'ACTIVE' else 'Inactive' if cur_status.upper() == 'INACTIVE' else 'Locked' if cur_status.upper() == 'LOCKED' else 'All Status' ]]
+                        <input type="hidden" name="status" id="status_hidden_input" value="[[= cur_status ]]">
+
+                        <button type="button" onclick="toggleCustomDropdown('status', false)"
+                            class="w-full h-[28px] py-0 pl-2.5 pr-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-md text-[11px] font-medium text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary transition-all flex items-center justify-between cursor-pointer leading-none">
+                            <span id="status_selected_text" class="truncate">[[= display_status ]]</span>
+                            <span class="material-symbols-outlined text-slate-400 text-[14px] shrink-0 transition-transform duration-200 custom-dropdown-arrow" id="status_arrow_icon">expand_more</span>
+                        </button>
+
+                        <div id="status_dropdown_menu" class="custom-dropdown-menu hidden absolute left-0 right-0 top-full mt-1 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl shadow-xl z-50 p-1.5 space-y-0.5 min-w-[120px]">
+                            <button type="button" onclick="selectCustomOption('status', '', 'All Status')" class="status-option-item w-full text-left px-2.5 py-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 font-medium text-xs transition-colors">All Status</button>
+                            <button type="button" onclick="selectCustomOption('status', 'ACTIVE', 'Active')" class="status-option-item w-full text-left px-2.5 py-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 font-medium text-xs transition-colors">Active</button>
+                            <button type="button" onclick="selectCustomOption('status', 'INACTIVE', 'Inactive')" class="status-option-item w-full text-left px-2.5 py-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 font-medium text-xs transition-colors">Inactive</button>
+                            <button type="button" onclick="selectCustomOption('status', 'LOCKED', 'Locked')" class="status-option-item w-full text-left px-2.5 py-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 font-medium text-xs transition-colors">Locked</button>
+                        </div>
                     </div>
 
                     <!-- Filter Action Button -->
                     <button type="submit"
-                        class="h-[28px] px-3 bg-slate-800 hover:bg-slate-900 dark:bg-slate-700 dark:hover:bg-slate-600 text-white rounded-md text-[11px] font-semibold shadow-xs transition-all flex items-center justify-center gap-1 shrink-0 cursor-pointer">
+                        class="h-[28px] px-3 bg-slate-800 hover:bg-slate-900 dark:bg-slate-700 dark:hover:bg-slate-600 text-white rounded-md text-[11px] font-semibold shadow-xs transition-all inline-flex items-center justify-center gap-1 shrink-0 cursor-pointer">
                         <span class="material-symbols-outlined text-[14px] leading-none">filter_list</span>
                         <span class="leading-none">Filter</span>
                     </button>
 
                     <!-- Reset Filter Button -->
-                    [[ if request.query.get('keywords') or request.query.get('status'): ]]
+                    [[ if request.query.get('keywords') or request.query.get('role') or request.query.get('status') or request.query.get('cid'): ]]
                     <a href="[[=URL('administration/users')]]" title="Clear Filters"
-                        class="h-[28px] px-2 bg-rose-50 hover:bg-rose-100 dark:bg-rose-950/40 dark:hover:bg-rose-900/50 text-rose-600 dark:text-rose-400 border border-rose-200/60 dark:border-rose-800/60 rounded-md transition-all flex items-center justify-center shrink-0">
+                        class="h-[28px] px-2 bg-rose-50 hover:bg-rose-100 dark:bg-rose-950/40 dark:hover:bg-rose-900/50 text-rose-600 dark:text-rose-400 border border-rose-200/60 dark:border-rose-800/60 rounded-md transition-all inline-flex items-center justify-center shrink-0">
                         <span class="material-symbols-outlined text-[14px] leading-none">filter_list_off</span>
                     </a>
                     [[ pass ]]
                 </form>
 
-                <!-- RIGHT SIDE: EXPORT & ADD ACTIONS -->
-                <div
-                    class="flex items-center gap-1.5 border-t lg:border-t-0 pt-2 lg:pt-0 border-slate-200/60 dark:border-slate-700/60 shrink-0">
+                <!-- RIGHT SIDE: EXPORT, IMPORT & ADD ACTIONS -->
+                <div class="flex items-center gap-1.5 border-t lg:border-t-0 pt-2 lg:pt-0 border-slate-200/60 dark:border-slate-700/60 shrink-0">
                     <!-- EXPORT DROPDOWN CONTAINER -->
                     <div class="relative flex items-center shrink-0">
-                        <!-- Trigger Button -->
                         <button type="button"
                                 id="exportDropdownBtn"
                                 onclick="toggleExportDropdown(event)"
@@ -130,18 +136,13 @@
                             <span class="material-symbols-outlined text-[14px] shrink-0 select-none -mr-0.5">expand_more</span>
                         </button>
 
-                        <!-- Dropdown Menu -->
                         <div id="exportDropdownMenu" 
                             class="hidden absolute right-0 top-full mt-1 w-36 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg shadow-lg z-50 py-1 text-xs">
-                            
-                            <!-- Excel Export -->
                             <a href="[[=URL('administration/users', vars=request.query | {'export': 'xlsx'})]]" 
                             class="flex items-center gap-2 px-3 py-1.5 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200">
                                 <span class="material-symbols-outlined text-[16px] text-emerald-600 shrink-0">table_view</span>
                                 <span>Excel (.xls)</span>
                             </a>
-
-                            <!-- CSV Export -->
                             <a href="[[=URL('administration/users', vars=request.query | {'export': 'csv'})]]" 
                             class="flex items-center gap-2 px-3 py-1.5 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200">
                                 <span class="material-symbols-outlined text-[16px] text-amber-600 shrink-0">csv</span>
@@ -150,8 +151,16 @@
                         </div>
                     </div>
 
+                    <!-- IMPORT BUTTON -->
+                    <a href="[[=URL('administration/import_users')]]" title="Import users via CSV"
+                        class="h-[28px] px-2.5 bg-white hover:bg-slate-100 dark:bg-slate-900 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700 rounded-md text-[11px] font-semibold transition-all inline-flex items-center justify-center gap-1 shadow-2xs shrink-0">
+                        <span class="material-symbols-outlined text-[15px] text-sky-600 dark:text-sky-400 shrink-0 select-none">upload</span>
+                        <span class="hidden sm:inline leading-none">Import</span>
+                    </a>
+
+                    <!-- ADD NEW BUTTON -->
                     <a href="[[=URL('administration/add_user')]]"
-                        class="h-[28px] px-3 bg-primary hover:opacity-90 active:scale-[0.98] text-white rounded-md font-semibold text-[11px] shadow-xs transition-all flex items-center justify-center gap-1 shrink-0">
+                        class="h-[28px] px-3 bg-emerald-600 hover:bg-emerald-700 active:scale-[0.98] text-white rounded-md font-semibold text-[11px] shadow-xs transition-all flex items-center justify-center gap-1 shrink-0">
                         <span class="material-symbols-outlined text-[15px] shrink-0 select-none">person_add</span>
                         <span class="leading-none">Add New</span>
                     </a>
@@ -163,111 +172,147 @@
             <div class="overflow-x-auto rounded-xl border border-slate-100 dark:border-slate-800">
                 <table class="w-full text-left border-collapse">
                     <thead>
-                        <tr
-                            class="bg-slate-100/70 dark:bg-slate-800/60 text-[10px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 border-b border-slate-200/80 dark:border-slate-800">
-                            <th class="py-2.5 px-4 whitespace-nowrap">User Info</th>
-                            <th class="py-2.5 px-4 whitespace-nowrap">Email Address</th>
-                            <th class="py-2.5 px-4 whitespace-nowrap">Department & Branch</th>
-                            <th class="py-2.5 px-4 whitespace-nowrap">Role</th>
-                            <th class="py-2.5 px-4 whitespace-nowrap">Status</th>
-                            <th class="py-2.5 px-4 whitespace-nowrap">Last Login</th>
+                        <tr class="bg-slate-100/70 dark:bg-slate-800/60 text-[10px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 border-b border-slate-200/80 dark:border-slate-800">
+                            <th class="py-2.5 px-4 whitespace-nowrap">USER INFO</th>
+                            <th class="py-2.5 px-4 whitespace-nowrap">DESIGNATION & DEPT</th>
+                            <th class="py-2.5 px-4 whitespace-nowrap">POSTING & ROLE</th>
+                            <th class="py-2.5 px-4 whitespace-nowrap">CONTACT INFO</th>
+                            <th class="py-2.5 px-4 whitespace-nowrap">STATUS</th>
+                            <th class="py-2.5 px-4 whitespace-nowrap">LAST LOGIN</th>
                             <th class="py-2 px-2 text-center w-px whitespace-nowrap font-medium text-slate-600 dark:text-slate-300">
-                                Action
+                                ACTION
                             </th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-slate-100 dark:divide-slate-800/60 text-xs">
                         [[ if not all_users: ]]
                         <tr>
-                            <td colspan="7" class="text-center py-6 text-slate-400">No records found matching your
-                                criteria.</td>
+                            <td colspan="7" class="text-center py-8 text-slate-400">
+                                <div class="flex flex-col items-center justify-center gap-1.5">
+                                    <span class="material-symbols-outlined text-3xl text-slate-300 dark:text-slate-600">group_off</span>
+                                    <span>No user accounts found matching your criteria.</span>
+                                </div>
+                            </td>
                         </tr>
                         [[ else: ]]
-                        [[ for user in all_users: ]]
+                        [[ for u in all_users: ]]
                         <tr class="hover:bg-slate-50/60 dark:hover:bg-slate-800/40 transition-colors">
+                            <!-- USER INFO -->
                             <td class="py-2.5 px-4">
                                 <div class="flex items-center gap-3">
-                                    [[ if user.get('user_photo'): ]]
-                                    <img src="[[= user.get('user_photo') ]]" alt="[[= user.get('user_name', '') ]]"
-                                        class="w-8 h-8 rounded-full object-cover border border-slate-200 dark:border-slate-700 shrink-0">
-                                    [[ else: ]]
-                                    [[ name = user.get('user_name', 'U').strip() ]]
+                                    [[ photo_raw = u.get('user_photo') or '' ]]
+                                    [[ photo_src = photo_raw if (photo_raw.startswith('http://') or photo_raw.startswith('https://') or photo_raw.startswith('/')) else URL('static/uploads/emp_images', photo_raw) if photo_raw else '' ]]
+                                    [[ name = u.get('user_name', 'U').strip() ]]
                                     [[ initial = name[0].upper() if name else 'U' ]]
-                                    <div
-                                        class="w-8 h-8 rounded-full bg-primary/10 text-primary font-bold text-xs flex items-center justify-center shrink-0 border border-primary/20 select-none">
+
+                                    [[ if photo_src: ]]
+                                    <img src="[[= photo_src ]]" alt="[[= u.get('user_name') ]]"
+                                        onerror="this.style.display='none'; if(this.nextElementSibling) this.nextElementSibling.style.display='flex';"
+                                        class="w-8 h-8 rounded-full object-cover border border-slate-200 dark:border-slate-700 shadow-2xs shrink-0">
+                                    <div class="w-8 h-8 rounded-full bg-primary/10 text-primary font-bold text-xs items-center justify-center shrink-0 border border-primary/20 select-none hidden">
+                                        [[= initial ]]
+                                    </div>
+                                    [[ else: ]]
+                                    <div class="w-8 h-8 rounded-full bg-primary/10 text-primary font-bold text-xs flex items-center justify-center shrink-0 border border-primary/20 select-none">
                                         [[= initial ]]
                                     </div>
                                     [[ pass ]]
 
                                     <div class="flex flex-col min-w-0">
-                                        <span class="font-bold text-slate-900 dark:text-white text-xs truncate">
-                                            [[= user.get('user_name', '--') ]]
-                                        </span>
+                                        <div class="font-bold text-slate-900 dark:text-white text-xs truncate flex items-center gap-1.5">
+                                            <span>[[= u.get('user_name', '--') ]]</span>
+                                            [[ if u.get('cid'): ]]
+                                            <span class="px-1.5 py-0.2 rounded text-[10px] font-bold bg-sky-100 text-sky-800 dark:bg-sky-950/60 dark:text-sky-400 font-mono inline-block shadow-2xs border border-sky-200/50 dark:border-sky-800/50">
+                                                [[= u.get('cid') ]]
+                                            </span>
+                                            [[ pass ]]
+                                        </div>
                                         <span class="font-mono text-[10px] text-slate-400 dark:text-slate-500">
-                                            #[[= user.get('user_id') ]]
+                                            #[[= u.get('user_id', '--') ]]
                                         </span>
                                     </div>
                                 </div>
                             </td>
 
-                            <td class="py-2.5 px-4 font-mono text-slate-700 dark:text-slate-300">
-                                [[= user.get('user_email', '--') ]]
-                            </td>
-
+                            <!-- DESIGNATION & DEPT -->
                             <td class="py-2.5 px-4">
-                                <div class="font-bold text-slate-800 dark:text-slate-200">[[= user.get('department', '--') ]]</div>
-                                <div class="text-[10px] text-slate-400 dark:text-slate-500">[[= user.get('branch', '--') ]]</div>
+                                <div class="font-bold text-slate-800 dark:text-slate-200">
+                                    [[= u.get('designation', '--') ]]
+                                </div>
+                                <div class="text-[10px] text-slate-400 dark:text-slate-500">[[= u.get('department', '--') ]]</div>
                             </td>
 
-                            <td class="py-2.5 px-4 text-slate-700 dark:text-slate-300 font-medium">
-                                [[= user.get('user_role', '--') ]]
+                            <!-- POSTING & ROLE -->
+                            <td class="py-2.5 px-4 text-slate-600 dark:text-slate-300">
+                                <span class="bg-slate-100 dark:bg-slate-800 px-2 py-0.5 rounded text-[11px] font-medium inline-block">
+                                    [[= u.get('branch', 'Head Office') ]]
+                                </span>
+                                [[ if u.get('user_role'): ]]
+                                <div class="text-[10px] text-slate-400 dark:text-slate-500 mt-0.5 font-medium uppercase tracking-wider">
+                                    [[= u.get('user_role') ]]
+                                </div>
+                                [[ else: ]]
+                                <div class="text-[10px] text-rose-500/80 dark:text-rose-400/80 mt-0.5 font-medium italic">
+                                    No Role Assigned
+                                </div>
+                                [[ pass ]]
                             </td>
 
+                            <!-- CONTACT INFO -->
                             <td class="py-2.5 px-4">
-                                [[ status_str = str(user.get('user_status', 'ACTIVE')).upper() ]]
-                                [[ if status_str == 'ACTIVE': ]]
-                                <span
-                                    class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-700 dark:bg-emerald-950/50 dark:text-emerald-400">
+                                <div class="font-mono text-slate-700 dark:text-slate-300">[[= u.get('mobile') or '--' ]]</div>
+                                <div class="text-[10px] text-slate-400 dark:text-slate-500">
+                                    [[= u.get('user_email', '--') ]]
+                                </div>
+                            </td>
+
+                            <!-- STATUS -->
+                            <td class="py-2.5 px-4 whitespace-nowrap">
+                                [[ st = (u.get('user_status') or '').upper() ]]
+                                [[ if st == 'ACTIVE': ]]
+                                <span class="inline-flex items-center gap-1.5 text-emerald-600 dark:text-emerald-400 font-bold text-xs">
                                     <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> Active
                                 </span>
-                                [[ elif status_str in ['LOCKED', 'BLOCK', 'BLOCKED']: ]]
-                                <span
-                                    class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-50 text-amber-700 dark:bg-amber-950/50 dark:text-amber-400">
-                                    <span class="w-1.5 h-1.5 rounded-full bg-amber-500"></span> [[= status_str.capitalize() ]]
+                                [[ elif st == 'PROBATIONARY': ]]
+                                <span class="inline-flex items-center gap-1.5 text-amber-500 dark:text-amber-400 font-bold text-xs">
+                                    <span class="w-1.5 h-1.5 rounded-full bg-amber-500"></span> Probationary
+                                </span>
+                                [[ elif st in ['INACTIVE', 'LOCKED', 'BLOCKED']: ]]
+                                <span class="inline-flex items-center gap-1.5 text-rose-500 dark:text-rose-400 font-bold text-xs">
+                                    <span class="w-1.5 h-1.5 rounded-full bg-rose-500"></span> [[= st.title() ]]
                                 </span>
                                 [[ else: ]]
-                                <span
-                                    class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-rose-50 text-rose-600 dark:bg-rose-950/50 dark:text-rose-400">
-                                    <span class="w-1.5 h-1.5 rounded-full bg-rose-500"></span> [[= status_str.capitalize() ]]
+                                <span class="inline-flex items-center gap-1.5 text-slate-400 font-medium text-xs">
+                                    <span class="w-1.5 h-1.5 rounded-full bg-slate-400"></span> [[= st or '--' ]]
                                 </span>
                                 [[ pass ]]
                             </td>
 
-                            <td class="py-2.5 px-4 font-mono text-slate-500 dark:text-slate-400 whitespace-nowrap">
-                                [[= user.get('last_login', '--') ]]
+                            <!-- LAST LOGIN -->
+                            <td class="py-2.5 px-4 text-[11px] font-mono text-slate-500 dark:text-slate-400 whitespace-nowrap">
+                                [[= u.get('last_login', '--') ]]
                             </td>
 
+                            <!-- ACTION -->
                             <td class="py-2 px-2 text-center w-px whitespace-nowrap">
                                 <div class="inline-flex items-center justify-center gap-0.5">
                                     <!-- View Button -->
-                                    <a href="[[=URL('administration/user_view')]]/[[= user.get('user_id') ]]" title="View Details"
+                                    <a href="[[=URL('administration/edit_user', vars={'id': u.get('id'), 'mode': 'view'})]]" title="View Details"
                                         class="p-1 rounded text-slate-400 hover:text-sky-600 hover:bg-sky-50 dark:hover:bg-sky-950/40 transition-colors">
                                         <span class="material-symbols-outlined text-[16px] block">visibility</span>
                                     </a>
 
                                     <!-- Edit Button -->
-                                    <a href="[[=URL('administration/edit_user')]]/[[= user.get('user_id') ]]" title="Edit User"
+                                    <a href="[[=URL('administration/edit_user', vars={'id': u.get('id')})]]" title="Edit Record"
                                         class="p-1 rounded text-slate-400 hover:text-amber-600 hover:bg-amber-50 dark:hover:bg-amber-950/40 transition-colors">
                                         <span class="material-symbols-outlined text-[16px] block">edit</span>
                                     </a>
 
                                     <!-- Delete Button -->
-                                    <a href="[[=URL('administration/user_delete')]]/[[= user.get('user_id') ]]"
-                                        onclick="return confirm('Are you sure you want to delete this user?');"
-                                        title="Delete User"
-                                        class="p-1 rounded text-slate-400 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/40 transition-colors">
+                                    <button type="button" title="Delete Record" onclick="confirmDeleteUser('[[=u.get('id')]]', '[[=u.get('user_name')]]')"
+                                        class="p-1 rounded text-slate-400 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/40 transition-colors cursor-pointer">
                                         <span class="material-symbols-outlined text-[16px] block">delete</span>
-                                    </a>
+                                    </button>
                                 </div>
                             </td>
                         </tr>
@@ -278,63 +323,69 @@
             </div>
 
             <!-- PAGINATION FOOTER -->
-            <div
-                class="flex flex-col sm:flex-row items-center justify-between gap-3 pt-2 border-t border-slate-100 dark:border-slate-800/80 text-xs text-slate-500 dark:text-slate-400">
+            <div class="flex flex-col sm:flex-row items-center justify-between gap-3 pt-2 border-t border-slate-100 dark:border-slate-800/80 text-xs text-slate-500 dark:text-slate-400">
 
                 <!-- LEFT: Per Page Limits & Count Info -->
                 <div class="flex items-center gap-3">
                     <div class="flex items-center gap-1.5">
                         <span>Show</span>
-                        <select onchange="location = this.value;"
-                            class="h-7 pl-2 pr-6 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-md text-xs font-semibold text-slate-700 dark:text-slate-200 focus:outline-none focus:ring-1 focus:ring-primary cursor-pointer">
-                            [[ current_limit = pagination.get('limit', 10) ]]
+                    <div class="relative custom-dropdown-container">
+                        [[ current_limit = pagination.get('limit', 10) ]]
+                        <button type="button" onclick="toggleCustomDropdown('limit', false)"
+                            class="h-7 pl-2.5 pr-1.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-md text-xs font-semibold text-slate-700 dark:text-slate-200 focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary transition-all flex items-center justify-between gap-1.5 cursor-pointer leading-none">
+                            <span>[[= current_limit ]]</span>
+                            <span class="material-symbols-outlined text-slate-400 text-[14px] shrink-0 transition-transform duration-200 custom-dropdown-arrow" id="limit_arrow_icon">expand_more</span>
+                        </button>
+
+                        <div id="limit_dropdown_menu" class="custom-dropdown-menu hidden absolute left-0 bottom-full mb-1 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl shadow-xl z-50 p-1 space-y-0.5 min-w-[68px]">
                             [[ for l in [10, 25, 50, 100]: ]]
-                            <option value="[[= URL('administration/users', vars=request.query | {'limit': l, 'page': 1}) ]]"
-                                [[='selected' if l==current_limit else '' ]]>
+                            <a href="[[= URL('administration/users', vars=request.query | {'limit': l, 'page': 1}) ]]"
+                                class="block w-full text-center px-2 py-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 font-semibold text-xs transition-colors [[= 'bg-primary/10 text-primary font-bold' if l==current_limit else '' ]]">
                                 [[= l ]]
-                            </option>
+                            </a>
                             [[ pass ]]
-                        </select>
+                        </div>
+                    </div>
                         <span>per page</span>
                     </div>
 
                     <span class="text-slate-300 dark:text-slate-700">|</span>
 
                     <div>
-                        Showing <span class="font-bold text-slate-700 dark:text-slate-200">[[= pagination['start_item']]]</span>
-                        - <span class="font-bold text-slate-700 dark:text-slate-200">[[= pagination['end_item']]]</span>
-                        of <span class="font-bold text-slate-700 dark:text-slate-200">[[= pagination['total_items']]]</span> records
+                        Showing <span class="font-bold text-slate-700 dark:text-slate-200">[[= pagination.get('start_item', 0) ]]</span>
+                        - <span class="font-bold text-slate-700 dark:text-slate-200">[[= pagination.get('end_item', 0) ]]</span>
+                        of <span class="font-bold text-slate-700 dark:text-slate-200">[[= pagination.get('total_items', 0) ]]</span> records
                     </div>
                 </div>
 
                 <!-- RIGHT: Dynamic Page Numbers -->
                 <div class="flex items-center gap-1 select-none">
-                    [[ if pagination['current_page'] > 1: ]]
-                    <a href="[[= URL('administration/users', vars=request.query | {'page': pagination['current_page'] - 1}) ]]"
+                    [[ cur_p = pagination.get('current_page', 1) ]]
+                    [[ tot_p = pagination.get('total_pages', 1) ]]
+
+                    [[ if cur_p > 1: ]]
+                    <a href="[[= URL('administration/users', vars=request.query | {'page': cur_p - 1}) ]]"
                         class="w-7 h-7 rounded-lg border border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 flex items-center justify-center transition-colors text-slate-600 dark:text-slate-300">
                         <span class="material-symbols-outlined text-[14px]">chevron_left</span>
                     </a>
                     [[ else: ]]
-                    <button
-                        class="w-7 h-7 rounded-lg border border-slate-200/50 dark:border-slate-800/50 flex items-center justify-center text-slate-300 dark:text-slate-700 cursor-not-allowed"
-                        disabled>
+                    <button class="w-7 h-7 rounded-lg border border-slate-200/50 dark:border-slate-800/50 flex items-center justify-center text-slate-300 dark:text-slate-700 cursor-not-allowed" disabled>
                         <span class="material-symbols-outlined text-[14px]">chevron_left</span>
                     </button>
                     [[ pass ]]
 
                     [[
-                    current = pagination['current_page']
-                    total = pagination['total_pages']
                     window = 1
-                    left_side = current - window
-                    right_side = current + window
+                    left_side = cur_p - window
+                    right_side = cur_p + window
                     ]]
 
-                    [[ for p in range(1, total + 1): ]]
-                    [[ if p == 1 or p == total or (p >= left_side and p <= right_side): ]]
-                        [[ if p == current: ]]
+                    [[ for p in range(1, tot_p + 1): ]]
+                    [[ if p == 1 or p == tot_p or (p >= left_side and p <= right_side): ]]
+                        [[ if p == cur_p: ]]
                         <span class="w-7 h-7 rounded-lg bg-primary text-white font-bold flex items-center justify-center shadow-2xs">
-                            [[= p ]]</span>
+                            [[= p ]]
+                        </span>
                         [[ else: ]]
                         <a href="[[= URL('administration/users', vars=request.query | {'page': p}) ]]"
                             class="w-7 h-7 rounded-lg border border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 font-medium flex items-center justify-center text-slate-600 dark:text-slate-300 transition-colors">
@@ -346,15 +397,13 @@
                     [[ pass ]]
                     [[ pass ]]
 
-                    [[ if pagination['current_page'] < pagination['total_pages']: ]]
-                    <a href="[[= URL('administration/users', vars=request.query | {'page': pagination['current_page'] + 1}) ]]"
+                    [[ if cur_p < tot_p: ]]
+                    <a href="[[= URL('administration/users', vars=request.query | {'page': cur_p + 1}) ]]"
                         class="w-7 h-7 rounded-lg border border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 flex items-center justify-center transition-colors text-slate-600 dark:text-slate-300">
                         <span class="material-symbols-outlined text-[14px]">chevron_right</span>
                     </a>
                     [[ else: ]]
-                    <button
-                        class="w-7 h-7 rounded-lg border border-slate-200/50 dark:border-slate-800/50 flex items-center justify-center text-slate-300 dark:text-slate-700 cursor-not-allowed"
-                        disabled>
+                    <button class="w-7 h-7 rounded-lg border border-slate-200/50 dark:border-slate-800/50 flex items-center justify-center text-slate-300 dark:text-slate-700 cursor-not-allowed" disabled>
                         <span class="material-symbols-outlined text-[14px]">chevron_right</span>
                     </button>
                     [[ pass ]]
@@ -362,11 +411,41 @@
             </div>
 
         </div>
-
     </div>
 </div>
 
 <script>
+    function toggleCustomDropdown(id, isMulti) {
+        const menu = document.getElementById(id + '_dropdown_menu');
+        const arrow = document.getElementById(id + '_arrow_icon');
+        const isHidden = menu.classList.contains('hidden');
+
+        document.querySelectorAll('.custom-dropdown-menu').forEach(m => m.classList.add('hidden'));
+        document.querySelectorAll('.custom-dropdown-arrow').forEach(a => a.classList.remove('rotate-180'));
+
+        if (isHidden) {
+            menu.classList.remove('hidden');
+            if (arrow) arrow.classList.add('rotate-180');
+        } else {
+            closeCustomDropdown(id);
+        }
+    }
+
+    function closeCustomDropdown(id) {
+        const menu = document.getElementById(id + '_dropdown_menu');
+        const arrow = document.getElementById(id + '_arrow_icon');
+        if (menu) menu.classList.add('hidden');
+        if (arrow) arrow.classList.remove('rotate-180');
+    }
+
+    function selectCustomOption(id, val, label) {
+        const hiddenInput = document.getElementById(id + '_hidden_input');
+        const textSpan = document.getElementById(id + '_selected_text');
+        if (hiddenInput) hiddenInput.value = val;
+        if (textSpan) textSpan.textContent = label;
+        closeCustomDropdown(id);
+    }
+
     function toggleExportDropdown(event) {
         event.stopPropagation();
         const menu = document.getElementById('exportDropdownMenu');
@@ -374,6 +453,11 @@
     }
 
     document.addEventListener('click', function(event) {
+        if (!event.target.closest('.custom-dropdown-container')) {
+            document.querySelectorAll('.custom-dropdown-menu').forEach(m => m.classList.add('hidden'));
+            document.querySelectorAll('.custom-dropdown-arrow').forEach(a => a.classList.remove('rotate-180'));
+        }
+
         const menu = document.getElementById('exportDropdownMenu');
         const btn = document.getElementById('exportDropdownBtn');
         if (menu && !menu.classList.contains('hidden')) {
@@ -382,4 +466,18 @@
             }
         }
     });
+
+    function confirmDeleteUser(userId, userName) {
+        if (!userId) return;
+        showConfirmModal({
+            title: 'Delete User Account',
+            message: `Are you sure you want to delete user account <strong>'${userName}'</strong>? This action cannot be undone.`,
+            type: 'danger',
+            confirmText: 'Yes, Delete User',
+            cancelText: 'Cancel',
+            onConfirm: function() {
+                window.location.href = "[[=URL('administration/users')]]?action=delete&id=" + encodeURIComponent(userId);
+            }
+        });
+    }
 </script>

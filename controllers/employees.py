@@ -194,11 +194,10 @@ def employee_directory():
             response.headers['Content-Disposition'] = f'attachment; filename="{filename}.xls"'
             return "\n".join(xml_data)
         
-    allowed_limits = [10, 25, 50, 100]
     try:
-        limit = int(request.query.get("limit", 10))
-        if limit not in allowed_limits: limit = 10
-    except ValueError: limit = 10
+        limit = max(1, int(request.query.get("limit", 10)))
+    except (ValueError, TypeError):
+        limit = 10
 
     try: page = max(1, int(request.query.get("page", 1)))
     except ValueError: page = 1
@@ -1037,11 +1036,10 @@ def postings_transfers():
             response.headers['Content-Disposition'] = f'attachment; filename="{filename}.xls"'
             return "\n".join(xml_data)
 
-    allowed_limits = [10, 25, 50, 100]
     try:
-        limit = int(request.query.get("limit", 10))
-        if limit not in allowed_limits: limit = 10
-    except ValueError: limit = 10
+        limit = max(1, int(request.query.get("limit", 10)))
+    except (ValueError, TypeError):
+        limit = 10
 
     try: page = max(1, int(request.query.get("page", 1)))
     except ValueError: page = 1

@@ -1,210 +1,13 @@
 from py4web import URL, action, redirect, request, response
 from ..middleware.auth_middleware import web_auth_required
 from ..utils.common import db, flash, session, view_page
+from ..core.db import db_datetime
 import math
 import io
 import csv
 import os
 import time
 from datetime import datetime
-
-all_roles = [
-    {
-        "role_id": "ROLE_SUPER_ADMIN",
-        "role_name": "Super Admin",
-        "description": "Full system access",
-        "permissions": [
-            {
-                "module_group": "Administration",
-                "modules": [
-                    {
-                        "module_id": "user_mgmt",
-                        "module_name": "User Management",
-                        "description": "User Management",
-                        "module_icon": "manage_accounts",
-                        "can_view": True,
-                        "can_create": True,
-                        "can_edit": True,
-                        "can_delete": True,
-                        "can_export": True,
-                        "can_import": True,
-                        "can_approve": True,
-                        "can_reject": True,
-                        "can_view_sensitive": True,
-                    },
-                    {
-                        "module_id": "role_mgmt",
-                        "module_name": "Role Management",
-                        "description": "Role Management",
-                        "module_icon": "admin_panel_settings",
-                        "can_view": True,
-                        "can_create": True,
-                        "can_edit": True,
-                        "can_delete": True,
-                        "can_export": True,
-                        "can_import": True,
-                        "can_approve": True,
-                        "can_reject": True,
-                        "can_view_sensitive": True,
-                    },
-                ],
-            },
-            {
-                "module_group": "Employees",
-                "modules": [
-                    {
-                        "module_id": "emp_mgmt",
-                        "module_name": "Employee Management",
-                        "description": "Employee Management",
-                        "module_icon": "badge",
-                        "can_view": True,
-                        "can_create": True,
-                        "can_edit": True,
-                        "can_delete": True,
-                        "can_export": True,
-                        "can_import": True,
-                        "can_approve": True,
-                        "can_reject": True,
-                        "can_view_sensitive": True,
-                    },
-                    {
-                        "module_id": "transfer_mgmt",
-                        "module_name": "Transfer Management",
-                        "description": "Transfer Management",
-                        "module_icon": "swap_horiz",
-                        "can_view": True,
-                        "can_create": True,
-                        "can_edit": True,
-                        "can_delete": True,
-                        "can_export": True,
-                        "can_import": True,
-                        "can_approve": True,
-                        "can_reject": True,
-                        "can_view_sensitive": True,
-                    },
-                ],
-            },
-            {
-                "module_group": "Organization",
-                "modules": [
-                    {
-                        "module_id": "department_mgmt",
-                        "module_name": "Department Management",
-                        "description": "Department Management",
-                        "module_icon": "domain",
-                        "can_view": True,
-                        "can_create": True,
-                        "can_edit": True,
-                        "can_delete": True,
-                        "can_export": True,
-                        "can_import": True,
-                        "can_approve": True,
-                        "can_reject": True,
-                        "can_view_sensitive": True,
-                    },
-                    {
-                        "module_id": "designation_mgmt",
-                        "module_name": "Designation Management",
-                        "description": "Designation Management",
-                        "module_icon": "military_tech",
-                        "can_view": True,
-                        "can_create": True,
-                        "can_edit": True,
-                        "can_delete": True,
-                        "can_export": True,
-                        "can_import": True,
-                        "can_approve": True,
-                        "can_reject": True,
-                        "can_view_sensitive": True,
-                    },
-                    {
-                        "module_id": "branch_mgmt",
-                        "module_name": "Branch Management",
-                        "description": "Branch Management",
-                        "module_icon": "store",
-                        "can_view": True,
-                        "can_create": True,
-                        "can_edit": True,
-                        "can_delete": True,
-                        "can_export": True,
-                        "can_import": True,
-                        "can_approve": True,
-                        "can_reject": True,
-                        "can_view_sensitive": True,
-                    },
-                ],
-            },
-            {
-                "module_group": "Analytics & System",
-                "modules": [
-                    {
-                        "module_id": "report_view",
-                        "module_name": "Report View",
-                        "description": "Report View",
-                        "module_icon": "analytics",
-                        "can_view": True,
-                        "can_create": False,
-                        "can_edit": False,
-                        "can_delete": False,
-                        "can_export": True,
-                        "can_import": False,
-                        "can_approve": True,
-                        "can_reject": True,
-                        "can_view_sensitive": True,
-                    }
-                ],
-            },
-        
-        ],
-    },
-    {
-        "role_id": "ROLE_SYS_MANAGER",
-        "role_name": "System Manager",
-        "description": "System Manager",
-        "permissions": [
-            {
-                "module_group": "Organization",
-                "modules": [
-                    {
-                        "module_id": "branch_mgmt",
-                        "module_name": "Branch Management",
-                        "description": "Branch Management",
-                        "module_icon": "store",
-                        "can_view": True,
-                        "can_create": True,
-                        "can_edit": True,
-                        "can_delete": True,
-                        "can_export": True,
-                        "can_import": True,
-                        "can_approve": True,
-                        "can_reject": True,
-                        "can_view_sensitive": True,
-                    }
-                ],
-            },
-            {
-                "module_group": "Analytics & System",
-                "modules": [
-                    {
-                        "module_id": "report_view",
-                        "module_name": "Report View",
-                        "description": "Report View",
-                        "module_icon": "analytics",
-                        "can_view": True,
-                        "can_create": False,
-                        "can_edit": False,
-                        "can_delete": False,
-                        "can_export": True,
-                        "can_import": False,
-                        "can_approve": True,
-                        "can_reject": True,
-                        "can_view_sensitive": True,
-                    }
-                ],
-            },
-        ],
-    },
-]
 
 
 def _save_company_branding_file(file_obj, prefix, cid_val, max_bytes=120 * 1024):
@@ -349,9 +152,7 @@ def companies():
         page = 1
 
     try:
-        limit = int(request.query.get("limit", 10))
-        if limit not in [10, 25, 50, 100]:
-            limit = 10
+        limit = max(1, int(request.query.get("limit", 10)))
     except (ValueError, TypeError):
         limit = 10
 
@@ -1066,30 +867,82 @@ def role_manage(role_id=None):
 @view_page("administration/users.html", title="User Management | Administration")
 @web_auth_required
 def users():
-    user_records_sql = """
+    user_cid = session.user.get("cid", "")
+    action_type = request.query.get("action", "").strip().lower()
+    delete_id = request.query.get("id") or request.query.get("delete_id")
+
+    if action_type == "delete" and delete_id:
+        try:
+            del_id = int(delete_id)
+            del_where = ["id = %s"]
+            del_params = [del_id]
+            if user_cid:
+                del_where.append("LOWER(cid) = LOWER(%s)")
+                del_params.append(user_cid)
+            
+            db.executesql(f"DELETE FROM users WHERE {' AND '.join(del_where)}", del_params)
+            db.commit()
+            flash.set("User account deleted successfully!", "success")
+        except Exception as e:
+            flash.set(f"Failed to delete user: {str(e)}", "danger")
+        redirect(URL('administration/users'))
+
+    keywords = request.query.get("keywords", "").strip()
+    role = request.query.get("role", "").strip()
+    status = request.query.get("status", "").strip()
+    cid = user_cid if user_cid else request.query.get("cid", "").strip()
+    export_format = request.query.get("export", "").strip().lower()
+
+    # Build SQL WHERE conditions
+    where_clauses = ["1=1"]
+    params = []
+
+    if cid:
+        where_clauses.append("LOWER(u.cid) = LOWER(%s)")
+        params.append(cid)
+
+    if keywords:
+        where_clauses.append("(u.user_id LIKE %s OR u.user_name LIKE %s OR u.email LIKE %s OR e.emp_department LIKE %s OR b.branch_name LIKE %s)")
+        kw_pattern = f"%{keywords}%"
+        params.extend([kw_pattern, kw_pattern, kw_pattern, kw_pattern, kw_pattern])
+
+    if role:
+        where_clauses.append("UPPER(u.role_id) = %s")
+        params.append(role.upper())
+
+    if status:
+        where_clauses.append("UPPER(u.status_type) = %s")
+        params.append(status.upper())
+
+    where_str = " AND ".join(where_clauses)
+
+    user_records_sql = f"""
         SELECT 
             u.id, 
+            COALESCE(u.cid, '') AS cid,
             u.user_id, 
             u.user_name, 
-            COALESCE(u.email, '--') AS user_email, 
+            COALESCE(u.email, e.email, '--') AS user_email, 
+            COALESCE(u.mobile, e.mobile, '--') AS mobile,
             COALESCE(e.emp_department, '--') AS department, 
             COALESCE(e.emp_designation, '--') AS designation, 
             COALESCE(b.branch_name, e.current_branch_id, '--') AS branch, 
             u.last_login_on AS last_login, 
             u.role_id AS user_role, 
             u.status_type AS user_status,
-            COALESCE(u.profile_image, '') AS user_photo
+            COALESCE(u.profile_image, e.photo_url, '') AS user_photo
         FROM users u
-        LEFT JOIN employees e ON u.emp_id = e.emp_id AND u.cid = e.cid
-        LEFT JOIN branches b ON e.current_branch_id = b.branch_id AND e.cid = b.cid
+        LEFT JOIN employees e ON u.emp_id = e.emp_id AND (u.cid IS NULL OR LOWER(u.cid) = LOWER(e.cid))
+        LEFT JOIN branches b ON e.current_branch_id = b.branch_id AND (e.cid IS NULL OR LOWER(e.cid) = LOWER(b.cid))
+        WHERE {where_str}
         ORDER BY u.id DESC; 
-    """  
+    """
     try:
-        raw_users = db.executesql(user_records_sql, as_dict=True)
+        raw_users = db.executesql(user_records_sql, params, as_dict=True)
     except Exception:
         raw_users = []
 
-    # Format last_login if datetime object to 12-hour format (AM/PM)
+    # Format last_login if datetime object
     for u in raw_users:
         last_login_val = u.get("last_login")
         if last_login_val:
@@ -1106,114 +959,91 @@ def users():
         else:
             u["last_login"] = "--"
 
-    keywords = request.query.get("keywords", "").strip().lower()
-    role = request.query.get("role", "").strip()
-    status = request.query.get("status", "").strip()
-    export_format = request.query.get("export", "").strip().lower()
-
-    # 1. Filtering Logic
-    filtered_users = []
-    for u in raw_users:
-        u_name = str(u.get("user_name") or "").lower()
-        u_email = str(u.get("user_email") or "").lower()
-        u_id = str(u.get("user_id") or "").lower()
-        u_dept = str(u.get("department") or "").lower()
-        u_branch = str(u.get("branch") or "").lower()
-        u_role = str(u.get("user_role") or "")
-        u_status = str(u.get("user_status") or "")
-
-        if keywords:
-            kw_match = (
-                keywords in u_name
-                or keywords in u_email
-                or keywords in u_id
-                or keywords in u_dept
-                or keywords in u_branch
-            )
-            if not kw_match:
-                continue
-
-        if role and u_role.lower() != role.lower():
-            continue
-
-        if status and u_status.lower() != status.lower():
-            continue
-
-        filtered_users.append(u)
-
-    # 2. Export Handling
+    # Export Handling
     if export_format in ["xlsx", "xls", "csv"]:
-        filename = f"User_List_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
-        headers = ["ID", "Name", "Email", "Department", "Designation", "Branch", "Role", "Status", "Last Login"]
+        filename = f"User_List_{db_datetime.strftime('%Y%m%d_%H%M%S')}"
+        if not user_cid:
+            headers = ["ID", "Company ID (CID)", "User ID", "Full Name", "Email Address", "Department", "Designation", "Branch", "Role", "Status", "Last Login"]
+        else:
+            headers = ["ID", "User ID", "Full Name", "Email Address", "Department", "Designation", "Branch", "Role", "Status", "Last Login"]
 
         if export_format == "csv":
             output = io.StringIO()
             writer = csv.writer(output)
             writer.writerow(headers)
-            for u in filtered_users:
-                writer.writerow([
+            for u in raw_users:
+                row_vals = [u.get("id", "")]
+                if not user_cid:
+                    row_vals.append(u.get("cid", ""))
+                row_vals.extend([
                     u.get("user_id", ""), u.get("user_name", ""), u.get("user_email", ""),
                     u.get("department", ""), u.get("designation", ""), u.get("branch", ""),
                     u.get("user_role", ""), u.get("user_status", ""), u.get("last_login", "")
                 ])
+                writer.writerow(row_vals)
             response.headers['Content-Type'] = 'text/csv; charset=utf-8'
             response.headers['Content-Disposition'] = f'attachment; filename="{filename}.csv"'
             return output.getvalue()
 
         if export_format in ["xlsx", "xls"]:
-            xml_data = []
-            xml_data.append('<?xml version="1.0" encoding="UTF-8"?>')
-            xml_data.append('<?mso-application progid="Excel.Sheet"?>')
-            xml_data.append('<Workbook xmlns="urn:schemas-microsoft-com:office:spreadsheet" xmlns:ss="urn:schemas-microsoft-com:office:spreadsheet">')
-            xml_data.append('<Styles>')
-            xml_data.append(' <Style ss:ID="HeaderStyle"><Font ss:FontName="Calibri" ss:Size="11" ss:Color="#FFFFFF" ss:Bold="1"/><Interior ss:Color="#0F172A" ss:Pattern="Solid"/><Alignment ss:Horizontal="Center" ss:Vertical="Center"/></Style>')
-            xml_data.append(' <Style ss:ID="DataLeft"><Font ss:FontName="Calibri" ss:Size="10"/><Alignment ss:Horizontal="Left" ss:Vertical="Center"/></Style>')
-            xml_data.append(' <Style ss:ID="DataCenter"><Font ss:FontName="Calibri" ss:Size="10"/><Alignment ss:Horizontal="Center" ss:Vertical="Center"/></Style>')
-            xml_data.append('</Styles>')
-            xml_data.append('<Worksheet ss:Name="Users"><Table>')
-            xml_data.append('<Row ss:Height="26">')
+            xml_data = [
+                '<?xml version="1.0" encoding="UTF-8"?>',
+                '<?mso-application progid="Excel.Sheet"?>',
+                '<Workbook xmlns="urn:schemas-microsoft-com:office:spreadsheet" xmlns:ss="urn:schemas-microsoft-com:office:spreadsheet">',
+                '<Styles>',
+                '<Style ss:ID="HeaderStyle"><Font ss:FontName="Calibri" ss:Size="11" ss:Color="#FFFFFF" ss:Bold="1"/><Interior ss:Color="#0F172A" ss:Pattern="Solid"/><Alignment ss:Horizontal="Center" ss:Vertical="Center"/></Style>',
+                '<Style ss:ID="DataLeft"><Font ss:FontName="Calibri" ss:Size="10"/><Alignment ss:Horizontal="Left" ss:Vertical="Center"/></Style>',
+                '<Style ss:ID="DataCenter"><Font ss:FontName="Calibri" ss:Size="10"/><Alignment ss:Horizontal="Center" ss:Vertical="Center"/></Style>',
+                '</Styles>',
+                '<Worksheet ss:Name="Users"><Table>',
+                '<Row ss:Height="26">'
+            ]
             for h in headers:
-                xml_data.append(f'  <Cell ss:StyleID="HeaderStyle"><Data ss:Type="String">{h}</Data></Cell>')
+                xml_data.append(f'  <Cell ss:StyleID="HeaderStyle"><Data ss:Type="String">{xml_escape.escape(h)}</Data></Cell>')
             xml_data.append('</Row>')
-            for u in filtered_users:
+            for u in raw_users:
                 xml_data.append('<Row ss:Height="22">')
-                xml_data.append(f'  <Cell ss:StyleID="DataCenter"><Data ss:Type="String">{u.get("user_id", "")}</Data></Cell>')
-                xml_data.append(f'  <Cell ss:StyleID="DataLeft"><Data ss:Type="String">{u.get("user_name", "")}</Data></Cell>')
-                xml_data.append(f'  <Cell ss:StyleID="DataLeft"><Data ss:Type="String">{u.get("user_email", "")}</Data></Cell>')
-                xml_data.append(f'  <Cell ss:StyleID="DataLeft"><Data ss:Type="String">{u.get("department", "")}</Data></Cell>')
-                xml_data.append(f'  <Cell ss:StyleID="DataLeft"><Data ss:Type="String">{u.get("designation", "")}</Data></Cell>')
-                xml_data.append(f'  <Cell ss:StyleID="DataLeft"><Data ss:Type="String">{u.get("branch", "")}</Data></Cell>')
-                xml_data.append(f'  <Cell ss:StyleID="DataCenter"><Data ss:Type="String">{u.get("user_role", "")}</Data></Cell>')
-                xml_data.append(f'  <Cell ss:StyleID="DataCenter"><Data ss:Type="String">{u.get("user_status", "")}</Data></Cell>')
-                xml_data.append(f'  <Cell ss:StyleID="DataCenter"><Data ss:Type="String">{u.get("last_login", "")}</Data></Cell>')
+                xml_data.append(f'  <Cell ss:StyleID="DataCenter"><Data ss:Type="String">{u.get("id", "")}</Data></Cell>')
+                if not user_cid:
+                    xml_data.append(f'  <Cell ss:StyleID="DataCenter"><Data ss:Type="String">{xml_escape.escape(str(u.get("cid", "")))}</Data></Cell>')
+                xml_data.append(f'  <Cell ss:StyleID="DataCenter"><Data ss:Type="String">{xml_escape.escape(str(u.get("user_id", "")))}</Data></Cell>')
+                xml_data.append(f'  <Cell ss:StyleID="DataLeft"><Data ss:Type="String">{xml_escape.escape(str(u.get("user_name", "")))}</Data></Cell>')
+                xml_data.append(f'  <Cell ss:StyleID="DataLeft"><Data ss:Type="String">{xml_escape.escape(str(u.get("user_email", "")))}</Data></Cell>')
+                xml_data.append(f'  <Cell ss:StyleID="DataLeft"><Data ss:Type="String">{xml_escape.escape(str(u.get("department", "")))}</Data></Cell>')
+                xml_data.append(f'  <Cell ss:StyleID="DataLeft"><Data ss:Type="String">{xml_escape.escape(str(u.get("designation", "")))}</Data></Cell>')
+                xml_data.append(f'  <Cell ss:StyleID="DataLeft"><Data ss:Type="String">{xml_escape.escape(str(u.get("branch", "")))}</Data></Cell>')
+                xml_data.append(f'  <Cell ss:StyleID="DataCenter"><Data ss:Type="String">{xml_escape.escape(str(u.get("user_role", "")))}</Data></Cell>')
+                xml_data.append(f'  <Cell ss:StyleID="DataCenter"><Data ss:Type="String">{xml_escape.escape(str(u.get("user_status", "")))}</Data></Cell>')
+                xml_data.append(f'  <Cell ss:StyleID="DataCenter"><Data ss:Type="String">{xml_escape.escape(str(u.get("last_login", "")))}</Data></Cell>')
                 xml_data.append('</Row>')
             xml_data.append('</Table></Worksheet></Workbook>')
-            response.headers['Content-Type'] = 'application/vnd.ms-excel'
+            response.headers['Content-Type'] = 'application/vnd.ms-excel; charset=utf-8'
             response.headers['Content-Disposition'] = f'attachment; filename="{filename}.xls"'
             return "\n".join(xml_data)
 
-    # 3. Stats Calculation
-    total_users = len(raw_users)
-    active_users = sum(1 for u in raw_users if str(u.get("user_status", "")).upper() == "ACTIVE")
-    inactive_users = sum(1 for u in raw_users if str(u.get("user_status", "")).upper() in ["INACTIVE", "LOCKED", "BLOCKED"])
-    admin_users = sum(1 for u in raw_users if "admin" in str(u.get("user_role", "")).lower())
-
+    # Stats Calculation
+    stats_sql = "SELECT COUNT(*) as total, SUM(CASE WHEN UPPER(status_type) = 'ACTIVE' THEN 1 ELSE 0 END) as active, SUM(CASE WHEN UPPER(status_type) IN ('INACTIVE', 'LOCKED', 'BLOCKED') THEN 1 ELSE 0 END) as inactive, SUM(CASE WHEN UPPER(role_id) LIKE %s THEN 1 ELSE 0 END) as admin FROM users WHERE 1=1"
+    stats_params = ['%ADMIN%']
+    if cid:
+        stats_sql += " AND LOWER(cid) = LOWER(%s)"
+        stats_params.append(cid)
+    
+    stats_res = db.executesql(stats_sql, stats_params, as_dict=True)
+    st = stats_res[0] if stats_res else {}
     stats = {
-        "total": total_users,
-        "active": active_users,
-        "inactive": inactive_users,
-        "admin": admin_users,
+        "total": st.get("total") or 0,
+        "active": st.get("active") or 0,
+        "inactive": st.get("inactive") or 0,
+        "admin": st.get("admin") or 0,
     }
 
-    # 4. Limit and Pagination Logic
+    # Limit and Pagination Logic
     try:
-        limit = int(request.query.get("limit", 10))
+        limit = max(1, int(request.query.get("limit", 10)))
     except (ValueError, TypeError):
         limit = 10
-    if limit not in [10, 25, 50, 100]:
-        limit = 10
 
-    total_filtered = len(filtered_users)
+    total_filtered = len(raw_users)
     total_pages = math.ceil(total_filtered / limit) if total_filtered > 0 else 1
 
     try:
@@ -1228,7 +1058,7 @@ def users():
 
     start_idx = (page - 1) * limit
     end_idx = start_idx + limit
-    paginated_users = filtered_users[start_idx:end_idx]
+    paginated_users = raw_users[start_idx:end_idx]
 
     pagination = {
         "current_page": page,
@@ -1240,7 +1070,170 @@ def users():
         "end_item": min(end_idx, total_filtered),
     }
 
-    return dict(all_users=paginated_users, stats=stats, pagination=pagination)
+    return dict(
+        all_users=paginated_users, 
+        stats=stats, 
+        pagination=pagination,
+        user_cid=user_cid
+    )
+
+
+@action("administration/import_users", method=["GET", "POST"])
+@view_page("administration/import_users.html", title="Import Users | Administration")
+@web_auth_required
+def import_users():
+    user_cid = session.user.get("cid", "")
+    if request.query.get("template") == "csv":
+        output = io.StringIO()
+        writer = csv.writer(output)
+        if not user_cid:
+            writer.writerow(["Company ID", "User ID", "Full Name", "Password", "Email", "Mobile", "Status"])
+            writer.writerow(["BADC", "badc_officer", "Jamal Hossain", "123456", "jamal@badc.gov.bd", "+8801700000000", "ACTIVE"])
+        else:
+            writer.writerow(["User ID", "Full Name", "Password", "Email", "Mobile", "Status"])
+            writer.writerow(["badc_officer", "Jamal Hossain", "123456", "jamal@badc.gov.bd", "+8801700000000", "ACTIVE"])
+        
+        response.headers["Content-Type"] = "text/csv; charset=utf-8"
+        response.headers["Content-Disposition"] = 'attachment; filename="User_Import_Template.csv"'
+        return output.getvalue()
+
+    stats = None
+    active_tab = "file"
+
+    if request.method == "POST":
+        csv_file = request.files.get("csv_file")
+        csv_text = request.forms.get("csv_text")
+        content = None
+        delimiter = ','
+        is_sys_admin = not user_cid
+        max_file_mb = 10 if is_sys_admin else 2
+        max_rows = 10000 if is_sys_admin else 1000
+
+        if csv_file and csv_file.filename:
+            active_tab = "file"
+            if not csv_file.filename.lower().endswith('.csv'):
+                flash.set("Only CSV files are allowed.", "danger")
+            file_bytes = csv_file.file.read()
+            if len(file_bytes) > max_file_mb * 1024 * 1024:
+                flash.set(f"File size exceeds maximum limit of {max_file_mb}MB.", "danger")
+                return dict(stats=None, active_tab=active_tab, user_cid=user_cid)
+            
+            try:
+                content = file_bytes.decode('utf-8-sig')
+            except UnicodeDecodeError:
+                try:
+                    content = file_bytes.decode('latin1')
+                except Exception:
+                    flash.set("Failed to decode file encoding. Please ensure standard UTF-8 CSV.", "danger")
+                    return dict(stats=None, active_tab=active_tab, user_cid=user_cid)
+            
+            first_line = content.splitlines()[0] if content else ""
+            if '\t' in first_line:
+                delimiter = '\t'
+            elif ';' in first_line and ',' not in first_line:
+                delimiter = ';'
+
+        elif csv_text and csv_text.strip():
+            active_tab = "text"
+            if len(csv_text.encode('utf-8')) > max_file_mb * 1024 * 1024:
+                flash.set(f"Content size exceeds limit of {max_file_mb}MB.", "danger")
+                return dict(stats=None, active_tab=active_tab, user_cid=user_cid)
+            content = csv_text.strip()
+            first_line = content.splitlines()[0] if content else ""
+            if '\t' in first_line:
+                delimiter = '\t'
+            elif ';' in first_line and ',' not in first_line:
+                delimiter = ';'
+        else:
+            flash.set("Please select a valid CSV file or paste valid data.", "danger")
+            return dict(stats=None, active_tab=active_tab, user_cid=user_cid)
+
+        try:
+            f = io.StringIO(content)
+            reader = csv.DictReader(f, delimiter=delimiter)
+            raw_headers = reader.fieldnames or []
+            headers_clean = [h.strip().lower() for h in raw_headers if h]
+
+            def has_header(*aliases):
+                return any(alias in headers_clean for alias in aliases)
+
+            if not user_cid:
+                if not has_header('cid', 'company id', 'company_id') or \
+                   not has_header('user_id', 'login id', 'user id', 'username') or \
+                   not has_header('user_name', 'full name', 'name', 'user name'):
+                    flash.set("Invalid CSV format. Missing required columns: 'cid', 'user_id', and 'user_name'.", "danger")
+                    return dict(stats=None, active_tab=active_tab, user_cid=user_cid)
+            else:
+                if not has_header('user_id', 'login id', 'user id', 'username') or \
+                   not has_header('user_name', 'full name', 'name', 'user name'):
+                    flash.set("Invalid CSV format. Missing required columns: 'user_id' and 'user_name'.", "danger")
+                    return dict(stats=None, active_tab=active_tab, user_cid=user_cid)
+
+            created_cnt = 0
+            updated_cnt = 0
+            failed_cnt = 0
+            errors_list = []
+
+            rows = list(reader)
+            if len(rows) > max_rows:
+                flash.set(f"Data exceeds maximum allowed limit of {max_rows:,} rows.", "danger")
+                return dict(stats=None, active_tab=active_tab, user_cid=user_cid)
+
+            for idx, r in enumerate(rows, start=1):
+                def get_val(*aliases):
+                    for k, v in r.items():
+                        if k and k.strip().lower() in aliases:
+                            return (v or '').strip()
+                    return ''
+
+                row_cid = user_cid if user_cid else get_val('cid', 'company id', 'company_id')
+                r_user_id = get_val('user_id', 'login id', 'user id', 'username')
+                r_name = get_val('user_name', 'full name', 'name', 'user name')
+                r_pass = get_val('user_pass', 'password', 'pass') or '123456'
+                r_email = get_val('email', 'user_email', 'email address')
+                r_mobile = get_val('mobile', 'phone', 'contact')
+                r_status = (get_val('status_type', 'status') or 'ACTIVE').upper()
+
+                if not r_user_id or not r_name:
+                    failed_cnt += 1
+                    errors_list.append({"row": idx, "emp_id": r_user_id or f"Row {idx}", "error": "Missing User ID or Full Name"})
+                    continue
+
+                try:
+                    chk = db.executesql("SELECT id FROM users WHERE UPPER(user_id) = %s LIMIT 1", [r_user_id.upper()], as_dict=True)
+                    if chk:
+                        db.executesql("""
+                            UPDATE users SET 
+                                cid = COALESCE(NULLIF(%s, ''), cid),
+                                user_name = %s,
+                                email = %s,
+                                mobile = %s,
+                                status_type = %s
+                            WHERE UPPER(user_id) = %s
+                        """, [row_cid, r_name, r_email, r_mobile, r_status, r_user_id.upper()])
+                        updated_cnt += 1
+                    else:
+                        db.executesql("""
+                            INSERT INTO users (cid, user_id, user_name, user_pass, email, mobile, status_type)
+                            VALUES (%s, %s, %s, %s, %s, %s, %s)
+                        """, [row_cid, r_user_id, r_name, r_pass, r_email, r_mobile, r_status])
+                        created_cnt += 1
+                except Exception as row_err:
+                    print("User import row error:", row_err)
+                    failed_cnt += 1
+                    errors_list.append({"row": idx, "emp_id": r_user_id, "error": str(row_err)})
+
+            db.commit()
+            stats = {"total": len(rows), "created": created_cnt, "updated": updated_cnt, "failed": failed_cnt, "errors": errors_list}
+            if failed_cnt > 0:
+                flash.set(f"Import completed with warnings. Created: {created_cnt}, Updated: {updated_cnt}, Failed: {failed_cnt}", "warning")
+            else:
+                flash.set(f"Successfully imported {created_cnt + updated_cnt} user accounts! (Created: {created_cnt}, Updated: {updated_cnt})", "success")
+
+        except Exception as e:
+            flash.set(f"Failed to process CSV data: {str(e)}", "danger")
+
+    return dict(stats=stats, active_tab=active_tab, user_cid=user_cid)
 
 
 @action("administration/add_user", method=["GET", "POST"])
@@ -1248,7 +1241,99 @@ def users():
 @web_auth_required
 def add_user():
     user_cid = session.user.get("cid", "")
-    return dict(user_cid=user_cid)
+    current_user_id = session.user.get("user_id", "SYSTEM")
+
+    # Handle AJAX Employee Lookup inside add_user
+    if request.query.get("action") == "lookup":
+        import json
+        response.headers['Content-Type'] = 'application/json'
+        emp_id = (request.query.get("emp_id") or request.params.get("emp_id") or "").strip()
+        cid = (request.query.get("cid") or request.params.get("cid") or user_cid or "").strip()
+
+        if not emp_id:
+            return json.dumps(dict(success=False, message="Please enter an Official ID to search."))
+
+        where_clauses = ["UPPER(emp_id) = %s"]
+        params = [emp_id.upper()]
+        if cid:
+            where_clauses.append("UPPER(cid) = %s")
+            params.append(cid.upper())
+
+        try:
+            sql = f"""
+                SELECT emp_id, emp_name, mobile, email, cid, emp_designation, emp_department, photo_url, status_type
+                FROM employees
+                WHERE {' AND '.join(where_clauses)}
+                LIMIT 1
+            """
+            res = db.executesql(sql, params, as_dict=True)
+            if res:
+                emp = res[0]
+                return json.dumps(dict(success=True, employee=emp))
+            else:
+                return json.dumps(dict(success=False, message=f"No record found with ID '{emp_id}'"))
+        except Exception as e:
+            return json.dumps(dict(success=False, message=str(e)))
+
+    if request.method == "POST":
+        creation_mode = request.forms.get("creation_mode", "direct")
+        target_cid = user_cid or request.forms.get("cid", "").strip()
+        selected_emp_id = request.forms.get("employee_id", "").strip()
+        
+        r_user_id = request.forms.get("user_id", "").strip()
+        r_full_name = request.forms.get("full_name", "").strip()
+        r_mobile = request.forms.get("mobile", "").strip()
+        r_email = request.forms.get("email", "").strip()
+        
+        r_password = request.forms.get("password", "").strip()
+        r_confirm_password = request.forms.get("confirm_password", "").strip()
+        
+        r_role = request.forms.get("role", "").strip().upper()
+        r_status = (request.forms.get("status") or "ACTIVE").strip().upper()
+
+        if not r_user_id or not r_full_name:
+            flash.set("User ID and Full Name are required.", "danger")
+            redirect(URL("administration/add_user"))
+
+        if r_password and r_confirm_password and r_password != r_confirm_password:
+            flash.set("Passwords do not match. Please try again.", "danger")
+            redirect(URL("administration/add_user"))
+
+        if not r_password:
+            r_password = "123456"
+
+        # Check existing user_id
+        chk = db.executesql("SELECT id FROM users WHERE UPPER(user_id) = %s LIMIT 1", [r_user_id.upper()], as_dict=True)
+        if chk:
+            flash.set(f"User ID '{r_user_id}' already exists! Please use a different User ID.", "danger")
+            redirect(URL("administration/add_user"))
+
+        r_note = request.forms.get("note", "").strip()
+
+        # Link emp_id if creation_mode == 'employee'
+        emp_id_to_link = None
+        linked_emp_id = request.forms.get("emp_id", "").strip() or selected_emp_id
+        if creation_mode == "employee" and linked_emp_id:
+            emp_id_to_link = linked_emp_id
+
+        try:
+            db.executesql("""
+                INSERT INTO users (cid, user_id, user_name, user_pass, role_id, emp_id, email, mobile, note, status_type, created_on, created_by)
+                VALUES (%s, %s, %s, %s, NULLIF(%s, ''), NULLIF(%s, ''), %s, %s, %s, %s, %s, %s)
+            """, [target_cid, r_user_id, r_full_name, r_password, r_role, emp_id_to_link, r_email, r_mobile, r_note, r_status, db_datetime, current_user_id])
+            db.commit()
+            flash.set(f"User account '{r_full_name}' ({r_user_id}) created successfully!", "success")
+            redirect(URL("administration/users"))
+        except Exception as e:
+            flash.set(f"Failed to create user account: {str(e)}", "danger")
+            redirect(URL("administration/add_user"))
+
+    # GET Request: Prepare dropdown lists
+    roles_rows = db.executesql("""
+        SELECT role_id, role_name, cid FROM roles WHERE status_type = 'ACTIVE' ORDER BY role_name ASC
+    """, as_dict=True)
+
+    return dict(user_cid=user_cid, roles=roles_rows)
 
 
 @action("administration/edit_user", method=["GET", "POST"])
