@@ -216,7 +216,8 @@
                                         </div>
                                         <input type="hidden" name="display_order_[[= p_mod_id ]]" class="group-order-input" value="[[= p_order ]]">
                                         <div class="flex items-center gap-1.5 text-[10px] font-semibold shrink-0">
-                                            <button type="button" onclick="toggleModuleCustomize('[[= p_mod_id ]]')" class="text-primary hover:underline cursor-pointer">Customize</button>
+                                            <button type="button" onclick="toggleModuleCustomize('[[= p_mod_id ]]')"
+                                                class="[[= 'text-amber-500 dark:text-amber-400 font-bold' if has_p_custom else 'text-primary' ]] hover:underline cursor-pointer">Customize</button>
                                             <span class="text-slate-300 dark:text-slate-700">|</span>
                                             <button type="button" onclick="toggleGroupModules('group_chk_[[= group_idx ]]', true)" class="text-primary hover:underline cursor-pointer">Select All</button>
                                             <span class="text-slate-300 dark:text-slate-700">|</span>
@@ -225,7 +226,7 @@
                                     </div>
 
                                     <!-- Parent Category Customization Drawer -->
-                                    <div id="customize_box_[[= p_mod_id ]]" class="[[= '' if has_p_custom else 'hidden' ]] p-2.5 mb-2.5 bg-white/90 dark:bg-slate-900/90 rounded-xl border border-slate-200/80 dark:border-slate-700/80 space-y-2 shadow-xs">
+                                    <div id="customize_box_[[= p_mod_id ]]" class="hidden p-2.5 mb-2.5 bg-white/90 dark:bg-slate-900/90 rounded-xl border border-slate-200/80 dark:border-slate-700/80 space-y-2 shadow-xs">
                                         <div>
                                             <label class="block text-[9px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 mb-0.5">
                                                 Custom Category Title (Main Menu Header)
@@ -257,7 +258,6 @@
                                             <div class="flex items-center justify-between gap-2">
                                                 <!-- Drag Handle -->
                                                 <span class="drag-handle material-symbols-outlined text-[16px] text-slate-300 dark:text-slate-600 hover:text-primary cursor-grab active:cursor-grabbing select-none shrink-0" title="Drag to reorder">drag_indicator</span>
-
                                                 <label class="flex items-center gap-2.5 min-w-0 cursor-pointer flex-1">
                                                     <input type="checkbox" name="company_modules" value="[[= mod_id ]]" [[= 'checked' if is_checked else '' ]]
                                                         class="company-module-checkbox group_chk_[[= group_idx ]] w-4 h-4 text-primary rounded border-slate-300 dark:border-slate-700 focus:ring-primary/20 accent-primary cursor-pointer shrink-0">
@@ -271,14 +271,14 @@
                                                 <input type="hidden" name="display_order_[[= mod_id ]]" class="module-order-input" value="[[= c_order ]]">
 
                                                 <button type="button" onclick="toggleModuleCustomize('[[= mod_id ]]')"
-                                                    class="h-5 px-1.5 bg-primary/10 hover:bg-primary/20 text-primary rounded text-[9px] font-bold transition-all flex items-center gap-0.5 shrink-0 cursor-pointer border border-primary/20 leading-none">
+                                                    class="h-5 px-1.5 [[= 'bg-amber-500/20 text-amber-500 dark:text-amber-400 border-amber-500/40 font-bold' if has_custom else 'bg-primary/10 hover:bg-primary/20 text-primary border-primary/20' ]] rounded text-[9px] font-bold transition-all flex items-center gap-0.5 shrink-0 cursor-pointer border leading-none">
                                                     <span class="material-symbols-outlined text-[9px] leading-none select-none">edit</span>
                                                     <span class="leading-none tracking-tight">Customize</span>
                                                 </button>
                                             </div>
 
                                             <!-- Customization Drawer -->
-                                            <div id="customize_box_[[= mod_id ]]" class="[[= '' if has_custom else 'hidden' ]] pt-2 border-t border-slate-200/60 dark:border-slate-700/60 space-y-2">
+                                            <div id="customize_box_[[= mod_id ]]" class="hidden pt-2 border-t border-slate-200/60 dark:border-slate-700/60 space-y-2">
                                                 <div>
                                                     <label class="block text-[9px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 mb-0.5">
                                                         Custom Menu Title
