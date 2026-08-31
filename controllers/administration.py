@@ -238,24 +238,54 @@ def company_manage(company_id=None):
         as_dict=True
     )
 
-    grouped_modules = {}
-    parent_map_names = {m["module_id"]: m["module_name"] for m in all_modules if not m.get("is_clickable")}
-    for m in all_modules:
-        if m.get("is_clickable"):
-            p_id = m.get("parent_module_id")
-            g_key = parent_map_names.get(p_id) or m.get("module_group") or "General"
-            if g_key not in grouped_modules:
-                grouped_modules[g_key] = []
-            grouped_modules[g_key].append(m)
-
     company_module_ids = []
+    company_module_overrides = {}
     if company and company.get("cid"):
         cm_rows = db.executesql(
-            "SELECT module_id FROM company_modules WHERE LOWER(cid) = LOWER(%s) AND status_type = 'ACTIVE'",
+            "SELECT module_id, custom_name, custom_icon, custom_route_path, display_order FROM company_modules WHERE LOWER(cid) = LOWER(%s) AND status_type = 'ACTIVE'",
             [company.get("cid")],
             as_dict=True
         )
         company_module_ids = [r["module_id"] for r in cm_rows]
+        company_module_overrides = {
+            r["module_id"]: {
+                "custom_name": r.get("custom_name") or "",
+                "custom_icon": r.get("custom_icon") or "",
+                "custom_route_path": r.get("custom_route_path") or "",
+                "display_order": r.get("display_order") or 0
+            }
+            for r in cm_rows
+        }
+
+    # Group clickable sub-modules under parent categories with ordering
+    parent_map_info = {m["module_id"]: m for m in all_modules if not m.get("is_clickable")}
+    grouped_dict = {}
+    for m in all_modules:
+        if m.get("is_clickable"):
+            p_id = m.get("parent_module_id")
+            p_info = parent_map_info.get(p_id) or {}
+            g_name = p_info.get("module_name") or m.get("module_group") or "General"
+            p_order = (company_module_overrides.get(p_id) or {}).get("display_order") or p_info.get("display_order") or 999
+
+            if g_name not in grouped_dict:
+                grouped_dict[g_name] = {
+                    "parent_module_id": p_id or ("GROUP_" + g_name.upper().replace(" ", "_")),
+                    "group_name": g_name,
+                    "display_order": p_order,
+                    "mods": []
+                }
+            grouped_dict[g_name]["mods"].append(m)
+
+    # Sort items inside each group by display_order
+    for g_key in grouped_dict:
+        grouped_dict[g_key]["mods"].sort(key=lambda m: (
+            (company_module_overrides.get(m["module_id"]) or {}).get("display_order") or m.get("display_order") or 999
+        ))
+
+    # Sort groups list by parent category display_order
+    grouped_modules_list = list(grouped_dict.values())
+    grouped_modules_list.sort(key=lambda g: g["display_order"])
+    grouped_modules = grouped_modules_list
 
     form_data = dict(company) if company else {}
 
@@ -297,6 +327,27 @@ def company_manage(company_id=None):
         else:
             selected_modules = []
 
+        # Collect module custom overrides from POST fields
+        module_custom_data = {}
+        for mod in all_modules:
+            m_id = mod.get("module_id")
+            c_name = clean_val(request.forms.get(f"custom_name_{m_id}"))
+            c_icon = clean_val(request.forms.get(f"custom_icon_{m_id}"))
+            c_route = clean_val(request.forms.get(f"custom_route_{m_id}"))
+            try:
+                c_order = int(request.forms.get(f"display_order_{m_id}") or 0)
+            except (ValueError, TypeError):
+                c_order = 0
+
+            if c_name or c_icon or c_route or c_order > 0:
+                module_custom_data[m_id] = {
+                    "custom_name": c_name,
+                    "custom_icon": c_icon,
+                    "custom_route_path": c_route,
+                    "display_order": c_order
+                }
+        company_module_overrides = module_custom_data
+
         parent_map = {m["module_id"]: m["parent_module_id"] for m in all_modules}
         final_module_ids = set(selected_modules)
         for mod_id in list(final_module_ids):
@@ -308,7 +359,7 @@ def company_manage(company_id=None):
             # Edit existing company
             if not company_name:
                 flash.set("Company Name is required.", "danger")
-                return dict(company=company, form_data=form_data, all_modules=all_modules, grouped_modules=grouped_modules, company_module_ids=selected_modules)
+                return dict(company=company, form_data=form_data, all_modules=all_modules, grouped_modules=grouped_modules, company_module_ids=selected_modules, company_module_overrides=company_module_overrides)
 
             cid = company.get("cid", "comp")
             logo_file = request.files.get("logo_file")
@@ -350,13 +401,21 @@ def company_manage(company_id=None):
                     updated_by, company_id
                 ])
 
-                # Update company_modules
+                # Update company_modules with custom_name, custom_icon, custom_route_path & display_order
                 db.executesql("DELETE FROM company_modules WHERE LOWER(cid) = LOWER(%s)", [cid])
                 for mod_id in final_module_ids:
                     if mod_id:
+                        c_info = module_custom_data.get(mod_id) or {}
+                        c_name = c_info.get("custom_name")
+                        c_icon = c_info.get("custom_icon")
+                        c_route = c_info.get("custom_route_path")
+                        c_order = c_info.get("display_order", 0)
                         db.executesql(
-                            "INSERT INTO company_modules (cid, module_id, status_type, created_on, created_by) VALUES (%s, %s, 'ACTIVE', NOW(), %s)",
-                            [cid.upper(), mod_id, updated_by]
+                            """
+                            INSERT INTO company_modules (cid, module_id, custom_name, custom_icon, custom_route_path, display_order, status_type, created_on, created_by)
+                            VALUES (%s, %s, %s, %s, %s, %s, 'ACTIVE', NOW(), %s)
+                            """,
+                            [cid.upper(), mod_id, c_name, c_icon, c_route, c_order, updated_by]
                         )
                 db.commit()
 
@@ -370,22 +429,22 @@ def company_manage(company_id=None):
                 redirect(URL("administration/companies"))
             except Exception as e:
                 flash.set(f"Database error updating company: {str(e)}", "danger")
-                return dict(company=company, form_data=form_data, all_modules=all_modules, grouped_modules=grouped_modules, company_module_ids=selected_modules)
+                return dict(company=company, form_data=form_data, all_modules=all_modules, grouped_modules=grouped_modules, company_module_ids=selected_modules, company_module_overrides=company_module_overrides)
         else:
             # Add new company
             cid = clean_val(request.forms.get("cid"))
             if not cid:
                 flash.set("Company ID (CID) is required.", "danger")
-                return dict(company=None, form_data=form_data, all_modules=all_modules, grouped_modules=grouped_modules, company_module_ids=selected_modules)
+                return dict(company=None, form_data=form_data, all_modules=all_modules, grouped_modules=grouped_modules, company_module_ids=selected_modules, company_module_overrides=company_module_overrides)
 
             if not company_name:
                 flash.set("Company Name is required.", "danger")
-                return dict(company=None, form_data=form_data, all_modules=all_modules, grouped_modules=grouped_modules, company_module_ids=selected_modules)
+                return dict(company=None, form_data=form_data, all_modules=all_modules, grouped_modules=grouped_modules, company_module_ids=selected_modules, company_module_overrides=company_module_overrides)
 
             comp_check = db.executesql("SELECT id FROM companies WHERE LOWER(cid) = LOWER(%s) LIMIT 1", [cid])
             if comp_check:
                 flash.set(f"Company ID '{cid}' already exists.", "danger")
-                return dict(company=None, form_data=form_data, all_modules=all_modules, grouped_modules=grouped_modules, company_module_ids=selected_modules)
+                return dict(company=None, form_data=form_data, all_modules=all_modules, grouped_modules=grouped_modules, company_module_ids=selected_modules, company_module_overrides=company_module_overrides)
 
             logo_file = request.files.get("logo_file")
             logo_url = _save_company_branding_file(logo_file, "logo", cid)
@@ -417,13 +476,21 @@ def company_manage(company_id=None):
                     created_by
                 ])
 
-                # Insert company_modules
+                # Insert company_modules with custom_name, custom_icon, custom_route_path & display_order
                 db.executesql("DELETE FROM company_modules WHERE LOWER(cid) = LOWER(%s)", [cid.upper()])
                 for mod_id in final_module_ids:
                     if mod_id:
+                        c_info = module_custom_data.get(mod_id) or {}
+                        c_name = c_info.get("custom_name")
+                        c_icon = c_info.get("custom_icon")
+                        c_route = c_info.get("custom_route_path")
+                        c_order = c_info.get("display_order", 0)
                         db.executesql(
-                            "INSERT INTO company_modules (cid, module_id, status_type, created_on, created_by) VALUES (%s, %s, 'ACTIVE', NOW(), %s)",
-                            [cid.upper(), mod_id, created_by]
+                            """
+                            INSERT INTO company_modules (cid, module_id, custom_name, custom_icon, custom_route_path, display_order, status_type, created_on, created_by)
+                            VALUES (%s, %s, %s, %s, %s, %s, 'ACTIVE', NOW(), %s)
+                            """,
+                            [cid.upper(), mod_id, c_name, c_icon, c_route, c_order, created_by]
                         )
                 db.commit()
 
@@ -437,14 +504,15 @@ def company_manage(company_id=None):
                 redirect(URL("administration/companies"))
             except Exception as e:
                 flash.set(f"Database error adding company: {str(e)}", "danger")
-                return dict(company=None, form_data=form_data, all_modules=all_modules, grouped_modules=grouped_modules, company_module_ids=selected_modules)
+                return dict(company=None, form_data=form_data, all_modules=all_modules, grouped_modules=grouped_modules, company_module_ids=selected_modules, company_module_overrides=company_module_overrides)
 
     return dict(
         company=company,
         form_data=form_data,
         all_modules=all_modules,
         grouped_modules=grouped_modules,
-        company_module_ids=company_module_ids
+        company_module_ids=company_module_ids,
+        company_module_overrides=company_module_overrides
     )
 
 @action("administration/company_view/<company_id:int>")
