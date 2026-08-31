@@ -199,7 +199,11 @@
                             [[ group_name = group_item.get('group_name') ]]
                             [[ p_mod_id = group_item.get('parent_module_id') ]]
                             [[ mods = group_item.get('mods') or [] ]]
-                            [[ p_order = (company_module_overrides or {}).get(p_mod_id, {}).get('display_order') or group_item.get('display_order', group_idx * 10) ]]
+                            [[ p_custom_info = (company_module_overrides or {}).get(p_mod_id, {}) ]]
+                            [[ p_custom_name = p_custom_info.get('custom_name', '') ]]
+                            [[ p_custom_icon = p_custom_info.get('custom_icon', '') ]]
+                            [[ p_order = p_custom_info.get('display_order') or group_item.get('display_order', group_idx * 10) ]]
+                            [[ has_p_custom = bool(p_custom_name or p_custom_icon) ]]
 
                             <div data-group-id="[[= p_mod_id ]]"
                                 class="module-group-card select-none bg-slate-50/70 dark:bg-slate-800/40 rounded-xl p-3 border border-slate-100 dark:border-slate-800/60 space-y-2 flex flex-col justify-between transition-all hover:border-slate-200 dark:hover:border-slate-700">
@@ -207,14 +211,34 @@
                                     <div class="flex items-center justify-between border-b border-slate-200/60 dark:border-slate-700/60 pb-1.5 mb-2 gap-2">
                                         <div class="flex items-center gap-1.5 min-w-0 flex-1">
                                             <span class="group-drag-handle material-symbols-outlined text-[18px] text-slate-400 dark:text-slate-500 hover:text-primary cursor-grab active:cursor-grabbing select-none shrink-0" title="Drag to reorder category">drag_indicator</span>
-                                            <span class="text-xs font-bold text-slate-800 dark:text-slate-200 tracking-wide">[[= group_name ]]</span>
+                                            <span class="text-xs font-bold text-slate-800 dark:text-slate-200 tracking-wide">[[= p_custom_name or group_name ]]</span>
                                             <span class="text-[10px] font-semibold bg-primary/10 text-primary px-1.5 py-0.5 rounded-full shrink-0">[[= len(mods) ]] modules</span>
                                         </div>
                                         <input type="hidden" name="display_order_[[= p_mod_id ]]" class="group-order-input" value="[[= p_order ]]">
                                         <div class="flex items-center gap-1.5 text-[10px] font-semibold shrink-0">
+                                            <button type="button" onclick="toggleModuleCustomize('[[= p_mod_id ]]')" class="text-primary hover:underline cursor-pointer">Customize</button>
+                                            <span class="text-slate-300 dark:text-slate-700">|</span>
                                             <button type="button" onclick="toggleGroupModules('group_chk_[[= group_idx ]]', true)" class="text-primary hover:underline cursor-pointer">Select All</button>
                                             <span class="text-slate-300 dark:text-slate-700">|</span>
                                             <button type="button" onclick="toggleGroupModules('group_chk_[[= group_idx ]]', false)" class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:underline cursor-pointer">Clear All</button>
+                                        </div>
+                                    </div>
+
+                                    <!-- Parent Category Customization Drawer -->
+                                    <div id="customize_box_[[= p_mod_id ]]" class="[[= '' if has_p_custom else 'hidden' ]] p-2.5 mb-2.5 bg-white/90 dark:bg-slate-900/90 rounded-xl border border-slate-200/80 dark:border-slate-700/80 space-y-2 shadow-xs">
+                                        <div>
+                                            <label class="block text-[9px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 mb-0.5">
+                                                Custom Category Title (Main Menu Header)
+                                            </label>
+                                            <input type="text" name="custom_name_[[= p_mod_id ]]" value="[[= p_custom_name ]]" placeholder="Default: [[= group_name ]]"
+                                                class="w-full px-2.5 py-1.5 bg-slate-50/50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-700 rounded-lg text-xs text-slate-800 dark:text-slate-200 focus:outline-none focus:border-primary transition-all">
+                                        </div>
+                                        <div>
+                                            <label class="block text-[9px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 mb-0.5">
+                                                Custom Icon (Material Symbol)
+                                            </label>
+                                            <input type="text" name="custom_icon_[[= p_mod_id ]]" value="[[= p_custom_icon ]]" placeholder="Default: folder"
+                                                class="w-full px-2.5 py-1.5 bg-slate-50/50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-700 rounded-lg text-xs text-slate-800 dark:text-slate-200 focus:outline-none focus:border-primary transition-all">
                                         </div>
                                     </div>
                                     <div class="space-y-2 module-group-container">

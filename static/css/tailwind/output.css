@@ -2126,6 +2126,14 @@ html.dark body {
   background-color: rgb(255 255 255 / 0.8);
 }
 
+.bg-slate-100\/80 {
+  background-color: rgb(241 245 249 / 0.8);
+}
+
+.bg-white\/90 {
+  background-color: rgb(255 255 255 / 0.9);
+}
+
 .bg-gradient-to-br {
   background-image: linear-gradient(to bottom right, var(--tw-gradient-stops));
 }
@@ -3540,6 +3548,19 @@ html.dark input:-webkit-autofill:active {
   color: rgb(71 85 105 / var(--tw-text-opacity));
 }
 
+.group\/item:hover .group-hover\/item\:text-primary {
+  --tw-text-opacity: 1;
+  color: rgb(5 150 105 / var(--tw-text-opacity));
+}
+
+.group\/header:hover .group-hover\/header\:opacity-100 {
+  opacity: 1;
+}
+
+.group\/item:hover .group-hover\/item\:opacity-100 {
+  opacity: 1;
+}
+
 .dark\:divide-slate-800\/60:is(.dark *) > :not([hidden]) ~ :not([hidden]) {
   border-color: rgb(30 41 59 / 0.6);
 }
@@ -3691,6 +3712,10 @@ html.dark input:-webkit-autofill:active {
 
 .dark\:border-teal-800\/70:is(.dark *) {
   border-color: rgb(17 94 89 / 0.7);
+}
+
+.dark\:border-slate-700\/80:is(.dark *) {
+  border-color: rgb(51 65 85 / 0.8);
 }
 
 .dark\:bg-\[\#151c2c\]:is(.dark *) {
@@ -3927,6 +3952,14 @@ html.dark input:-webkit-autofill:active {
   background-color: rgb(4 47 46 / 0.7);
 }
 
+.dark\:bg-slate-900\/60:is(.dark *) {
+  background-color: rgb(15 23 42 / 0.6);
+}
+
+.dark\:bg-slate-900\/90:is(.dark *) {
+  background-color: rgb(15 23 42 / 0.9);
+}
+
 .dark\:text-amber-100:is(.dark *) {
   --tw-text-opacity: 1;
   color: rgb(254 243 199 / var(--tw-text-opacity));
@@ -4139,6 +4172,10 @@ html.dark input:-webkit-autofill:active {
 
 .dark\:hover\:bg-slate-800\/40:hover:is(.dark *) {
   background-color: rgb(30 41 59 / 0.4);
+}
+
+.dark\:hover\:bg-slate-700\/60:hover:is(.dark *) {
+  background-color: rgb(51 65 85 / 0.6);
 }
 
 .dark\:hover\:text-primary-container:hover:is(.dark *) {
