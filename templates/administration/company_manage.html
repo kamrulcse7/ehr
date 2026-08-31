@@ -192,7 +192,7 @@
                         </div>
 
                         <!-- Modules Grid -->
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-3.5 pt-1">
+                        <div id="module-groups-grid-container" class="grid grid-cols-1 md:grid-cols-2 gap-3.5 pt-1">
                             [[ group_idx = 0 ]]
                             [[ for group_item in (grouped_modules or []): ]]
                             [[ group_idx += 1 ]]
@@ -201,13 +201,13 @@
                             [[ mods = group_item.get('mods') or [] ]]
                             [[ p_order = (company_module_overrides or {}).get(p_mod_id, {}).get('display_order') or group_item.get('display_order', group_idx * 10) ]]
 
-                            <div draggable="true" data-group-id="[[= p_mod_id ]]"
-                                class="module-group-card bg-slate-50/70 dark:bg-slate-800/40 rounded-xl p-3 border border-slate-100 dark:border-slate-800/60 space-y-2 flex flex-col justify-between transition-all hover:border-slate-200 dark:hover:border-slate-700">
+                            <div data-group-id="[[= p_mod_id ]]"
+                                class="module-group-card select-none bg-slate-50/70 dark:bg-slate-800/40 rounded-xl p-3 border border-slate-100 dark:border-slate-800/60 space-y-2 flex flex-col justify-between transition-all hover:border-slate-200 dark:hover:border-slate-700">
                                 <div>
                                     <div class="flex items-center justify-between border-b border-slate-200/60 dark:border-slate-700/60 pb-1.5 mb-2 gap-2">
-                                        <div class="flex items-center gap-1.5 min-w-0">
+                                        <div class="flex items-center gap-1.5 min-w-0 flex-1">
                                             <span class="group-drag-handle material-symbols-outlined text-[18px] text-slate-400 dark:text-slate-500 hover:text-primary cursor-grab active:cursor-grabbing select-none shrink-0" title="Drag to reorder category">drag_indicator</span>
-                                            <span class="text-xs font-bold text-slate-800 dark:text-slate-200 tracking-wide truncate">[[= group_name ]]</span>
+                                            <span class="text-xs font-bold text-slate-800 dark:text-slate-200 tracking-wide">[[= group_name ]]</span>
                                             <span class="text-[10px] font-semibold bg-primary/10 text-primary px-1.5 py-0.5 rounded-full shrink-0">[[= len(mods) ]] modules</span>
                                         </div>
                                         <input type="hidden" name="display_order_[[= p_mod_id ]]" class="group-order-input" value="[[= p_order ]]">
@@ -228,8 +228,8 @@
                                         [[ c_order = custom_info.get('display_order') or (idx + 1) ]]
                                         [[ has_custom = bool(c_name or c_icon or c_route) ]]
 
-                                        <div draggable="true" data-module-id="[[= mod_id ]]"
-                                            class="module-card-item rounded-xl bg-white/70 dark:bg-slate-800/70 border border-slate-200/60 dark:border-slate-700/50 p-2.5 space-y-2 shadow-2xs transition-all hover:border-slate-300 dark:hover:border-slate-600">
+                                        <div data-module-id="[[= mod_id ]]"
+                                            class="module-card-item select-none rounded-xl bg-white/70 dark:bg-slate-800/70 border border-slate-200/60 dark:border-slate-700/50 p-2.5 space-y-2 shadow-2xs transition-all hover:border-slate-300 dark:hover:border-slate-600">
                                             <div class="flex items-center justify-between gap-2">
                                                 <!-- Drag Handle -->
                                                 <span class="drag-handle material-symbols-outlined text-[16px] text-slate-300 dark:text-slate-600 hover:text-primary cursor-grab active:cursor-grabbing select-none shrink-0" title="Drag to reorder">drag_indicator</span>
@@ -238,8 +238,8 @@
                                                     <input type="checkbox" name="company_modules" value="[[= mod_id ]]" [[= 'checked' if is_checked else '' ]]
                                                         class="company-module-checkbox group_chk_[[= group_idx ]] w-4 h-4 text-primary rounded border-slate-300 dark:border-slate-700 focus:ring-primary/20 accent-primary cursor-pointer shrink-0">
                                                     <span class="material-symbols-outlined text-[18px] text-slate-400 group-hover:text-primary transition-colors shrink-0">[[= c_icon or mod.get('icon') or 'extension' ]]</span>
-                                                    <div class="truncate">
-                                                        <p class="text-xs font-semibold text-slate-700 dark:text-slate-200 truncate">[[= c_name or mod.get('module_name') ]]</p>
+                                                    <div class="min-w-0 flex-1">
+                                                        <p class="text-xs font-semibold text-slate-700 dark:text-slate-200 leading-tight">[[= c_name or mod.get('module_name') ]]</p>
                                                         <p class="text-[9px] font-mono text-slate-400">[[= mod_id ]]</p>
                                                     </div>
                                                 </label>
@@ -614,46 +614,6 @@
         }
     }
 
-    function initModuleDragAndDrop() {
-        let draggedItem = null;
-
-        document.querySelectorAll('.module-card-item').forEach(item => {
-            item.addEventListener('dragstart', function(e) {
-                // Only allow drag if target is drag handle or card header (not input fields)
-                if (e.target.tagName === 'INPUT' || e.target.tagName === 'BUTTON') {
-                    e.preventDefault();
-                    return;
-                }
-                draggedItem = this;
-                e.dataTransfer.effectAllowed = 'move';
-                this.classList.add('opacity-50', 'scale-[0.99]', 'ring-2', 'ring-primary/40');
-            });
-
-            item.addEventListener('dragend', function() {
-                draggedItem = null;
-                this.classList.remove('opacity-50', 'scale-[0.99]', 'ring-2', 'ring-primary/40');
-                document.querySelectorAll('.module-card-item').forEach(el => {
-                    el.classList.remove('border-primary/80', 'bg-primary/5');
-                });
-                updateModuleOrderInputs();
-            });
-
-            item.addEventListener('dragover', function(e) {
-                e.preventDefault();
-                e.dataTransfer.dropEffect = 'move';
-                if (draggedItem && draggedItem !== this && draggedItem.parentNode === this.parentNode) {
-                    const rect = this.getBoundingClientRect();
-                    const mid = rect.top + rect.height / 2;
-                    if (e.clientY < mid) {
-                        this.parentNode.insertBefore(draggedItem, this);
-                    } else {
-                        this.parentNode.insertBefore(draggedItem, this.nextSibling);
-                    }
-                }
-            });
-        });
-    }
-
     function updateModuleOrderInputs() {
         document.querySelectorAll('.module-group-container').forEach(container => {
             const cards = container.querySelectorAll('.module-card-item');
@@ -661,42 +621,6 @@
                 const input = card.querySelector('.module-order-input');
                 if (input) {
                     input.value = idx + 1;
-                }
-            });
-        });
-    }
-
-    function initGroupDragAndDrop() {
-        let draggedGroup = null;
-
-        document.querySelectorAll('.module-group-card').forEach(groupCard => {
-            groupCard.addEventListener('dragstart', function(e) {
-                // If user started drag on a sub-module item inside, do NOT drag the whole category box!
-                if (e.target.closest('.module-card-item') || e.target.tagName === 'INPUT' || e.target.tagName === 'BUTTON') {
-                    return;
-                }
-                draggedGroup = this;
-                e.dataTransfer.effectAllowed = 'move';
-                this.classList.add('opacity-40', 'scale-[0.98]', 'ring-2', 'ring-primary');
-            });
-
-            groupCard.addEventListener('dragend', function() {
-                draggedGroup = null;
-                this.classList.remove('opacity-40', 'scale-[0.98]', 'ring-2', 'ring-primary');
-                updateGroupOrderInputs();
-            });
-
-            groupCard.addEventListener('dragover', function(e) {
-                e.preventDefault();
-                e.dataTransfer.dropEffect = 'move';
-                if (draggedGroup && draggedGroup !== this && draggedGroup.parentNode === this.parentNode) {
-                    const rect = this.getBoundingClientRect();
-                    const mid = rect.top + rect.height / 2;
-                    if (e.clientY < mid) {
-                        this.parentNode.insertBefore(draggedGroup, this);
-                    } else {
-                        this.parentNode.insertBefore(draggedGroup, this.nextSibling);
-                    }
                 }
             });
         });
@@ -712,8 +636,203 @@
         });
     }
 
+    // Clean 60fps Throttled Drag & Drop for Category Groups (2D Grid)
+    function initGroupDragAndDrop() {
+        document.querySelectorAll('.module-group-card').forEach(card => {
+            card.addEventListener('mousedown', function(e) {
+                if (e.button !== 0) return; // Only left click
+                // Ignore category drag if clicking sub-module items or buttons
+                if (e.target.closest('.module-card-item') || e.target.tagName === 'BUTTON' || e.target.closest('button')) {
+                    return;
+                }
+
+                if (window.getSelection) {
+                    window.getSelection().removeAllRanges();
+                }
+
+                const startX = e.clientX;
+                const startY = e.clientY;
+                let isDragging = false;
+                let rafId = null;
+                let lastTargetCard = null;
+
+                let lastClientX = startX;
+                let lastClientY = startY;
+
+                const container = document.getElementById('module-groups-grid-container');
+                if (!card || !container) return;
+
+                function updatePosition() {
+                    rafId = null;
+                    if (!isDragging) return;
+
+                    const el = document.elementFromPoint(lastClientX, lastClientY);
+                    const targetCard = el ? el.closest('.module-group-card') : null;
+
+                    if (targetCard && targetCard !== card && targetCard.parentNode === container) {
+                        if (targetCard === lastTargetCard) return;
+                        lastTargetCard = targetCard;
+
+                        const r = targetCard.getBoundingClientRect();
+                        const centerX = r.left + r.width / 2;
+
+                        let placeAfter = false;
+                        if (lastClientY > r.bottom - 10) {
+                            placeAfter = true;
+                        } else if (lastClientY < r.top + 10) {
+                            placeAfter = false;
+                        } else {
+                            placeAfter = (lastClientX > centerX);
+                        }
+
+                        const targetSibling = placeAfter ? targetCard.nextSibling : targetCard;
+
+                        if (card !== targetSibling && card.nextSibling !== targetSibling) {
+                            if (targetSibling) {
+                                container.insertBefore(card, targetSibling);
+                            } else {
+                                container.appendChild(card);
+                            }
+                        }
+                    }
+                }
+
+                function onMouseMove(moveEvent) {
+                    lastClientX = moveEvent.clientX;
+                    lastClientY = moveEvent.clientY;
+
+                    const dist = Math.hypot(lastClientX - startX, lastClientY - startY);
+                    if (dist > 5) {
+                        moveEvent.preventDefault();
+                        if (!isDragging) {
+                            isDragging = true;
+                            card.style.pointerEvents = 'none';
+                            card.classList.add('opacity-40', 'border-2', 'border-dashed', 'border-primary', 'ring-2', 'ring-primary/40', 'scale-[0.99]');
+                        }
+
+                        if (!rafId) {
+                            rafId = requestAnimationFrame(updatePosition);
+                        }
+                    }
+                }
+
+                function onMouseUp() {
+                    document.removeEventListener('mousemove', onMouseMove);
+                    document.removeEventListener('mouseup', onMouseUp);
+
+                    if (rafId) {
+                        cancelAnimationFrame(rafId);
+                        rafId = null;
+                    }
+
+                    if (isDragging) {
+                        card.style.pointerEvents = '';
+                        card.classList.remove('opacity-40', 'border-2', 'border-dashed', 'border-primary', 'ring-2', 'ring-primary/40', 'scale-[0.99]');
+                        updateGroupOrderInputs();
+                    }
+                }
+
+                document.addEventListener('mousemove', onMouseMove);
+                document.addEventListener('mouseup', onMouseUp);
+            });
+        });
+    }
+
+    // Clean Throttled Drag & Drop for Sub-Module Items
+    function initModuleDragAndDrop() {
+        document.querySelectorAll('.module-card-item').forEach(card => {
+            card.addEventListener('mousedown', function(e) {
+                if (e.button !== 0) return; // Only left click
+                // Ignore drag if clicking buttons (Customize button)
+                if (e.target.tagName === 'BUTTON' || e.target.closest('button')) {
+                    return;
+                }
+
+                if (window.getSelection) {
+                    window.getSelection().removeAllRanges();
+                }
+
+                const startX = e.clientX;
+                const startY = e.clientY;
+                let isDragging = false;
+                let rafId = null;
+                let lastTargetCard = null;
+
+                let lastClientX = startX;
+                let lastClientY = startY;
+
+                const container = card ? card.closest('.module-group-container') : null;
+                if (!card || !container) return;
+
+                function updatePosition() {
+                    rafId = null;
+                    if (!isDragging) return;
+
+                    const el = document.elementFromPoint(lastClientX, lastClientY);
+                    const targetCard = el ? el.closest('.module-card-item') : null;
+
+                    if (targetCard && targetCard !== card && targetCard.parentNode === container) {
+                        if (targetCard === lastTargetCard) return;
+                        lastTargetCard = targetCard;
+
+                        const r = targetCard.getBoundingClientRect();
+                        const centerY = r.top + r.height / 2;
+                        const placeAfter = lastClientY > centerY;
+                        const targetSibling = placeAfter ? targetCard.nextSibling : targetCard;
+
+                        if (card !== targetSibling && card.nextSibling !== targetSibling) {
+                            if (targetSibling) {
+                                container.insertBefore(card, targetSibling);
+                            } else {
+                                container.appendChild(card);
+                            }
+                        }
+                    }
+                }
+
+                function onMouseMove(moveEvent) {
+                    lastClientX = moveEvent.clientX;
+                    lastClientY = moveEvent.clientY;
+
+                    const dist = Math.hypot(lastClientX - startX, lastClientY - startY);
+                    if (dist > 5) {
+                        moveEvent.preventDefault();
+                        if (!isDragging) {
+                            isDragging = true;
+                            card.style.pointerEvents = 'none';
+                            card.classList.add('opacity-40', 'border-2', 'border-dashed', 'border-primary', 'scale-[0.99]');
+                        }
+
+                        if (!rafId) {
+                            rafId = requestAnimationFrame(updatePosition);
+                        }
+                    }
+                }
+
+                function onMouseUp() {
+                    document.removeEventListener('mousemove', onMouseMove);
+                    document.removeEventListener('mouseup', onMouseUp);
+
+                    if (rafId) {
+                        cancelAnimationFrame(rafId);
+                        rafId = null;
+                    }
+
+                    if (isDragging) {
+                        card.style.pointerEvents = '';
+                        card.classList.remove('opacity-40', 'border-2', 'border-dashed', 'border-primary', 'scale-[0.99]');
+                        updateModuleOrderInputs();
+                    }
+                }
+
+                document.addEventListener('mousemove', onMouseMove);
+                document.addEventListener('mouseup', onMouseUp);
+            });
+        });
+    }
+
     document.addEventListener('DOMContentLoaded', function() {
-        initModuleDragAndDrop();
         initGroupDragAndDrop();
+        initModuleDragAndDrop();
     });
 </script>
