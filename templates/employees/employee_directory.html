@@ -213,8 +213,8 @@
                         <tr class="hover:bg-slate-50/60 dark:hover:bg-slate-800/40 transition-colors">
                             <td class="py-2.5 px-4">
                                 <div class="flex items-center gap-3">
-                                    [[ photo_raw = emp.get('photo_url') or '' ]]
-                                    [[ photo_src = photo_raw if (photo_raw.startswith('http://') or photo_raw.startswith('https://') or photo_raw.startswith('/')) else URL('static/uploads/emp_images', photo_raw) if photo_raw else '' ]]
+                                    [[ photo_raw = (emp.get('photo_url') or '') ]]
+                                    [[ photo_src = (photo_raw if (photo_raw.startswith('http://') or photo_raw.startswith('https://') or photo_raw.startswith('/')) else URL('static/uploads/emp_images', photo_raw)) if photo_raw else '' ]]
                                     [[ name = emp.get('emp_name', 'E').strip() ]]
                                     [[ initial = name[0].upper() if name else 'E' ]]
 

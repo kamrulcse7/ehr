@@ -79,8 +79,8 @@
 
                 <!-- EMPLOYEE INFO CARD -->
                 <div class="p-4 bg-slate-50/70 dark:bg-slate-800/40 rounded-xl border border-slate-200/60 dark:border-slate-800 flex items-center gap-3.5">
-                    [[ photo_raw = item.get('photo_url') or '' ]]
-                    [[ photo_src = photo_raw if (photo_raw.startswith('http://') or photo_raw.startswith('https://') or photo_raw.startswith('/')) else URL('static/uploads/emp_images', photo_raw) if photo_raw else '' ]]
+                    [[ photo_raw = (item.get('photo_url') or '') ]]
+                    [[ photo_src = (photo_raw if (photo_raw.startswith('http://') or photo_raw.startswith('https://') or photo_raw.startswith('/')) else URL('static/uploads/emp_images', photo_raw)) if photo_raw else '' ]]
                     [[ name = item.get('emp_name', 'E').strip() ]]
                     [[ initial = name[0].upper() if name else 'E' ]]
 

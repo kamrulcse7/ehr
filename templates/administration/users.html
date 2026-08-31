@@ -200,8 +200,8 @@
                             <!-- USER INFO -->
                             <td class="py-2.5 px-4">
                                 <div class="flex items-center gap-3">
-                                    [[ photo_raw = u.get('user_photo') or '' ]]
-                                    [[ photo_src = photo_raw if (photo_raw.startswith('http://') or photo_raw.startswith('https://') or photo_raw.startswith('/')) else URL('static/uploads/emp_images', photo_raw) if photo_raw else '' ]]
+                                    [[ photo_raw = (u.get('user_photo') or '') ]]
+                                    [[ photo_src = (photo_raw if (photo_raw.startswith('http://') or photo_raw.startswith('https://') or photo_raw.startswith('/')) else URL('static/uploads/emp_images', photo_raw)) if photo_raw else '' ]]
                                     [[ name = u.get('user_name', 'U').strip() ]]
                                     [[ initial = name[0].upper() if name else 'U' ]]
 

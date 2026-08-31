@@ -40,11 +40,11 @@
                         <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 mb-1">Company ID (CID) [[ if not item: ]]<span class="text-rose-500">*</span>[[ pass ]]</label>
                         [[ if item: ]]
                         <input type="text" name="cid" id="cid_input" value="[[= item.get('cid', '') ]]" readonly
-                            class="w-full px-3 py-2 bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-semibold text-slate-500 dark:text-slate-400 font-mono cursor-not-allowed select-none">
+                            class="w-full px-3 py-2 bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-bold uppercase text-sky-600 dark:text-sky-400 font-mono cursor-not-allowed select-none">
                         [[ else: ]]
                         <input type="text" name="cid" id="cid_input" required placeholder="e.g. BADC"
                             value="[[= emp.get('cid', '') if emp else (request.query.get('cid') or '') ]]"
-                            class="w-full px-3 py-2 bg-slate-50/50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-semibold uppercase text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all font-mono">
+                            class="w-full px-3 py-2 bg-slate-50/50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-bold uppercase text-sky-600 dark:text-sky-400 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all font-mono">
                         [[ pass ]]
                     </div>
                     [[ pass ]]
@@ -53,7 +53,7 @@
                         <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 mb-1">Official ID [[ if not item: ]]<span class="text-[9px] font-normal text-slate-400 dark:text-slate-500">(Search)</span> <span class="text-rose-500">*</span>[[ pass ]]</label>
                         [[ if item: ]]
                         <input type="text" name="emp_id" id="emp_id_input" value="[[= item.get('emp_id', '') ]]" readonly
-                            class="w-full px-3 py-2 bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-semibold text-slate-500 dark:text-slate-400 font-mono cursor-not-allowed select-none">
+                            class="w-full px-3 py-2 bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-bold text-slate-800 dark:text-slate-200 font-mono cursor-not-allowed select-none">
                         [[ else: ]]
                         <div class="flex items-center gap-1.5">
                             <input type="text" name="emp_id" id="emp_id_input" required placeholder="e.g. BADC-00101"
@@ -72,7 +72,7 @@
                         <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 mb-1">Full Name</label>
                         <input type="text" id="full_name_input" readonly placeholder="Auto-loaded Name"
                             value="[[= (emp.get('emp_name') if emp else (item.get('emp_name') if item else '')) or '' ]]"
-                            class="w-full px-3 py-2 bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-semibold text-slate-500 dark:text-slate-400 cursor-not-allowed select-none">
+                            class="w-full px-3 py-2 bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-semibold text-slate-800 dark:text-slate-200 cursor-not-allowed select-none">
                     </div>
 
                     <div>
@@ -176,26 +176,26 @@
                             <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 mb-1">From Posting Place</label>
                             <input type="text" id="from_posting_input" name="from_posting_place" readonly placeholder="Auto-loaded Station"
                                 value="[[= (item.get('from_branch_id') or item.get('from_posting_place') or '') if item else (emp.get('current_posting_place') if emp else '') ]]"
-                                class="w-full px-3 py-2 bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-semibold text-slate-500 dark:text-slate-400 cursor-not-allowed select-none">
+                                class="w-full px-3 py-2 bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-semibold text-slate-800 dark:text-slate-200 cursor-not-allowed select-none">
                         </div>
                         <div class="grid grid-cols-3 gap-2">
                             <div>
                                 <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 mb-1">From Dept</label>
                                 <input type="text" id="from_dept_input" name="from_department" readonly placeholder="Current Dept"
                                     value="[[= (item.get('from_department') or '') if item else (emp.get('emp_department') if emp else '') ]]"
-                                    class="w-full px-3 py-2 bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-semibold text-slate-500 dark:text-slate-400 cursor-not-allowed select-none">
+                                    class="w-full px-3 py-2 bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-semibold text-slate-800 dark:text-slate-200 cursor-not-allowed select-none">
                             </div>
                             <div>
                                 <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 mb-1">From Designation</label>
                                 <input type="text" id="from_desig_input" name="from_designation" readonly placeholder="Current Designation"
                                     value="[[= (item.get('from_designation') or '') if item else (emp.get('emp_designation') if emp else '') ]]"
-                                    class="w-full px-3 py-2 bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-semibold text-slate-500 dark:text-slate-400 cursor-not-allowed select-none">
+                                    class="w-full px-3 py-2 bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-semibold text-slate-800 dark:text-slate-200 cursor-not-allowed select-none">
                             </div>
                             <div>
                                 <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 mb-1">From Grade</label>
                                 <input type="text" id="from_grade_input" name="from_grade" readonly placeholder="Current Grade"
                                     value="[[= (item.get('from_grade') or '') if item else (emp.get('emp_grade') if emp else '') ]]"
-                                    class="w-full px-3 py-2 bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-semibold text-slate-500 dark:text-slate-400 cursor-not-allowed select-none">
+                                    class="w-full px-3 py-2 bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-semibold text-slate-800 dark:text-slate-200 cursor-not-allowed select-none">
                             </div>
                         </div>
                     </div>

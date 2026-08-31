@@ -882,11 +882,11 @@ def role_manage(role_id=None):
             redirect(URL("administration/role_manage"))
 
         if raw_role_id:
-            # Updating existing role
+            # Updating existing role - CID cannot be changed
             target_role_id = raw_role_id
             db.executesql(
-                "UPDATE roles SET cid = %s, role_name = %s, note = %s, status_type = %s, updated_on = %s, updated_by = %s WHERE role_id = %s",
-                [cid, role_name, description, status_type, db_datetime, user_id, target_role_id]
+                "UPDATE roles SET role_name = %s, note = %s, status_type = %s, updated_on = %s, updated_by = %s WHERE role_id = %s",
+                [role_name, description, status_type, db_datetime, user_id, target_role_id]
             )
         else:
             # Creating new role
