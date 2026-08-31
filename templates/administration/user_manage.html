@@ -32,6 +32,7 @@
             <div class="lg:col-span-3 space-y-4">
 
                 <!-- 1. USER IDENTIFICATION & DETAILS CARD -->
+                [[ is_link_user = bool(target_user and target_user.get('emp_id')) ]]
                 <div class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-800/80 p-5 shadow-xs space-y-4">
                     <div class="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
                         <div class="flex items-center gap-2">
@@ -39,9 +40,23 @@
                             <h3 class="font-bold text-sm text-slate-900 dark:text-white">User Identification & Details</h3>
                             [[ active_cid = (target_user.get('cid') or user_cid or '') if target_user else (user_cid or '') ]]
                             [[ if active_cid: ]]
-                            <span class="px-1.5 py-0.2 rounded text-[10px] font-bold bg-sky-100 text-sky-800 dark:bg-sky-950/60 dark:text-sky-400 font-mono inline-block shadow-2xs border border-sky-200/50 dark:border-sky-800/50">
+                            <span class="inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-bold font-mono uppercase bg-sky-50 text-sky-700 dark:bg-sky-950/50 dark:text-sky-300 border border-sky-200/60 dark:border-sky-800/60 shadow-2xs">
                                 [[= active_cid.upper() ]]
                             </span>
+                            [[ pass ]]
+
+                            [[ if target_user: ]]
+                                [[ if is_link_user: ]]
+                                <span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md text-[10px] font-bold tracking-wider uppercase bg-indigo-50 text-indigo-700 dark:bg-indigo-950/50 dark:text-indigo-300 border border-indigo-200/60 dark:border-indigo-800/60 shadow-2xs" title="Linked to Official Employee Record">
+                                    <span class="w-1.5 h-1.5 rounded-full bg-indigo-500 shrink-0"></span>
+                                    <span>LINKED USER</span>
+                                </span>
+                                [[ else: ]]
+                                <span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md text-[10px] font-bold tracking-wider uppercase bg-emerald-50 text-emerald-700 dark:bg-emerald-950/50 dark:text-emerald-300 border border-emerald-200/60 dark:border-emerald-800/60 shadow-2xs" title="Directly Created User Account">
+                                    <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 shrink-0"></span>
+                                    <span>DIRECT USER</span>
+                                </span>
+                                [[ pass ]]
                             [[ pass ]]
                         </div>
 
@@ -62,7 +77,6 @@
                         [[ pass ]]
                     </div>
 
-                    [[ is_link_user = bool(target_user and target_user.get('emp_id')) ]]
                     [[ cur_name = (target_user.get('emp_name') or target_user.get('user_name', '')) if is_link_user else target_user.get('user_name', '') if target_user else '' ]]
                     [[ cur_mobile = (target_user.get('emp_mobile') or target_user.get('mobile', '')) if is_link_user else target_user.get('mobile', '') if target_user else '' ]]
                     [[ cur_email = (target_user.get('emp_email') or target_user.get('email', '')) if is_link_user else target_user.get('email', '') if target_user else '' ]]

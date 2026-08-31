@@ -1078,6 +1078,10 @@ html.dark body {
   height: 8rem;
 }
 
+.h-\[18px\] {
+  height: 18px;
+}
+
 .max-h-0 {
   max-height: 0px;
 }
@@ -1980,6 +1984,18 @@ html.dark body {
   border-color: rgb(167 243 208 / 0.7);
 }
 
+.border-purple-200\/60 {
+  border-color: rgb(233 213 255 / 0.6);
+}
+
+.border-indigo-200\/50 {
+  border-color: rgb(199 210 254 / 0.5);
+}
+
+.border-indigo-200\/60 {
+  border-color: rgb(199 210 254 / 0.6);
+}
+
 .border-t-white {
   --tw-border-opacity: 1;
   border-top-color: rgb(255 255 255 / var(--tw-border-opacity));
@@ -2292,6 +2308,16 @@ html.dark body {
 
 .bg-emerald-50\/70 {
   background-color: rgb(236 253 245 / 0.7);
+}
+
+.bg-indigo-100 {
+  --tw-bg-opacity: 1;
+  background-color: rgb(224 231 255 / var(--tw-bg-opacity));
+}
+
+.bg-indigo-500 {
+  --tw-bg-opacity: 1;
+  background-color: rgb(99 102 241 / var(--tw-bg-opacity));
 }
 
 .bg-gradient-to-br {
@@ -3071,6 +3097,16 @@ html.dark body {
 .text-sky-500 {
   --tw-text-opacity: 1;
   color: rgb(14 165 233 / var(--tw-text-opacity));
+}
+
+.text-purple-700 {
+  --tw-text-opacity: 1;
+  color: rgb(126 34 206 / var(--tw-text-opacity));
+}
+
+.text-indigo-800 {
+  --tw-text-opacity: 1;
+  color: rgb(55 48 163 / var(--tw-text-opacity));
 }
 
 .placeholder-slate-400::-moz-placeholder {
@@ -3967,6 +4003,18 @@ html.dark input:-webkit-autofill:active {
   border-color: rgb(107 33 168 / 0.5);
 }
 
+.dark\:border-purple-800\/60:is(.dark *) {
+  border-color: rgb(107 33 168 / 0.6);
+}
+
+.dark\:border-indigo-800\/50:is(.dark *) {
+  border-color: rgb(55 48 163 / 0.5);
+}
+
+.dark\:border-indigo-800\/60:is(.dark *) {
+  border-color: rgb(55 48 163 / 0.6);
+}
+
 .dark\:bg-\[\#151c2c\]:is(.dark *) {
   --tw-bg-opacity: 1;
   background-color: rgb(21 28 44 / var(--tw-bg-opacity));
@@ -4213,6 +4261,14 @@ html.dark input:-webkit-autofill:active {
   background-color: rgb(59 7 100 / 0.5);
 }
 
+.dark\:bg-purple-950\/60:is(.dark *) {
+  background-color: rgb(59 7 100 / 0.6);
+}
+
+.dark\:bg-indigo-950\/50:is(.dark *) {
+  background-color: rgb(30 27 75 / 0.5);
+}
+
 .dark\:text-amber-100:is(.dark *) {
   --tw-text-opacity: 1;
   color: rgb(254 243 199 / var(--tw-text-opacity));
@@ -4358,6 +4414,11 @@ html.dark input:-webkit-autofill:active {
 .dark\:text-rose-300:is(.dark *) {
   --tw-text-opacity: 1;
   color: rgb(253 164 175 / var(--tw-text-opacity));
+}
+
+.dark\:text-purple-300:is(.dark *) {
+  --tw-text-opacity: 1;
+  color: rgb(216 180 254 / var(--tw-text-opacity));
 }
 
 .dark\:ring-emerald-950\/60:is(.dark *) {
