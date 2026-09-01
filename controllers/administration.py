@@ -798,6 +798,17 @@ def roles_permissions():
         as_dict=True
     )
 
+    user_cid = session.user.get("cid", "") if (session and session.user) else ""
+    comp_mod_set = None
+    if user_cid:
+        cm_rows = db.executesql(
+            "SELECT module_id FROM company_modules WHERE LOWER(cid) = LOWER(%s) AND status_type = 'ACTIVE'",
+            [user_cid],
+            as_dict=True
+        )
+        if cm_rows:
+            comp_mod_set = set(m["module_id"].upper() for m in cm_rows if m.get("module_id"))
+
     all_mods = db.executesql(
         "SELECT module_id, module_name, parent_module_id, module_group, icon as module_icon, is_clickable FROM modules WHERE status_type = 'ACTIVE' ORDER BY display_order ASC",
         as_dict=True
@@ -819,6 +830,10 @@ def roles_permissions():
 
         groups_dict = {}
         for p in perm_rows:
+            mod_id = (p.get("module_id") or "").upper()
+            if comp_mod_set is not None and mod_id not in comp_mod_set:
+                continue
+
             can_v = bool(p.get("can_view"))
             can_c = bool(p.get("can_add") or p.get("can_create"))
             can_e = bool(p.get("can_edit"))
@@ -1598,9 +1613,55 @@ def user_manage(user_id=None):
                 flash.set(f"Failed to create user account: {str(e)}", "danger")
                 redirect(URL("administration/user_manage"))
 
+    active_cid = (target_user.get("cid") or user_cid or "").strip() if target_user else (user_cid or "").strip()
+
+    # Check if active_cid has company_modules assigned
+    comp_mod_set = None
+    if active_cid:
+        cm_rows = db.executesql(
+            "SELECT module_id FROM company_modules WHERE LOWER(cid) = LOWER(%s) AND status_type = 'ACTIVE'",
+            [active_cid],
+            as_dict=True
+        )
+        if cm_rows:
+            comp_mod_set = set(m["module_id"].upper() for m in cm_rows if m.get("module_id"))
+
     roles_rows = db.executesql("""
-        SELECT role_id, role_name, cid FROM roles WHERE status_type = 'ACTIVE' ORDER BY role_name ASC
+        SELECT id, role_id, role_name, note, cid FROM roles WHERE status_type = 'ACTIVE' ORDER BY role_name ASC
     """, as_dict=True)
+
+    for r in roles_rows:
+        r_id = r.get("role_id", "")
+        perm_rows = db.executesql("""
+            SELECT p.can_view, p.can_add as can_create, p.can_edit, p.can_delete, p.can_export, p.can_approve,
+                   m.module_id, m.module_name, m.parent_module_id, m.module_group
+            FROM role_module_permissions p
+            JOIN modules m ON p.module_id = m.module_id
+            WHERE UPPER(p.role_id) = %s AND (p.status_type IS NULL OR p.status_type = 'ACTIVE')
+              AND (m.status_type IS NULL OR m.status_type = 'ACTIVE') AND m.is_clickable = 1
+            ORDER BY m.display_order ASC
+        """, [r_id.upper()], as_dict=True)
+
+        perms_list = []
+        for p in perm_rows:
+            mod_id = (p.get("module_id") or "").upper()
+            if comp_mod_set is not None and mod_id not in comp_mod_set:
+                continue
+
+            actions = []
+            if p.get("can_view"): actions.append("View")
+            if p.get("can_create"): actions.append("Create")
+            if p.get("can_edit"): actions.append("Edit")
+            if p.get("can_delete"): actions.append("Delete")
+            if p.get("can_export"): actions.append("Export")
+            if p.get("can_approve"): actions.append("Approve")
+            if actions:
+                act_str = "Full Access" if len(actions) == 6 else ", ".join(actions)
+                perms_list.append({
+                    "module_name": p["module_name"],
+                    "actions": act_str
+                })
+        r["permissions"] = perms_list
 
     page_title = "Edit User" if target_user else "Add User"
 
