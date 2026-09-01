@@ -47,6 +47,8 @@ CREATE TABLE companies (
   cid varchar(50) NOT NULL COMMENT 'Company reference',
   company_name varchar(255) NOT NULL COMMENT 'display name',
   legal_name varchar(255) DEFAULT NULL COMMENT 'Legal registered name',
+  ownership_type varchar(50) DEFAULT 'PRIVATE' COMMENT 'PRIVATE, GOVERNMENT, SEMI_GOVT, AUTONOMOUS, NGO, MNC, PROPRIETORSHIP, PARTNERSHIP',
+  business_type varchar(100) DEFAULT NULL COMMENT 'Bank, Restaurant, Hospital, IT, Agriculture, Manufacturing, Retail, Education, etc.',
   email varchar(150) DEFAULT NULL COMMENT 'Primary email',
   phone varchar(20) DEFAULT NULL COMMENT 'Phone number',
   website varchar(150) DEFAULT NULL COMMENT 'Website',
@@ -70,8 +72,8 @@ CREATE TABLE companies (
   updated_by varchar(50) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci COMMENT='Company information master table';
 
-INSERT INTO companies (id, cid, company_name, legal_name, email, phone, website, address_line1, address_line2, city, state, country, postal_code, timezone, language_code, fiscal_year_start_month, favicon_url, logo_url, banner_url, status_type, note, created_on, created_by, updated_on, updated_by) VALUES
-(1, 'AIBL', 'Al-Arafah Islami Bank', 'Al-Arafah Islami Bank PLC', 'info@al-arafahbank.com', '+880-2-9571144', 'https://www.al-arafahbank.com', '36, Dilkusha Commercial Area', 'Motijheel', 'Dhaka', 'Dhaka', 'Bangladesh', '1000', 'UTC+06:00', 'bn', 7, 'https://www.al-arafahbank.com/favicon.ico', 'https://www.al-arafahbank.com/logo.png', 'https://www.al-arafahbank.com/banner.png', 'ACTIVE', 'Al-Arafah Islami Bank Limited — one of the leading Islamic Shariah-based banks in Bangladesh, established in 1995.', '2026-06-03 06:44:23', 'SYSTEM', NULL, NULL);
+INSERT INTO companies (id, cid, company_name, legal_name, ownership_type, business_type, email, phone, website, address_line1, address_line2, city, state, country, postal_code, timezone, language_code, fiscal_year_start_month, favicon_url, logo_url, banner_url, status_type, note, created_on, created_by, updated_on, updated_by) VALUES
+(1, 'AIBL', 'Al-Arafah Islami Bank', 'Al-Arafah Islami Bank PLC', 'PRIVATE', 'Banking & Financial Institution', 'info@al-arafahbank.com', '+880-2-9571144', 'https://www.al-arafahbank.com', '36, Dilkusha Commercial Area', 'Motijheel', 'Dhaka', 'Dhaka', 'Bangladesh', '1000', 'UTC+06:00', 'bn', 7, 'https://www.al-arafahbank.com/favicon.ico', 'https://www.al-arafahbank.com/logo.png', 'https://www.al-arafahbank.com/banner.png', 'ACTIVE', 'Al-Arafah Islami Bank Limited — one of the leading Islamic Shariah-based banks in Bangladesh, established in 1995.', '2026-06-03 06:44:23', 'SYSTEM', NULL, NULL);
 
 CREATE TABLE company_settings (
   id int PRIMARY KEY AUTO_INCREMENT,

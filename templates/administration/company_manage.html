@@ -112,6 +112,86 @@
                                     <input type="text" name="legal_name" value="[[= form_data.get('legal_name') or (company.get('legal_name') if company else '') or '' ]]" placeholder="e.g. Eon Systems Bangladesh Limited" autocomplete="new-password" readonly onfocus="this.removeAttribute('readonly');"
                                         class="w-full px-3 py-2 bg-slate-50/50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-medium text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all">
                                 </div>
+
+                                <!-- Additional Row: Ownership Type & Business / Industry Type -->
+                                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
+                                    <!-- Ownership Type (Custom Dropdown without Search) -->
+                                    <div class="relative w-full custom-dropdown-container">
+                                        [[ cur_own = form_data.get('ownership_type') or (company.get('ownership_type') if company else '') or 'PRIVATE' ]]
+                                        [[ own_map = {'PRIVATE': 'Private Ltd. Company', 'GOVERNMENT': 'Government Organization', 'SEMI_GOVT': 'Semi-Government', 'AUTONOMOUS': 'Autonomous Body / Board', 'NGO': 'NGO / Non-Profit', 'MNC': 'Multinational (MNC)', 'PROPRIETORSHIP': 'Sole Proprietorship', 'PARTNERSHIP': 'Partnership Firm'} ]]
+                                        [[ display_own = own_map.get(cur_own, 'Private Ltd. Company') ]]
+
+                                        <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 mb-1">
+                                            Ownership / Entity Type
+                                        </label>
+
+                                        <input type="hidden" name="ownership_type" id="ownership_hidden_input" value="[[= cur_own ]]">
+
+                                        <button type="button" onclick="toggleCustomDropdown('ownership', false)"
+                                            class="w-full h-[34px] px-3 bg-slate-50/50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-semibold text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all flex items-center justify-between cursor-pointer">
+                                            <span id="ownership_selected_text" class="truncate">[[= display_own ]]</span>
+                                            <span class="material-symbols-outlined text-slate-400 text-[18px] shrink-0 transition-transform duration-200 custom-dropdown-arrow" id="ownership_arrow_icon">expand_more</span>
+                                        </button>
+
+                                        <div id="ownership_dropdown_menu" class="custom-dropdown-menu hidden absolute left-0 right-0 top-full mt-1 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl shadow-xl z-50 p-1.5 space-y-0.5 max-h-56 overflow-y-auto">
+                                            <button type="button" onclick="selectCustomOption('ownership', 'PRIVATE', 'Private Ltd. Company')" class="ownership-option-item w-full text-left px-2.5 py-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 font-semibold text-xs transition-colors">Private Ltd. Company</button>
+                                            <button type="button" onclick="selectCustomOption('ownership', 'GOVERNMENT', 'Government Organization')" class="ownership-option-item w-full text-left px-2.5 py-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 font-semibold text-xs transition-colors">Government Organization</button>
+                                            <button type="button" onclick="selectCustomOption('ownership', 'SEMI_GOVT', 'Semi-Government')" class="ownership-option-item w-full text-left px-2.5 py-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 font-semibold text-xs transition-colors">Semi-Government</button>
+                                            <button type="button" onclick="selectCustomOption('ownership', 'AUTONOMOUS', 'Autonomous Body / Board')" class="ownership-option-item w-full text-left px-2.5 py-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 font-semibold text-xs transition-colors">Autonomous Body / Board</button>
+                                            <button type="button" onclick="selectCustomOption('ownership', 'NGO', 'NGO / Non-Profit')" class="ownership-option-item w-full text-left px-2.5 py-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 font-semibold text-xs transition-colors">NGO / Non-Profit</button>
+                                            <button type="button" onclick="selectCustomOption('ownership', 'MNC', 'Multinational (MNC)')" class="ownership-option-item w-full text-left px-2.5 py-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 font-semibold text-xs transition-colors">Multinational (MNC)</button>
+                                            <button type="button" onclick="selectCustomOption('ownership', 'PROPRIETORSHIP', 'Sole Proprietorship')" class="ownership-option-item w-full text-left px-2.5 py-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 font-semibold text-xs transition-colors">Sole Proprietorship</button>
+                                            <button type="button" onclick="selectCustomOption('ownership', 'PARTNERSHIP', 'Partnership Firm')" class="ownership-option-item w-full text-left px-2.5 py-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 font-semibold text-xs transition-colors">Partnership Firm</button>
+                                        </div>
+                                    </div>
+
+                                    <!-- Business / Industry Type (Custom Searchable Dropdown) -->
+                                    <div class="relative w-full custom-dropdown-container" id="custom_biz_type_container">
+                                        [[ cur_biz = form_data.get('business_type') or (company.get('business_type') if company else '') or '' ]]
+                                        [[ display_biz = cur_biz if cur_biz else 'Select Industry Type...' ]]
+
+                                        <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 mb-1">
+                                            Business / Industry Type
+                                        </label>
+
+                                        <input type="hidden" name="business_type" id="biz_type_hidden_input" value="[[= cur_biz ]]">
+
+                                        <!-- Trigger Button -->
+                                        <button type="button" id="biz_type_select_btn" onclick="toggleCustomDropdown('biz_type', true)"
+                                            class="w-full h-[34px] px-3 bg-slate-50/50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-semibold text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all flex items-center justify-between cursor-pointer">
+                                            <span id="biz_type_selected_text" class="truncate [[= 'text-slate-400 font-normal' if not cur_biz else '' ]]">[[= display_biz ]]</span>
+                                            <span class="material-symbols-outlined text-slate-400 text-[18px] shrink-0 transition-transform duration-200 custom-dropdown-arrow" id="biz_type_arrow_icon">expand_more</span>
+                                        </button>
+
+                                        <!-- Dropdown Menu Popover -->
+                                        <div id="biz_type_dropdown_menu" class="custom-dropdown-menu hidden absolute left-0 right-0 top-full mt-1 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl shadow-xl z-50 p-2 space-y-1.5">
+                                            <!-- Search / Custom Input -->
+                                            <div class="relative">
+                                                <input type="text" id="biz_type_search_input" oninput="filterCustomOptions('biz_type', this.value)" placeholder="Search or type industry..."
+                                                    class="w-full px-2.5 py-1 text-xs bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-800 dark:text-slate-200 outline-none focus:border-primary">
+                                            </div>
+
+                                            <!-- Scrollable Options List -->
+                                            <div id="biz_type_options_list" class="max-h-48 overflow-y-auto space-y-0.5 pr-0.5 text-xs">
+                                                <button type="button" onclick="selectCustomOption('biz_type', 'Banking & Finance', 'Banking & Finance')" class="biz_type-option-item w-full text-left px-2.5 py-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 font-semibold transition-colors">Banking & Finance</button>
+                                                <button type="button" onclick="selectCustomOption('biz_type', 'Restaurant & Hospitality', 'Restaurant & Hospitality')" class="biz_type-option-item w-full text-left px-2.5 py-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 font-semibold transition-colors">Restaurant & Hospitality</button>
+                                                <button type="button" onclick="selectCustomOption('biz_type', 'Healthcare & Hospital', 'Healthcare & Hospital')" class="biz_type-option-item w-full text-left px-2.5 py-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 font-semibold transition-colors">Healthcare & Hospital</button>
+                                                <button type="button" onclick="selectCustomOption('biz_type', 'Software & IT Solutions', 'Software & IT Solutions')" class="biz_type-option-item w-full text-left px-2.5 py-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 font-semibold transition-colors">Software & IT Solutions</button>
+                                                <button type="button" onclick="selectCustomOption('biz_type', 'Agriculture & Agro-processing', 'Agriculture & Agro-processing')" class="biz_type-option-item w-full text-left px-2.5 py-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 font-semibold transition-colors">Agriculture & Agro-processing</button>
+                                                <button type="button" onclick="selectCustomOption('biz_type', 'Retail & E-commerce', 'Retail & E-commerce')" class="biz_type-option-item w-full text-left px-2.5 py-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 font-semibold transition-colors">Retail & E-commerce</button>
+                                                <button type="button" onclick="selectCustomOption('biz_type', 'Garments & Textile', 'Garments & Textile')" class="biz_type-option-item w-full text-left px-2.5 py-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 font-semibold transition-colors">Garments & Textile</button>
+                                                <button type="button" onclick="selectCustomOption('biz_type', 'Manufacturing & Production', 'Manufacturing & Production')" class="biz_type-option-item w-full text-left px-2.5 py-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 font-semibold transition-colors">Manufacturing & Production</button>
+                                                <button type="button" onclick="selectCustomOption('biz_type', 'Education & Research', 'Education & Research')" class="biz_type-option-item w-full text-left px-2.5 py-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 font-semibold transition-colors">Education & Research</button>
+                                                <button type="button" onclick="selectCustomOption('biz_type', 'Real Estate & Construction', 'Real Estate & Construction')" class="biz_type-option-item w-full text-left px-2.5 py-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 font-semibold transition-colors">Real Estate & Construction</button>
+                                                <button type="button" onclick="selectCustomOption('biz_type', 'Pharmaceuticals', 'Pharmaceuticals')" class="biz_type-option-item w-full text-left px-2.5 py-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 font-semibold transition-colors">Pharmaceuticals</button>
+                                                <button type="button" onclick="selectCustomOption('biz_type', 'Telecommunications', 'Telecommunications')" class="biz_type-option-item w-full text-left px-2.5 py-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 font-semibold transition-colors">Telecommunications</button>
+                                                <button type="button" onclick="selectCustomOption('biz_type', 'Transport & Logistics', 'Transport & Logistics')" class="biz_type-option-item w-full text-left px-2.5 py-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 font-semibold transition-colors">Transport & Logistics</button>
+                                                <button type="button" onclick="selectCustomOption('biz_type', 'Media & Advertising', 'Media & Advertising')" class="biz_type-option-item w-full text-left px-2.5 py-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 font-semibold transition-colors">Media & Advertising</button>
+                                                <button type="button" onclick="selectCustomOption('biz_type', 'General / Other', 'General / Other')" class="biz_type-option-item w-full text-left px-2.5 py-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 font-semibold transition-colors">General / Other</button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -858,5 +938,18 @@
     document.addEventListener('DOMContentLoaded', function() {
         initGroupDragAndDrop();
         initModuleDragAndDrop();
+
+        const bizSearchInput = document.getElementById('biz_type_search_input');
+        if (bizSearchInput) {
+            bizSearchInput.addEventListener('keydown', function(e) {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    const val = this.value.trim();
+                    if (val) {
+                        selectCustomOption('biz_type', val, val);
+                    }
+                }
+            });
+        }
     });
 </script>

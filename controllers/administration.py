@@ -124,9 +124,9 @@ def companies():
     placeholders = []
 
     if keywords:
-        where_clauses.append("(cid LIKE %s OR company_name LIKE %s OR legal_name LIKE %s OR email LIKE %s OR phone LIKE %s OR city LIKE %s)")
+        where_clauses.append("(cid LIKE %s OR company_name LIKE %s OR legal_name LIKE %s OR ownership_type LIKE %s OR business_type LIKE %s OR email LIKE %s OR phone LIKE %s OR city LIKE %s)")
         search_term = f"%{keywords}%"
-        placeholders.extend([search_term, search_term, search_term, search_term, search_term, search_term])
+        placeholders.extend([search_term, search_term, search_term, search_term, search_term, search_term, search_term, search_term])
 
     if status:
         where_clauses.append("status_type = %s")
@@ -140,7 +140,7 @@ def companies():
     if export_fmt in ("csv", "xlsx"):
         export_sql = f"""
         SELECT 
-            cid, company_name, legal_name, email, phone, website,
+            cid, company_name, legal_name, ownership_type, business_type, email, phone, website,
             address_line1, address_line2, city, state, country, postal_code,
             timezone, language_code, fiscal_year_start_month, status_type, note,
             created_on, created_by
@@ -153,14 +153,14 @@ def companies():
         output = io.StringIO()
         writer = csv.writer(output)
         writer.writerow([
-            "CID", "Company Name", "Legal Name", "Email", "Phone", "Website",
+            "CID", "Company Name", "Legal Name", "Ownership Type", "Business Type", "Email", "Phone", "Website",
             "Address Line 1", "Address Line 2", "City", "State", "Country", "Postal Code",
             "Timezone", "Language Code", "Fiscal Year Start Month", "Status", "Note / Remarks",
             "Created On", "Created By"
         ])
         for r in export_rows:
             writer.writerow([
-                r.get("cid"), r.get("company_name"), r.get("legal_name"), r.get("email"), r.get("phone"), r.get("website"),
+                r.get("cid"), r.get("company_name"), r.get("legal_name"), r.get("ownership_type"), r.get("business_type"), r.get("email"), r.get("phone"), r.get("website"),
                 r.get("address_line1"), r.get("address_line2"), r.get("city"), r.get("state"), r.get("country"), r.get("postal_code"),
                 r.get("timezone"), r.get("language_code"), r.get("fiscal_year_start_month"), r.get("status_type"), r.get("note"),
                 r.get("created_on"), r.get("created_by")
@@ -297,6 +297,8 @@ def company_manage(company_id=None):
 
         company_name = clean_val(request.forms.get("company_name"))
         legal_name = clean_val(request.forms.get("legal_name"))
+        ownership_type = clean_val(request.forms.get("ownership_type")) or "PRIVATE"
+        business_type = clean_val(request.forms.get("business_type"))
         email = clean_val(request.forms.get("email"))
         phone = clean_val(request.forms.get("phone"))
         website = clean_val(request.forms.get("website"))
@@ -385,7 +387,7 @@ def company_manage(company_id=None):
             try:
                 update_sql = """
                 UPDATE companies SET
-                    company_name = %s, legal_name = %s, email = %s, phone = %s, website = %s,
+                    company_name = %s, legal_name = %s, ownership_type = %s, business_type = %s, email = %s, phone = %s, website = %s,
                     address_line1 = %s, address_line2 = %s, city = %s, state = %s, country = %s, postal_code = %s,
                     timezone = %s, language_code = %s, fiscal_year_start_month = %s,
                     favicon_url = %s, logo_url = %s, banner_url = %s, status_type = %s, note = %s,
@@ -394,7 +396,7 @@ def company_manage(company_id=None):
                 """
                 updated_by = session.user.get("username") or session.user.get("user_id") or "SYSTEM"
                 db.executesql(update_sql, [
-                    company_name, legal_name, email, phone, website,
+                    company_name, legal_name, ownership_type, business_type, email, phone, website,
                     address_line1, address_line2, city, state, country, postal_code,
                     timezone, language_code, fiscal_year_start_month,
                     favicon_url, logo_url, banner_url, status_type, note,
@@ -454,13 +456,13 @@ def company_manage(company_id=None):
             try:
                 insert_sql = """
                 INSERT INTO companies (
-                    cid, company_name, legal_name, email, phone, website,
+                    cid, company_name, legal_name, ownership_type, business_type, email, phone, website,
                     address_line1, address_line2, city, state, country, postal_code,
                     timezone, language_code, fiscal_year_start_month,
                     favicon_url, logo_url, banner_url, status_type, note,
                     created_on, created_by
                 ) VALUES (
-                    %s, %s, %s, %s, %s, %s,
+                    %s, %s, %s, %s, %s, %s, %s, %s,
                     %s, %s, %s, %s, %s, %s,
                     %s, %s, %s,
                     %s, %s, %s, %s, %s,
@@ -469,7 +471,7 @@ def company_manage(company_id=None):
                 """
                 created_by = session.user.get("username") or session.user.get("user_id") or "SYSTEM"
                 db.executesql(insert_sql, [
-                    cid.upper(), company_name, legal_name, email, phone, website,
+                    cid.upper(), company_name, legal_name, ownership_type, business_type, email, phone, website,
                     address_line1, address_line2, city, state, country, postal_code,
                     timezone, language_code, fiscal_year_start_month,
                     favicon_url, logo_url, banner_url, status_type, note,
@@ -542,12 +544,12 @@ def import_companies():
     # Template download handler
     if request.query.get("template") == "csv":
         headers = [
-            "Company ID (CID)", "Company Name", "Legal Name", "Email", "Phone", "Website",
+            "Company ID (CID)", "Company Name", "Legal Name", "Ownership Type", "Business Type", "Email", "Phone", "Website",
             "Address Line 1", "Address Line 2", "City", "State", "Country", "Postal Code",
             "Timezone", "Fiscal Year Start Month", "Status", "Note"
         ]
         example = [
-            "EON", "Eon Systems", "Eon Systems Limited", "info@eonsystems.com", "+8801700000000", "https://eonsystems.com",
+            "EON", "Eon Systems", "Eon Systems Limited", "PRIVATE", "Software & IT Solutions", "info@eonsystems.com", "+8801700000000", "https://eonsystems.com",
             "House 12, Road 5", "Dhanmondi", "Dhaka", "Dhaka", "Bangladesh", "1205",
             "UTC+06:00", "1", "ACTIVE", "Headquarters office"
         ]
@@ -614,6 +616,8 @@ def import_companies():
         idx_cid = get_header_idx("company id (cid)", "cid", "company id", "company_id")
         idx_name = get_header_idx("company name", "company_name", "name")
         idx_legal = get_header_idx("legal name", "legal_name")
+        idx_own = get_header_idx("ownership type", "ownership_type", "ownership", "entity type")
+        idx_biz = get_header_idx("business type", "business_type", "industry type", "industry")
         idx_email = get_header_idx("email", "contact email")
         idx_phone = get_header_idx("phone", "phone number")
         idx_website = get_header_idx("website")
@@ -634,7 +638,7 @@ def import_companies():
 
         if idx_cid == -1 or idx_name == -1:
             flash.set("Required header columns missing: 'Company ID (CID)' and 'Company Name' are required.", "danger")
-            return dict(stats=None, active_tab=active_tab, user_cid=user_cid)
+            return dict(stats=None, active_tab=active_tab)
 
         # Pre-fetch existing companies map
         comp_rows = db.executesql("SELECT id, cid FROM companies")
@@ -673,6 +677,9 @@ def import_companies():
 
             r_cid = r_cid.upper()
             r_legal = val_at(idx_legal)
+            raw_own = val_at(idx_own)
+            r_own = raw_own.upper() if raw_own else "PRIVATE"
+            r_biz = val_at(idx_biz)
             r_email = val_at(idx_email)
             r_phone = val_at(idx_phone)
             r_website = val_at(idx_website)
@@ -700,11 +707,11 @@ def import_companies():
 
             try:
                 if r_cid in existing_companies:
-                    # Update existing record (COALESCE preserves existing branding/language if omitted)
+                    # Update existing record (COALESCE preserves existing branding/language/ownership if omitted)
                     company_id = existing_companies[r_cid]
                     update_sql = """
                     UPDATE companies SET
-                        company_name = %s, legal_name = %s, email = %s, phone = %s, website = %s,
+                        company_name = %s, legal_name = %s, ownership_type = COALESCE(%s, ownership_type), business_type = COALESCE(%s, business_type), email = %s, phone = %s, website = %s,
                         address_line1 = %s, address_line2 = %s, city = %s, state = %s, country = %s, postal_code = %s,
                         timezone = %s, language_code = COALESCE(%s, language_code), fiscal_year_start_month = %s,
                         favicon_url = COALESCE(%s, favicon_url), logo_url = COALESCE(%s, logo_url), banner_url = COALESCE(%s, banner_url), status_type = %s, note = %s,
@@ -712,7 +719,7 @@ def import_companies():
                     WHERE id = %s
                     """
                     db.executesql(update_sql, [
-                        r_name, r_legal, r_email, r_phone, r_website,
+                        r_name, r_legal, r_own, r_biz, r_email, r_phone, r_website,
                         r_addr1, r_addr2, r_city, r_state, r_country, r_postal,
                         r_tz, r_lang, r_fiscal,
                         r_favicon, r_logo, r_banner, r_status, r_note,
@@ -723,13 +730,13 @@ def import_companies():
                     # Insert new record
                     insert_sql = """
                     INSERT INTO companies (
-                        cid, company_name, legal_name, email, phone, website,
+                        cid, company_name, legal_name, ownership_type, business_type, email, phone, website,
                         address_line1, address_line2, city, state, country, postal_code,
                         timezone, language_code, fiscal_year_start_month,
                         favicon_url, logo_url, banner_url, status_type, note,
                         created_on, created_by
                     ) VALUES (
-                        %s, %s, %s, %s, %s, %s,
+                        %s, %s, %s, %s, %s, %s, %s, %s,
                         %s, %s, %s, %s, %s, %s,
                         %s, %s, %s,
                         %s, %s, %s, %s, %s,
@@ -737,7 +744,7 @@ def import_companies():
                     )
                     """
                     db.executesql(insert_sql, [
-                        r_cid, r_name, r_legal, r_email, r_phone, r_website,
+                        r_cid, r_name, r_legal, r_own, r_biz, r_email, r_phone, r_website,
                         r_addr1, r_addr2, r_city, r_state, r_country, r_postal,
                         r_tz, r_lang, r_fiscal,
                         r_favicon, r_logo, r_banner, r_status, r_note,

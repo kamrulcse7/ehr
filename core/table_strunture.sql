@@ -99,6 +99,8 @@ CREATE TABLE companies (
   cid varchar(50) NOT NULL COMMENT 'Company reference',
   company_name varchar(255) NOT NULL COMMENT 'display name',
   legal_name varchar(255) DEFAULT NULL COMMENT 'Legal registered name',
+  ownership_type varchar(50) DEFAULT 'PRIVATE' COMMENT 'PRIVATE, GOVERNMENT, SEMI_GOVT, AUTONOMOUS, NGO, MNC, PROPRIETORSHIP, PARTNERSHIP',
+  business_type varchar(100) DEFAULT NULL COMMENT 'Bank, Restaurant, Hospital, IT, Agriculture, Manufacturing, Retail, Education, etc.',
   email varchar(150) DEFAULT NULL COMMENT 'Primary email',
   phone varchar(20) DEFAULT NULL COMMENT 'Phone number',
   website varchar(150) DEFAULT NULL COMMENT 'Website',
@@ -278,9 +280,9 @@ CREATE TABLE employee_transfers (
 
 -- 1. Company Information (BADC)
 INSERT INTO companies (
-  cid, company_name, legal_name, email, phone, website, address_line1, city, country, status_type, created_by
+  cid, company_name, legal_name, ownership_type, business_type, email, phone, website, address_line1, city, country, status_type, created_by
 ) VALUES (
-  'BADC', 'Bangladesh Agricultural Development Corporation', 'Bangladesh Agricultural Development Corporation (BADC)', 'info@badc.gov.bd', '+88029556080', 'https://badc.gov.bd', 'Krishi Bhavan, 49-51 Dilkusha Commercial Area, Dhaka-1000', 'Dhaka', 'Bangladesh', 'ACTIVE', 'SYSTEM'
+  'BADC', 'Bangladesh Agricultural Development Corporation', 'Bangladesh Agricultural Development Corporation (BADC)', 'GOVERNMENT', 'Agriculture & Development', 'info@badc.gov.bd', '+88029556080', 'https://badc.gov.bd', 'Krishi Bhavan, 49-51 Dilkusha Commercial Area, Dhaka-1000', 'Dhaka', 'Bangladesh', 'ACTIVE', 'SYSTEM'
 );
 
 -- 2. Company Settings Overrides
