@@ -1,0 +1,291 @@
+[[ extend 'layout.html' ]]
+
+<div class="w-full space-y-4 text-slate-700 dark:text-slate-200">
+    <div class="max-w-[1800px] mx-auto space-y-4">
+
+        <!-- HEADER SECTION (Breadcrumb & Actions) -->
+        <div class="pb-2 border-b border-slate-200/80 dark:border-slate-800/80 flex items-center justify-between h-7">
+            <div class="flex items-center gap-0.5 text-xs font-medium">
+                <a href="[[=URL('administration/users')]]" class="text-slate-400 dark:text-slate-500 hover:text-primary transition-colors">Administration</a>
+                <span class="material-symbols-outlined text-[12px] text-slate-400 dark:text-slate-600 select-none -mx-0.5">chevron_right</span>
+                <a href="[[=URL('administration/users')]]" class="text-slate-400 dark:text-slate-500 hover:text-primary transition-colors">User Management</a>
+                <span class="material-symbols-outlined text-[12px] text-slate-400 dark:text-slate-600 select-none -mx-0.5">chevron_right</span>
+                <span class="text-primary font-bold">User Details</span>
+            </div>
+            <a href="[[=URL('administration/users')]]"
+                class="h-7 px-2.5 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 rounded-md text-xs font-semibold transition-all inline-flex items-center gap-1 shrink-0 border border-slate-200/60 dark:border-slate-700/60">
+                <span class="material-symbols-outlined text-[15px]">arrow_back</span>
+                Back
+            </a>
+        </div>
+
+        <!-- MAIN DETAILS GRID (2 COLUMNS: LEFT FOR ALL USER & EMP INFO, RIGHT FOR ROLE & PERMISSIONS) -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+
+            <!-- LEFT COLUMN: USER PROFILE BANNER, ACCOUNT DETAILS, EMPLOYEE INFO, NOTES -->
+            <div class="space-y-4">
+
+                <!-- USER PROFILE BANNER / HEADER CARD -->
+                <div class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-800/80 p-4 shadow-xs relative overflow-hidden">
+                    <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                        <div class="flex items-center gap-4 grow min-w-0">
+                            <!-- PROFILE PHOTO / AVATAR -->
+                            [[ photo_raw = user.get('profile_image') or user.get('emp_photo') or '' ]]
+                            [[ photo_src = (photo_raw if (photo_raw.startswith('http://') or photo_raw.startswith('https://') or photo_raw.startswith('/')) else URL('static/uploads/emp_images', photo_raw)) if photo_raw else '' ]]
+                            [[ display_name = (user.get('emp_name') or user.get('user_name') or 'User').strip() ]]
+                            [[ initial = display_name[0].upper() if display_name else 'U' ]]
+
+                            [[ if photo_src: ]]
+                            <img src="[[= photo_src ]]" alt="[[= display_name ]]"
+                                onerror="this.style.display='none'; if(this.nextElementSibling) this.nextElementSibling.style.display='flex';"
+                                class="w-14 h-14 rounded-full object-cover border-2 border-slate-200 dark:border-slate-700 shrink-0 shadow-xs">
+                            <div class="w-14 h-14 rounded-full bg-primary/10 text-primary font-black text-xl items-center justify-center shrink-0 border-2 border-primary/20 select-none hidden">
+                                [[= initial ]]
+                            </div>
+                            [[ else: ]]
+                            <div class="w-14 h-14 rounded-full bg-primary/10 text-primary font-black text-xl flex items-center justify-center shrink-0 border-2 border-primary/20 select-none shadow-xs">
+                                [[= initial ]]
+                            </div>
+                            [[ pass ]]
+
+                            <!-- TITLE & KEY BADGES -->
+                            <div class="space-y-1 min-w-0 grow">
+                                <div class="flex flex-wrap items-center gap-2">
+                                    <h1 class="text-base sm:text-lg font-bold text-slate-900 dark:text-white leading-tight">
+                                        [[= display_name ]]
+                                    </h1>
+
+                                    [[ if not user_cid and user.get('cid'): ]]
+                                    <span class="font-mono font-bold text-[10px] text-sky-700 dark:text-sky-400 bg-sky-100 dark:bg-sky-950/80 px-1.5 py-0.5 rounded border border-sky-200 dark:border-sky-800">
+                                        [[= user.get('cid').upper() ]]
+                                    </span>
+                                    [[ pass ]]
+
+                                    <!-- Status Badge -->
+                                    [[ st = (user.get('status_type') or 'ACTIVE').upper() ]]
+                                    [[ if st == 'ACTIVE': ]]
+                                    <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-bold bg-emerald-50 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-400">
+                                        <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> Active
+                                    </span>
+                                    [[ elif st in ['INACTIVE', 'LOCKED', 'BLOCKED']: ]]
+                                    <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-bold bg-rose-50 text-rose-600 dark:bg-rose-950/60 dark:text-rose-400">
+                                        <span class="w-1.5 h-1.5 rounded-full bg-rose-500"></span> [[= st.title() ]]
+                                    </span>
+                                    [[ else: ]]
+                                    <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-bold bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300">
+                                        <span class="w-1.5 h-1.5 rounded-full bg-slate-400"></span> [[= st ]]
+                                    </span>
+                                    [[ pass ]]
+
+                                    <!-- User Type Badge -->
+                                    [[ is_link_user = bool(user.get('emp_id')) ]]
+                                    [[ if is_link_user: ]]
+                                    <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-bold tracking-wider uppercase bg-indigo-50 text-indigo-700 dark:bg-indigo-950/50 dark:text-indigo-300 border border-indigo-200/60 dark:border-indigo-800/60 shadow-2xs">
+                                        <span class="w-1.5 h-1.5 rounded-full bg-indigo-500 shrink-0"></span> LINKED USER
+                                    </span>
+                                    [[ else: ]]
+                                    <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-bold tracking-wider uppercase bg-emerald-50 text-emerald-700 dark:bg-emerald-950/50 dark:text-emerald-300 border border-emerald-200/60 dark:border-emerald-800/60 shadow-2xs">
+                                        <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 shrink-0"></span> DIRECT USER
+                                    </span>
+                                    [[ pass ]]
+                                </div>
+
+                                <!-- SUBTITLE / DETAILS METADATA LINE -->
+                                <div class="flex flex-wrap items-center gap-x-2.5 gap-y-1 text-xs text-slate-500 dark:text-slate-400">
+                                    [[ if user.get('emp_designation'): ]]
+                                    <span class="font-medium text-slate-700 dark:text-slate-300">[[= user.get('emp_designation') ]]</span>
+                                    <span class="text-slate-300 dark:text-slate-600 font-bold">•</span>
+                                    [[ pass ]]
+
+                                    <span class="font-mono text-slate-500 dark:text-slate-400">#[[= user.get('emp_id') or user.get('user_id') ]]</span>
+
+                                    [[ if user.get('emp_department'): ]]
+                                    <span class="text-slate-300 dark:text-slate-600 font-bold">•</span>
+                                    <span class="font-medium text-slate-600 dark:text-slate-400">[[= user.get('emp_department') ]]</span>
+                                    [[ pass ]]
+
+                                    [[ user_email = user.get('emp_email') or user.get('email') or '' ]]
+                                    [[ if user_email: ]]
+                                    <span class="text-slate-300 dark:text-slate-600 font-bold">•</span>
+                                    <span class="inline-flex items-center gap-1 text-slate-600 dark:text-slate-400">
+                                        <span class="material-symbols-outlined text-[15px] text-slate-400">mail</span>
+                                        [[= user_email ]]
+                                    </span>
+                                    [[ pass ]]
+
+                                    [[ user_mobile = user.get('emp_mobile') or user.get('mobile') or '' ]]
+                                    [[ if user_mobile: ]]
+                                    <span class="text-slate-300 dark:text-slate-600 font-bold">•</span>
+                                    <span class="inline-flex items-center gap-1 font-mono text-slate-600 dark:text-slate-400">
+                                        <span class="material-symbols-outlined text-[15px] text-slate-400">call</span>
+                                        [[= user_mobile ]]
+                                    </span>
+                                    [[ pass ]]
+
+                                    [[ if user.get('role_name'): ]]
+                                    <span class="text-slate-300 dark:text-slate-600 font-bold">•</span>
+                                    <span class="inline-flex items-center gap-1 font-bold text-primary">
+                                        <span class="material-symbols-outlined text-[15px]">verified_user</span>
+                                        [[= user.get('role_name') ]]
+                                    </span>
+                                    [[ pass ]]
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- EDIT USER BUTTON -->
+                        <a href="[[=URL('administration/user_manage/' + str(user.get('id')))]]"
+                            class="h-7 px-3 bg-emerald-600 hover:bg-emerald-700 text-white rounded-md text-xs font-semibold transition-all inline-flex items-center gap-1 shrink-0 shadow-2xs self-center">
+                            <span class="material-symbols-outlined text-[15px]">edit</span>
+                            <span>Edit User</span>
+                        </a>
+                    </div>
+                </div>
+                <!-- 1. ACCOUNT INFORMATION CARD -->
+                <div class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-800/80 p-5 shadow-xs space-y-3">
+                    <div class="flex items-center gap-2 border-b border-slate-100 dark:border-slate-800 pb-3">
+                        <span class="material-symbols-outlined text-primary text-[20px]">manage_accounts</span>
+                        <h3 class="font-bold text-sm text-slate-900 dark:text-white">Account Details</h3>
+                    </div>
+
+                    <dl class="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-3.5 text-xs">
+                        <div>
+                            <dt class="font-bold text-[10px] uppercase tracking-wider text-slate-400 dark:text-slate-500">Login Username / User ID</dt>
+                            <dd class="font-mono font-bold text-slate-800 dark:text-slate-200 mt-0.5">[[= user.get('user_id') or '--' ]]</dd>
+                        </div>
+                        <div>
+                            <dt class="font-bold text-[10px] uppercase tracking-wider text-slate-400 dark:text-slate-500">Primary User Role</dt>
+                            <dd class="font-bold text-slate-800 dark:text-slate-200 mt-0.5">
+                                [[= user.get('role_name') or user.get('role_id') or 'No Specific Role (General Access)' ]]
+                            </dd>
+                        </div>
+                        <div>
+                            <dt class="font-bold text-[10px] uppercase tracking-wider text-slate-400 dark:text-slate-500">Account Status</dt>
+                            <dd class="font-bold text-slate-800 dark:text-slate-200 mt-0.5">[[= (user.get('status_type') or 'ACTIVE').upper() ]]</dd>
+                        </div>
+                        <div>
+                            <dt class="font-bold text-[10px] uppercase tracking-wider text-slate-400 dark:text-slate-500">Created On</dt>
+                            <dd class="font-mono text-slate-700 dark:text-slate-300 mt-0.5">[[= user.get('created_on') or '--' ]]</dd>
+                        </div>
+                        <div>
+                            <dt class="font-bold text-[10px] uppercase tracking-wider text-slate-400 dark:text-slate-500">Created By</dt>
+                            <dd class="font-medium text-slate-700 dark:text-slate-300 mt-0.5">[[= user.get('created_by') or '--' ]]</dd>
+                        </div>
+                        <div>
+                            <dt class="font-bold text-[10px] uppercase tracking-wider text-slate-400 dark:text-slate-500">Last Login Time</dt>
+                            <dd class="font-mono text-slate-700 dark:text-slate-300 mt-0.5">[[= user.get('last_login') or 'Never' ]]</dd>
+                        </div>
+                    </dl>
+                </div>
+
+                <!-- 2. LINKED EMPLOYEE INFORMATION CARD (IF LINKED) -->
+                [[ if is_link_user: ]]
+                <div class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-800/80 p-5 shadow-xs space-y-3">
+                    <div class="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
+                        <div class="flex items-center gap-2">
+                            <span class="material-symbols-outlined text-indigo-600 dark:text-indigo-400 text-[20px]">badge</span>
+                            <h3 class="font-bold text-sm text-slate-900 dark:text-white">Official Employee Details</h3>
+                        </div>
+                        <span class="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-indigo-50 text-indigo-700 dark:bg-indigo-950 dark:text-indigo-300 border border-indigo-200/60 dark:border-indigo-800/60">
+                            #[[= user.get('emp_id') ]]
+                        </span>
+                    </div>
+
+                    <dl class="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-3.5 text-xs">
+                        <div>
+                            <dt class="font-bold text-[10px] uppercase tracking-wider text-slate-400 dark:text-slate-500">Employee Official Name</dt>
+                            <dd class="font-bold text-slate-800 dark:text-slate-200 mt-0.5">[[= user.get('emp_name') or '--' ]]</dd>
+                        </div>
+                        <div>
+                            <dt class="font-bold text-[10px] uppercase tracking-wider text-slate-400 dark:text-slate-500">Official ID / Code</dt>
+                            <dd class="font-mono font-bold text-indigo-600 dark:text-indigo-400 mt-0.5">[[= user.get('emp_id') or '--' ]]</dd>
+                        </div>
+                        <div>
+                            <dt class="font-bold text-[10px] uppercase tracking-wider text-slate-400 dark:text-slate-500">Designation</dt>
+                            <dd class="font-medium text-slate-800 dark:text-slate-200 mt-0.5">[[= user.get('emp_designation') or '--' ]]</dd>
+                        </div>
+                        <div>
+                            <dt class="font-bold text-[10px] uppercase tracking-wider text-slate-400 dark:text-slate-500">Department</dt>
+                            <dd class="font-medium text-slate-800 dark:text-slate-200 mt-0.5">[[= user.get('emp_department') or '--' ]]</dd>
+                        </div>
+                        <div>
+                            <dt class="font-bold text-[10px] uppercase tracking-wider text-slate-400 dark:text-slate-500">Posting Station / Branch</dt>
+                            <dd class="font-medium text-slate-800 dark:text-slate-200 mt-0.5">[[= user.get('posting_place') or '--' ]]</dd>
+                        </div>
+                        <div>
+                            <dt class="font-bold text-[10px] uppercase tracking-wider text-slate-400 dark:text-slate-500">Grade</dt>
+                            <dd class="font-medium text-slate-800 dark:text-slate-200 mt-0.5">[[= user.get('emp_grade') or '--' ]]</dd>
+                        </div>
+                    </dl>
+                </div>
+                [[ pass ]]
+
+                <!-- 3. REMARKS / NOTES CARD (IF PRESENT) -->
+                [[ if user.get('note'): ]]
+                <div class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-800/80 p-5 shadow-xs space-y-2">
+                    <div class="flex items-center gap-2 border-b border-slate-100 dark:border-slate-800 pb-3">
+                        <span class="material-symbols-outlined text-primary text-[20px]">notes</span>
+                        <h3 class="font-bold text-sm text-slate-900 dark:text-white">Remarks / Notes</h3>
+                    </div>
+                    <p class="text-xs text-slate-700 dark:text-slate-300 leading-relaxed whitespace-pre-line pt-1">
+                        [[= user.get('note') ]]
+                    </p>
+                </div>
+                [[ pass ]]
+            </div>
+
+            <!-- RIGHT COLUMN: ASSIGNED ROLE & PERMISSIONS CARD -->
+            <div class="space-y-4">
+                <!-- 4. ROLE & MODULE PERMISSIONS CARD -->
+                <div class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-800/80 p-5 shadow-xs space-y-4">
+                    <div class="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
+                        <div class="flex items-center gap-2">
+                            <span class="material-symbols-outlined text-sky-600 dark:text-sky-400 text-[20px]">verified_user</span>
+                            <h3 class="font-bold text-sm text-slate-900 dark:text-white">Assigned Role & Access</h3>
+                        </div>
+                        [[ if user.get('role_id'): ]]
+                        <span class="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-sky-50 text-sky-700 dark:bg-sky-950 dark:text-sky-300 border border-sky-200/60 dark:border-sky-800/60">
+                            ROLE: [[= user.get('role_id') ]]
+                        </span>
+                        [[ pass ]]
+                    </div>
+
+                    [[ if user.get('role_description'): ]]
+                    <div class="p-3 bg-slate-50 dark:bg-slate-800/60 rounded-xl text-xs text-slate-600 dark:text-slate-400">
+                        <strong class="font-bold text-slate-800 dark:text-slate-200">Role Description:</strong>
+                        <p class="mt-0.5">[[= user.get('role_description') ]]</p>
+                    </div>
+                    [[ pass ]]
+
+                    <div>
+                        <h4 class="text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 mb-2.5">
+                            Accessible Modules & Capabilities Included:
+                        </h4>
+
+                        [[ if role_permissions: ]]
+                        <div class="space-y-2 max-h-[380px] overflow-y-auto pr-1">
+                            [[ for perm in role_permissions: ]]
+                            <div class="p-2.5 bg-slate-50/70 dark:bg-slate-800/40 border border-slate-200/60 dark:border-slate-700/60 rounded-xl flex items-center justify-between gap-3 text-xs">
+                                <div class="flex items-center gap-2.5 min-w-0">
+                                    <span class="material-symbols-outlined text-[18px] text-primary shrink-0">[[= perm.get('module_icon', 'extension') ]]</span>
+                                    <span class="font-bold text-slate-800 dark:text-slate-200 truncate">[[= perm.get('module_name') ]]</span>
+                                </div>
+                                <span class="px-2 py-0.5 rounded-md text-[11px] font-semibold bg-sky-50 text-sky-700 dark:bg-sky-950/80 dark:text-sky-300 border border-sky-200/60 dark:border-sky-800/60 shrink-0">
+                                    [[= perm.get('actions') ]]
+                                </span>
+                            </div>
+                            [[ pass ]]
+                        </div>
+                        [[ else: ]]
+                        <div class="p-4 bg-slate-50 dark:bg-slate-800/50 rounded-xl text-center text-xs text-slate-400 italic">
+                            No specific module permissions assigned for this role.
+                        </div>
+                        [[ pass ]]
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+    </div>
+</div>

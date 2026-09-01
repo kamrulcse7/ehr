@@ -1433,6 +1433,104 @@ def import_users():
     return dict(stats=stats, active_tab=active_tab, user_cid=user_cid)
 
 
+@action("administration/user_view/<user_id>", method=["GET"])
+@action("administration/user_view", method=["GET"])
+@view_page("administration/user_view.html", title="User Details | Administration")
+@web_auth_required
+def user_view(user_id=None):
+    user_cid = session.user.get("cid", "") if (session and session.user) else ""
+
+    if user_id is None:
+        user_id = request.query.get("id") or request.query.get("user_id")
+
+    if not user_id:
+        flash.set("No user account specified.", "danger")
+        redirect(URL("administration/users"))
+
+    if str(user_id).isdigit():
+        user_rows = db.executesql("""
+            SELECT u.*, 
+                   e.emp_name, e.emp_designation, e.emp_department, e.photo_url as emp_photo, 
+                   e.mobile as emp_mobile, e.email as emp_email, e.emp_grade, e.current_branch_id as posting_place, e.join_date as joining_date,
+                   r.role_name, r.note as role_description
+            FROM users u
+            LEFT JOIN employees e ON u.emp_id = e.emp_id AND (u.cid IS NULL OR LOWER(u.cid) = LOWER(e.cid))
+            LEFT JOIN roles r ON UPPER(u.role_id) = UPPER(r.role_id)
+            WHERE u.id = %s OR UPPER(u.user_id) = %s
+            LIMIT 1
+        """, [int(user_id), str(user_id).upper()], as_dict=True)
+    else:
+        user_rows = db.executesql("""
+            SELECT u.*, 
+                   e.emp_name, e.emp_designation, e.emp_department, e.photo_url as emp_photo, 
+                   e.mobile as emp_mobile, e.email as emp_email, e.emp_grade, e.current_branch_id as posting_place, e.join_date as joining_date,
+                   r.role_name, r.note as role_description
+            FROM users u
+            LEFT JOIN employees e ON u.emp_id = e.emp_id AND (u.cid IS NULL OR LOWER(u.cid) = LOWER(e.cid))
+            LEFT JOIN roles r ON UPPER(u.role_id) = UPPER(r.role_id)
+            WHERE UPPER(u.user_id) = %s
+            LIMIT 1
+        """, [str(user_id).upper()], as_dict=True)
+
+    if not user_rows:
+        flash.set(f"User account '{user_id}' not found.", "danger")
+        redirect(URL("administration/users"))
+
+    target_user = user_rows[0]
+    
+    # Fetch module permissions for the user's role
+    role_permissions = []
+    role_id = target_user.get("role_id")
+    target_cid = target_user.get("cid") or user_cid
+
+    if role_id:
+        comp_mod_set = None
+        if target_cid:
+            cm_rows = db.executesql(
+                "SELECT module_id FROM company_modules WHERE LOWER(cid) = LOWER(%s) AND status_type = 'ACTIVE'",
+                [target_cid],
+                as_dict=True
+            )
+            if cm_rows:
+                comp_mod_set = set(m["module_id"].upper() for m in cm_rows if m.get("module_id"))
+
+        perm_rows = db.executesql("""
+            SELECT p.can_view, p.can_add as can_create, p.can_edit, p.can_delete, p.can_export, p.can_approve,
+                   m.module_id, m.module_name, m.parent_module_id, m.module_group, m.icon as module_icon
+            FROM role_module_permissions p
+            JOIN modules m ON p.module_id = m.module_id
+            WHERE UPPER(p.role_id) = %s AND (p.status_type IS NULL OR p.status_type = 'ACTIVE')
+              AND (m.status_type IS NULL OR m.status_type = 'ACTIVE') AND m.is_clickable = 1
+            ORDER BY m.display_order ASC
+        """, [str(role_id).upper()], as_dict=True)
+
+        for p in perm_rows:
+            mod_id = (p.get("module_id") or "").upper()
+            if comp_mod_set is not None and mod_id not in comp_mod_set:
+                continue
+
+            actions = []
+            if p.get("can_view"): actions.append("View")
+            if p.get("can_create"): actions.append("Create")
+            if p.get("can_edit"): actions.append("Edit")
+            if p.get("can_delete"): actions.append("Delete")
+            if p.get("can_export"): actions.append("Export")
+            if p.get("can_approve"): actions.append("Approve")
+            if actions:
+                act_str = "Full Access" if len(actions) == 6 else ", ".join(actions)
+                role_permissions.append({
+                    "module_name": p["module_name"],
+                    "module_icon": p.get("module_icon") or "extension",
+                    "actions": act_str
+                })
+
+    return dict(
+        user=target_user,
+        role_permissions=role_permissions,
+        user_cid=user_cid
+    )
+
+
 @action("administration/user_manage", method=["GET", "POST"])
 @action("administration/user_manage/<user_id>", method=["GET", "POST"])
 @action("administration/add_user", method=["GET", "POST"])

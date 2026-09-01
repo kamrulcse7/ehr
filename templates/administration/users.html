@@ -221,7 +221,7 @@
                                     <div class="flex flex-col min-w-0">
                                         <div class="font-bold text-slate-900 dark:text-white text-xs truncate flex items-center gap-1.5">
                                             <span>[[= u.get('user_name', '--') ]]</span>
-                                            [[ if u.get('cid'): ]]
+                                            [[ if not user_cid and u.get('cid'): ]]
                                             <span class="px-1.5 py-0.2 rounded text-[10px] font-bold bg-sky-100 text-sky-800 dark:bg-sky-950/60 dark:text-sky-400 font-mono inline-block shadow-2xs border border-sky-200/50 dark:border-sky-800/50">
                                                 [[= u.get('cid') ]]
                                             </span>
@@ -297,7 +297,7 @@
                             <td class="py-2 px-2 text-center w-px whitespace-nowrap">
                                 <div class="inline-flex items-center justify-center gap-0.5">
                                     <!-- View Button -->
-                                    <a href="[[=URL('administration/user_manage', vars={'id': u.get('id'), 'mode': 'view'})]]" title="View Details"
+                                    <a href="[[=URL('administration/user_view/' + str(u.get('id')))]]" title="View Details"
                                         class="p-1 rounded text-slate-400 hover:text-sky-600 hover:bg-sky-50 dark:hover:bg-sky-950/40 transition-colors">
                                         <span class="material-symbols-outlined text-[16px] block">visibility</span>
                                     </a>
