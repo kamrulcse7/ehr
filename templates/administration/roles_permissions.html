@@ -198,7 +198,9 @@
         } else {
             cidBadgeSpan.innerHTML = '';
         }
-        editBtn.href = `${EDIT_URL_BASE}?role_id=${role.role_id}`;
+        if (editBtn) {
+            editBtn.href = `${EDIT_URL_BASE}?role_id=${role.role_id}`;
+        }
 
         if (deleteBtn) {
             deleteBtn.style.display = 'inline-flex';
@@ -272,20 +274,29 @@
     }
 
     function switchRole(roleId) {
-        if (!window.ROLE_DATA || !Array.isArray(window.ROLE_DATA)) return;
-        
-        const selectedRole = window.ROLE_DATA.find(r => String(r.role_id) === String(roleId));
-        if (!selectedRole) return;
+        if (!window.ROLE_DATA || !Array.isArray(window.ROLE_DATA) || window.ROLE_DATA.length === 0) {
+            renderPermissions(null);
+            return;
+        }
+
+        let targetId = String(roleId || '').trim().toUpperCase();
+        let selectedRole = window.ROLE_DATA.find(r => String(r.role_id || '').toUpperCase() === targetId);
+
+        if (!selectedRole) {
+            selectedRole = window.ROLE_DATA[0];
+        }
+
+        const activeRoleIdStr = selectedRole.role_id;
 
         // Reset sidebar button highlights
         document.querySelectorAll('.role-card-btn').forEach(btn => {
-            btn.className = 'role-card-btn w-full p-2.5 rounded-xl border transition-all cursor-pointer flex items-center justify-between group text-left bg-white dark:bg-slate-900 border-slate-100 dark:border-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800/40';
+            btn.className = 'role-card-btn w-full p-2.5 rounded-xl border transition-all cursor-pointer flex items-center justify-between group text-left bg-white dark:bg-slate-900 border-slate-200/60 dark:border-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800/40';
         });
 
         // Set active highlight on clicked button
-        const activeBtn = document.getElementById(`role-btn-${roleId}`);
+        const activeBtn = document.getElementById(`role-btn-${activeRoleIdStr}`);
         if (activeBtn) {
-            activeBtn.className = 'role-card-btn w-full p-2.5 rounded-xl border transition-all cursor-pointer flex items-center justify-between group text-left bg-primary/10 border-primary/40 text-primary dark:text-primary-light shadow-sm';
+            activeBtn.className = 'role-card-btn w-full p-2.5 rounded-xl border transition-all cursor-pointer flex items-center justify-between group text-left bg-primary/10 border-primary/40 text-primary dark:text-primary-light shadow-xs';
         }
 
         renderPermissions(selectedRole);
@@ -320,10 +331,6 @@
     // Initialize Page
     document.addEventListener('DOMContentLoaded', () => {
         const initialRoleId = "[[= selected_role_id or '' ]]";
-        if (initialRoleId) {
-            switchRole(initialRoleId);
-        } else if (window.ROLE_DATA && window.ROLE_DATA.length > 0) {
-            renderPermissions(window.ROLE_DATA[0]);
-        }
+        switchRole(initialRoleId);
     });
 </script>
