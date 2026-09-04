@@ -1,6 +1,7 @@
 from py4web import URL, action, redirect, request, response
 from ..middleware.auth_middleware import web_auth_required
 from ..utils.common import db, flash, session, view_page
+from ..utils.permission_utils import get_user_permissions
 from ..core.db import db_datetime
 import math
 import io
@@ -81,10 +82,15 @@ def _save_user_avatar_file(file_obj, user_id_val, max_bytes=120 * 1024):
 @view_page("administration/companies.html", title="Company Management | Administration")
 @web_auth_required
 def companies():
+    perms = get_user_permissions(session.user, "COMPANY_MGMT")
     action_type = (request.query.get("action") or "").strip()
     delete_id = request.query.get("id") or request.query.get("delete_id")
 
     if action_type == "delete" and delete_id:
+        if not perms.get("can_delete"):
+            flash.set("Access Denied: You do not have permission to delete company records.", "danger")
+            redirect(URL("administration/companies"))
+            return
         try:
             del_id = int(delete_id)
             comp_rows = db.executesql("SELECT cid, company_name FROM companies WHERE id = %s LIMIT 1", [del_id], as_dict=True)
@@ -138,6 +144,10 @@ def companies():
 
     # 3. Export CSV/Excel
     if export_fmt in ("csv", "xlsx"):
+        if not perms.get("can_export"):
+            flash.set("Access Denied: You do not have permission to export records.", "danger")
+            redirect(URL("administration/companies"))
+            return
         export_sql = f"""
         SELECT 
             cid, company_name, legal_name, ownership_type, business_type, email, phone, website,
@@ -222,8 +232,18 @@ def companies():
 @view_page("administration/company_manage.html", title="Company Management | Administration")
 @web_auth_required
 def company_manage(company_id=None):
+    perms = get_user_permissions(session.user, "COMPANY_MGMT")
     if company_id is None:
         company_id = request.query.get("id") or request.query.get("company_id")
+
+    if company_id and not perms.get("can_edit"):
+        flash.set("Access Denied: You do not have permission to edit company records.", "danger")
+        redirect(URL("administration/companies"))
+        return
+    elif not company_id and not perms.get("can_add"):
+        flash.set("Access Denied: You do not have permission to add new companies.", "danger")
+        redirect(URL("administration/companies"))
+        return
 
     company = None
     if company_id:
@@ -540,6 +560,11 @@ def company_view(company_id=None):
 @view_page("administration/import_companies.html", title="Import Companies | Administration")
 @web_auth_required
 def import_companies():
+    perms = get_user_permissions(session.user, "COMPANY_MGMT")
+    if not perms.get("can_import") and not perms.get("can_add"):
+        flash.set("Access Denied: You do not have permission to import company records.", "danger")
+        redirect(URL("administration/companies"))
+        return
 
     # Template download handler
     if request.query.get("template") == "csv":
@@ -771,10 +796,15 @@ def import_companies():
 @view_page("administration/roles_permissions.html", title="Roles & Permissions | Administration")
 @web_auth_required
 def roles_permissions():
+    perms = get_user_permissions(session.user, "ROLES_PERM")
     action_type = (request.query.get("action") or "").strip().lower()
     delete_role_id = (request.query.get("delete_role_id") or request.query.get("role_id") or "").strip().upper()
 
     if action_type == "delete" and delete_role_id:
+        if not perms.get("can_delete"):
+            flash.set("Access Denied: You do not have permission to delete roles.", "danger")
+            redirect(URL("administration/roles_permissions"))
+            return
         try:
             db.executesql("UPDATE users SET role_id = NULL WHERE UPPER(role_id) = %s", [delete_role_id])
             db.executesql("DELETE FROM role_module_permissions WHERE UPPER(role_id) = %s", [delete_role_id])
@@ -873,6 +903,16 @@ def roles_permissions():
 @view_page("administration/role_manage.html", title="Role Management | Administration")
 @web_auth_required
 def role_manage(role_id=None):
+    perms = get_user_permissions(session.user, "ROLES_PERM")
+    if role_id and not perms.get("can_edit"):
+        flash.set("Access Denied: You do not have permission to edit roles & permissions.", "danger")
+        redirect(URL("administration/roles_permissions"))
+        return
+    elif not role_id and not perms.get("can_add"):
+        flash.set("Access Denied: You do not have permission to add new roles.", "danger")
+        redirect(URL("administration/roles_permissions"))
+        return
+
     user_id = session.user.get("user_id", "SYSTEM") if (session and session.user) else "SYSTEM"
     db_datetime = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
@@ -1065,10 +1105,15 @@ def role_manage(role_id=None):
 @web_auth_required
 def users():
     user_cid = session.user.get("cid", "")
+    perms = get_user_permissions(session.user, "USER_MGMT")
     action_type = request.query.get("action", "").strip().lower()
     delete_id = request.query.get("id") or request.query.get("delete_id")
 
     if action_type == "delete" and delete_id:
+        if not perms.get("can_delete"):
+            flash.set("Access Denied: You do not have permission to delete user accounts.", "danger")
+            redirect(URL('administration/users'))
+            return
         try:
             del_id = int(delete_id)
             del_where = ["id = %s"]
@@ -1280,6 +1325,11 @@ def users():
 @web_auth_required
 def import_users():
     user_cid = session.user.get("cid", "")
+    perms = get_user_permissions(session.user, "USER_MGMT")
+    if not perms.get("can_import") and not perms.get("can_add"):
+        flash.set("Access Denied: You do not have permission to import users.", "danger")
+        redirect(URL("administration/users"))
+        return
     if request.query.get("template") == "csv":
         output = io.StringIO()
         writer = csv.writer(output)
@@ -1541,9 +1591,19 @@ def user_view(user_id=None):
 def user_manage(user_id=None):
     user_cid = session.user.get("cid", "")
     current_user_id = session.user.get("user_id", "SYSTEM")
+    perms = get_user_permissions(session.user, "USER_MGMT")
 
     if user_id is None:
         user_id = request.query.get("id") or request.query.get("user_id") or request.query.get("edit_id")
+
+    if user_id and not perms.get("can_edit"):
+        flash.set("Access Denied: You do not have permission to edit user accounts.", "danger")
+        redirect(URL("administration/users"))
+        return
+    elif not user_id and not perms.get("can_add"):
+        flash.set("Access Denied: You do not have permission to create user accounts.", "danger")
+        redirect(URL("administration/users"))
+        return
 
     target_user = None
     if user_id:

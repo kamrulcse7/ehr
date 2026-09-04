@@ -3,6 +3,7 @@ from datetime import datetime, timedelta
 from py4web import request, response, redirect, URL
 from ..utils.common import session, flash
 from ..utils.menu_utils import get_user_menu_tree, get_active_module_info
+from ..utils.permission_utils import resolve_module_id, get_user_permissions
 from ..core.config import settings
 
 def web_auth_required(handler):
@@ -33,6 +34,15 @@ def web_auth_required(handler):
 
         session.last_activity = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
+        # Resolve module_id and check view permissions
+        module_id = resolve_module_id(request.path)
+        permissions = get_user_permissions(session.user, module_id)
+
+        if module_id and not permissions.get("can_view"):
+            flash.set("Access Denied: You do not have permission to access this module.", "danger")
+            redirect(URL("dashboard/index"))
+            return
+
         response_dict = handler(*args, **kwargs)
 
         response.headers["Cache-Control"] = "no-store, no-cache, must-revalidate, max-age=0"
@@ -44,6 +54,10 @@ def web_auth_required(handler):
                 response_dict["session"] = session
             if "flash" not in response_dict:
                 response_dict["flash"] = flash
+            if "permissions" not in response_dict:
+                response_dict["permissions"] = permissions
+            if "current_module_id" not in response_dict:
+                response_dict["current_module_id"] = module_id
             if "user_menu" not in response_dict:
                 response_dict["user_menu"] = get_user_menu_tree(session.user)
 
@@ -64,4 +78,4 @@ def web_auth_required(handler):
                 
         return response_dict
 
-    return wrapper
+    return wrapper

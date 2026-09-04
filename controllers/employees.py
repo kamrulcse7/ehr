@@ -1,6 +1,7 @@
 from py4web import URL, action, redirect, request, response
 from ..middleware.auth_middleware import web_auth_required
 from ..utils.common import flash, session, view_page
+from ..utils.permission_utils import get_user_permissions
 from ..core.db import db, db_datetime
 from datetime import datetime
 import xml.sax.saxutils as xml_escape
@@ -31,9 +32,14 @@ def parse_date(date_str):
 @web_auth_required
 def employee_directory():
     user_cid = session.user.get("cid", "")
+    perms = get_user_permissions(session.user, "EMPLOYEE_DIR")
     action_type = request.query.get("action", "").strip()
     delete_id = request.query.get("id") or request.query.get("delete_id")
     if action_type == "delete" and delete_id:
+        if not perms.get("can_delete"):
+            flash.set("Access Denied: You do not have permission to delete employee records.", "danger")
+            redirect(URL('employees/employee_directory'))
+            return
         try:
             del_id = int(delete_id)
             del_where = ["id = %s"]
@@ -97,6 +103,10 @@ def employee_directory():
     where_str = " AND ".join(where_clauses)
 
     if export_format in ["xlsx", "xls", "csv"]:
+        if not perms.get("can_export"):
+            flash.set("Access Denied: You do not have permission to export records.", "danger")
+            redirect(URL('employees/employee_directory'))
+            return
         export_sql = f"""
             SELECT e.id, e.cid, e.emp_id, e.emp_name, e.emp_type, e.emp_department, e.emp_designation, e.emp_grade, 
                    e.mobile, e.email, e.gender, e.dob, e.blood_group, e.join_date, e.retirement_date, e.edu_qualification, 
@@ -307,9 +317,8 @@ def show_directory(emp_id=None):
         transfers = db.executesql(transfers_sql, transfers_params, as_dict=True)
     except Exception as e:
         print(f"Error fetching transfers for employee details: {e}")
-        transfers = []
-
-    return dict(emp=emp, user_cid=user_cid, transfers=transfers)
+    transfer_permissions = get_user_permissions(session.user, "POSTING_TRANS")
+    return dict(emp=emp, user_cid=user_cid, transfers=transfers, transfer_permissions=transfer_permissions)
 
 
 @action("employees/directory_manage/<emp_id:int>", method=["GET", "POST"])
@@ -321,11 +330,21 @@ def show_directory(emp_id=None):
 @web_auth_required
 def directory_manage(emp_id=None):
     user_cid = session.user.get("cid", "")
+    perms = get_user_permissions(session.user, "EMPLOYEE_DIR")
     if emp_id is None:
         try:
             emp_id = int(request.query.get("id"))
         except (TypeError, ValueError):
             emp_id = None
+
+    if emp_id and not perms.get("can_edit"):
+        flash.set("Access Denied: You do not have permission to edit employee records.", "danger")
+        redirect(URL("employees/employee_directory"))
+        return
+    elif not emp_id and not perms.get("can_add"):
+        flash.set("Access Denied: You do not have permission to add new employees.", "danger")
+        redirect(URL("employees/employee_directory"))
+        return
 
     emp = None
     form_data = {}
@@ -534,6 +553,11 @@ def directory_manage(emp_id=None):
 @web_auth_required
 def import_directory():
     user_cid = session.user.get("cid", "")
+    perms = get_user_permissions(session.user, "EMPLOYEE_DIR")
+    if not perms.get("can_import") and not perms.get("can_add"):
+        flash.set("Access Denied: You do not have permission to import employee records.", "danger")
+        redirect(URL("employees/employee_directory"))
+        return
     # Check if downloading template
     if request.query.get("template") == "csv":
         if not user_cid:
@@ -870,10 +894,15 @@ def import_directory():
 @web_auth_required
 def postings_transfers():
     user_cid = session.user.get("cid", "")
+    perms = get_user_permissions(session.user, "POSTING_TRANS")
     action_type = request.query.get("action", "").strip()
     delete_id = request.query.get("id") or request.query.get("delete_id")
 
     if action_type == "delete" and delete_id:
+        if not perms.get("can_delete"):
+            flash.set("Access Denied: You do not have permission to delete transfer records.", "danger")
+            redirect(URL('employees/postings_transfers'))
+            return
         try:
             del_id = int(delete_id)
             del_where = ["id = %s"]
@@ -918,6 +947,10 @@ def postings_transfers():
 
     # Export Excel / CSV Handling
     if export_format in ["xlsx", "xls", "csv"]:
+        if not perms.get("can_export"):
+            flash.set("Access Denied: You do not have permission to export records.", "danger")
+            redirect(URL('employees/postings_transfers'))
+            return
         export_sql = f"""
             SELECT t.id, t.cid, t.emp_id, e.emp_name, t.transfer_order_no, t.transfer_type,
                    t.from_branch_id, t.to_branch_id,
@@ -1146,11 +1179,21 @@ def show_transfer(transfer_id=None):
 @web_auth_required
 def transfer_manage(transfer_id=None):
     user_cid = session.user.get("cid", "")
+    perms = get_user_permissions(session.user, "POSTING_TRANS")
     if transfer_id is None:
         try:
             transfer_id = int(request.query.get("id"))
         except (TypeError, ValueError):
             transfer_id = None
+
+    if transfer_id and not perms.get("can_edit"):
+        flash.set("Access Denied: You do not have permission to edit transfer orders.", "danger")
+        redirect(URL("employees/postings_transfers"))
+        return
+    elif not transfer_id and not perms.get("can_add"):
+        flash.set("Access Denied: You do not have permission to create transfer orders.", "danger")
+        redirect(URL("employees/postings_transfers"))
+        return
 
     item = None
     emp = None
@@ -1343,6 +1386,11 @@ def transfer_manage(transfer_id=None):
 @web_auth_required
 def delete_transfer(transfer_id=None):
     user_cid = session.user.get("cid", "")
+    perms = get_user_permissions(session.user, "POSTING_TRANS")
+    if not perms.get("can_delete"):
+        flash.set("Access Denied: You do not have permission to delete transfer orders.", "danger")
+        redirect(URL("employees/postings_transfers"))
+        return
     if transfer_id is None:
         try:
             transfer_id = int(request.query.get("id"))
@@ -1372,6 +1420,11 @@ def delete_transfer(transfer_id=None):
 @web_auth_required
 def import_transfer():
     user_cid = session.user.get("cid", "")
+    perms = get_user_permissions(session.user, "POSTING_TRANS")
+    if not perms.get("can_import") and not perms.get("can_add"):
+        flash.set("Access Denied: You do not have permission to import transfer orders.", "danger")
+        redirect(URL("employees/postings_transfers"))
+        return
 
     # 1. Download CSV Template
     if request.query.get("template") == "csv":

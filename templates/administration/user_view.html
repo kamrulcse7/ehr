@@ -134,11 +134,13 @@
                         </div>
 
                         <!-- EDIT USER BUTTON -->
+                        [[ if permissions and permissions.get('can_edit'): ]]
                         <a href="[[=URL('administration/user_manage/' + str(user.get('id')))]]"
                             class="h-7 px-3 bg-emerald-600 hover:bg-emerald-700 text-white rounded-md text-xs font-semibold transition-all inline-flex items-center gap-1 shrink-0 shadow-2xs self-center">
                             <span class="material-symbols-outlined text-[15px]">edit</span>
                             <span>Edit User</span>
                         </a>
+                        [[ pass ]]
                     </div>
                 </div>
                 <!-- 1. ACCOUNT INFORMATION CARD -->

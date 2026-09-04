@@ -125,6 +125,7 @@
                 <!-- RIGHT SIDE: EXPORT, IMPORT & ADD ACTIONS -->
                 <div class="flex items-center gap-1.5 border-t lg:border-t-0 pt-2 lg:pt-0 border-slate-200/60 dark:border-slate-700/60 shrink-0">
                     <!-- EXPORT DROPDOWN CONTAINER -->
+                    [[ if permissions and permissions.get('can_export'): ]]
                     <div class="relative flex items-center shrink-0">
                         <button type="button"
                                 id="exportDropdownBtn"
@@ -150,20 +151,25 @@
                             </a>
                         </div>
                     </div>
+                    [[ pass ]]
 
                     <!-- IMPORT BUTTON -->
+                    [[ if permissions and (permissions.get('can_import') or permissions.get('can_add')): ]]
                     <a href="[[=URL('administration/import_users')]]" title="Import users via CSV"
                         class="h-[28px] px-2.5 bg-white hover:bg-slate-100 dark:bg-slate-900 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700 rounded-md text-[11px] font-semibold transition-all inline-flex items-center justify-center gap-1 shadow-2xs shrink-0">
                         <span class="material-symbols-outlined text-[15px] text-sky-600 dark:text-sky-400 shrink-0 select-none">upload</span>
                         <span class="hidden sm:inline leading-none">Import</span>
                     </a>
+                    [[ pass ]]
 
                     <!-- ADD NEW BUTTON -->
+                    [[ if permissions and permissions.get('can_add'): ]]
                     <a href="[[=URL('administration/user_manage')]]"
                         class="h-[28px] px-3 bg-emerald-600 hover:bg-emerald-700 active:scale-[0.98] text-white rounded-md font-semibold text-[11px] shadow-xs transition-all flex items-center justify-center gap-1 shrink-0">
                         <span class="material-symbols-outlined text-[15px] shrink-0 select-none">person_add</span>
                         <span class="leading-none">Add New</span>
                     </a>
+                    [[ pass ]]
                 </div>
 
             </div>
@@ -303,16 +309,20 @@
                                     </a>
 
                                     <!-- Edit Button -->
+                                    [[ if permissions and permissions.get('can_edit'): ]]
                                     <a href="[[=URL('administration/user_manage', vars={'id': u.get('id')})]]" title="Edit Record"
                                         class="p-1 rounded text-slate-400 hover:text-amber-600 hover:bg-amber-50 dark:hover:bg-amber-950/40 transition-colors">
                                         <span class="material-symbols-outlined text-[16px] block">edit</span>
                                     </a>
+                                    [[ pass ]]
 
                                     <!-- Delete Button -->
+                                    [[ if permissions and permissions.get('can_delete'): ]]
                                     <button type="button" title="Delete Record" onclick="confirmDeleteUser('[[=u.get('id')]]', '[[=u.get('user_name')]]')"
                                         class="p-1 rounded text-slate-400 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/40 transition-colors cursor-pointer">
                                         <span class="material-symbols-outlined text-[16px] block">delete</span>
                                     </button>
+                                    [[ pass ]]
                                 </div>
                             </td>
                         </tr>
