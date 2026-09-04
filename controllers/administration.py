@@ -1842,9 +1842,34 @@ def user_manage(user_id=None):
         if cm_rows:
             comp_mod_set = set(m["module_id"].upper() for m in cm_rows if m.get("module_id"))
 
-    roles_rows = db.executesql("""
-        SELECT id, role_id, role_name, note, cid FROM roles WHERE status_type = 'ACTIVE' ORDER BY role_name ASC
-    """, as_dict=True)
+    where_clauses = ["status_type = 'ACTIVE'"]
+    where_params = []
+
+    if user_cid:
+        where_clauses.append("LOWER(cid) = LOWER(%s)")
+        where_params.append(user_cid)
+    elif active_cid:
+        where_clauses.append("(cid IS NULL OR LOWER(cid) = LOWER(%s))")
+        where_params.append(active_cid)
+
+    where_sql = " WHERE " + " AND ".join(where_clauses)
+    roles_rows = db.executesql(
+        f"SELECT id, role_id, role_name, note, cid FROM roles {where_sql} ORDER BY role_name ASC",
+        placeholders=where_params,
+        as_dict=True
+    )
+
+    if target_user and target_user.get("role_id"):
+        curr_role_id = target_user.get("role_id").upper()
+        existing_role_ids = set((r.get("role_id") or "").upper() for r in roles_rows)
+        if curr_role_id not in existing_role_ids:
+            extra_role = db.executesql(
+                "SELECT id, role_id, role_name, note, cid FROM roles WHERE UPPER(role_id) = %s LIMIT 1",
+                [curr_role_id],
+                as_dict=True
+            )
+            if extra_role:
+                roles_rows.extend(extra_role)
 
     for r in roles_rows:
         r_id = r.get("role_id", "")

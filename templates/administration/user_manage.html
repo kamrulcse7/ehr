@@ -44,7 +44,7 @@
                             <span class="material-symbols-outlined text-primary text-[20px]">badge</span>
                             <h3 class="font-bold text-sm text-slate-900 dark:text-white">User Identification & Details</h3>
                             [[ active_cid = (target_user.get('cid') or user_cid or '') if target_user else (user_cid or '') ]]
-                            [[ if active_cid: ]]
+                            [[ if not user_cid and active_cid: ]]
                             <span class="inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-bold font-mono uppercase bg-sky-50 text-sky-700 dark:bg-sky-950/50 dark:text-sky-300 border border-sky-200/60 dark:border-sky-800/60 shadow-2xs">
                                 [[= active_cid.upper() ]]
                             </span>
