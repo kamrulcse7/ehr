@@ -43,7 +43,10 @@
                 </div>
 
                 <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-12 gap-3.5">
-                    <!-- Company ID (CID) -->
+                    [[ if user_cid: ]]
+                    <input type="hidden" id="cid" name="cid" value="[[= user_cid ]]">
+                    [[ else: ]]
+                    <!-- Company ID (CID) for System Admin -->
                     <div class="lg:col-span-2">
                         <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 mb-1">
                             Company ID (CID) <span class="text-[9px] text-slate-400 font-normal lowercase">[[= '(optional)' if not role_id else '(read-only)' ]]</span>
@@ -57,9 +60,10 @@
                             class="w-full px-3 py-2 bg-slate-50/50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-mono font-bold uppercase text-sky-600 dark:text-sky-400 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all">
                         [[ pass ]]
                     </div>
+                    [[ pass ]]
 
                     <!-- Role ID -->
-                    <div class="lg:col-span-2">
+                    <div class="[[= 'lg:col-span-3' if user_cid else 'lg:col-span-2' ]]">
                         <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 mb-1">
                             Role ID <span class="text-[9px] text-slate-400 font-normal lowercase">[[= '(auto)' if not role_id else '(read-only)' ]]</span>
                         </label>
@@ -70,7 +74,7 @@
                     </div>
 
                     <!-- Role Name -->
-                    <div class="lg:col-span-3">
+                    <div class="[[= 'lg:col-span-4' if user_cid else 'lg:col-span-3' ]]">
                         <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 mb-1">
                             Role Name <span class="text-rose-500">*</span>
                         </label>

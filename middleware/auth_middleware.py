@@ -35,7 +35,8 @@ def web_auth_required(handler):
         session.last_activity = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
         # Resolve module_id and check view permissions
-        module_id = resolve_module_id(request.path)
+        user_cid = session.user.get("cid") if session.user else None
+        module_id = resolve_module_id(request.path, user_cid)
         permissions = get_user_permissions(session.user, module_id)
 
         if module_id and not permissions.get("can_view"):

@@ -69,11 +69,13 @@
                                     </h3>
                                     <div class="text-[10px] text-slate-400 dark:text-slate-500 truncate flex items-center gap-1.5">
                                         <span class="font-mono">[[=role.get('role_id', '')]]</span>
+                                        [[ if not user_cid: ]]
                                         <span class="text-slate-300 dark:text-slate-700 select-none">•</span>
                                         [[ if role.get('cid'): ]]
                                         <span class="font-bold text-sky-600 dark:text-sky-400">[[=role.get('cid')]]</span>
                                         [[ else: ]]
                                         <span class="text-slate-400 dark:text-slate-600 font-medium">Global</span>
+                                        [[ pass ]]
                                         [[ pass ]]
                                     </div>
                                     [[ if role.get('description'): ]]
@@ -106,14 +108,14 @@
                         <div class="flex items-center gap-2">
                             [[ if permissions and permissions.get('can_edit'): ]]
                             <a id="edit-role-link" href="#" 
-                               class="inline-flex items-center gap-1 px-2.5 py-1 text-[11px] font-semibold text-primary bg-primary/10 hover:bg-primary hover:text-white rounded-lg transition-all duration-200">
+                               class="inline-flex items-center gap-1 px-2.5 py-1 text-[11px] font-semibold text-primary bg-primary/10 hover:bg-primary hover:text-white dark:hover:bg-primary dark:hover:text-white rounded-lg transition-all duration-200">
                                 <span class="material-symbols-outlined text-[15px]">edit</span>
                                 <span>Edit</span>
                             </a>
                             [[ pass ]]
                             [[ if permissions and permissions.get('can_delete'): ]]
                             <button id="delete-role-btn" type="button" onclick="confirmDeleteRole()"
-                               class="inline-flex items-center gap-1 px-2.5 py-1 text-[11px] font-semibold text-rose-600 dark:text-rose-400 bg-rose-50 dark:bg-rose-950/40 hover:bg-rose-600 hover:text-white rounded-lg transition-all duration-200 cursor-pointer border border-rose-200/60 dark:border-rose-800/60">
+                               class="inline-flex items-center gap-1 px-2.5 py-1 text-[11px] font-semibold text-rose-600 dark:text-rose-400 bg-rose-50 dark:bg-rose-950/40 hover:bg-rose-600 dark:hover:bg-rose-600 hover:text-white dark:hover:text-white rounded-lg transition-all duration-200 cursor-pointer">
                                 <span class="material-symbols-outlined text-[15px]">delete</span>
                                 <span>Delete</span>
                             </button>
@@ -185,10 +187,16 @@
         activeRoleId = role.role_id || "";
         roleNameSpan.textContent = role.role_name || '--';
         if (roleIdBadge) roleIdBadge.textContent = role.role_id || '';
-        if (role.cid) {
-            cidBadgeSpan.innerHTML = `<span class="px-1.5 py-0.5 text-[9px] font-mono font-bold bg-sky-100 dark:bg-sky-950 text-sky-700 dark:text-sky-300 rounded border border-sky-200/60 dark:border-sky-800/60">${role.cid}</span>`;
+        
+        const isCompanyUser = Boolean("[[= user_cid or '' ]]");
+        if (!isCompanyUser) {
+            if (role.cid) {
+                cidBadgeSpan.innerHTML = `<span class="px-1.5 py-0.5 text-[9px] font-mono font-bold bg-sky-100 dark:bg-sky-950 text-sky-700 dark:text-sky-300 rounded border border-sky-200/60 dark:border-sky-800/60">${role.cid}</span>`;
+            } else {
+                cidBadgeSpan.innerHTML = `<span class="px-1.5 py-0.5 text-[9px] font-mono font-medium bg-slate-100 dark:bg-slate-800 text-slate-500 rounded">Global</span>`;
+            }
         } else {
-            cidBadgeSpan.innerHTML = `<span class="px-1.5 py-0.5 text-[9px] font-mono font-medium bg-slate-100 dark:bg-slate-800 text-slate-500 rounded">Global</span>`;
+            cidBadgeSpan.innerHTML = '';
         }
         editBtn.href = `${EDIT_URL_BASE}?role_id=${role.role_id}`;
 
@@ -208,22 +216,19 @@
 
         let html = '';
         const actionKeys = ['can_view', 'can_create', 'can_edit', 'can_delete', 'can_export', 'can_approve'];
-        let hasAnyActivePerm = false;
+        let hasAnyModules = false;
 
         role.permissions.forEach(group => {
-            const activeModules = (group.modules || []).filter(module => {
-                return actionKeys.some(key => module[key] === true);
-            });
-
-            if (activeModules.length === 0) return;
-            hasAnyActivePerm = true;
+            const modules = group.modules || [];
+            if (modules.length === 0) return;
+            hasAnyModules = true;
 
             html += `
                 <tr class="bg-slate-50/80 dark:bg-slate-800/40 text-[10px] font-bold tracking-wider text-slate-400 dark:text-slate-500 uppercase">
                     <td colspan="7" class="py-1.5 px-4">${group.module_group || ''}</td>
                 </tr>`;
 
-            activeModules.forEach(module => {
+            modules.forEach(module => {
                 html += `
                     <tr class="hover:bg-slate-50/70 dark:hover:bg-slate-800/40 transition-colors">
                         <td class="py-2.5 px-4 whitespace-nowrap">
@@ -253,7 +258,7 @@
             });
         });
 
-        if (!hasAnyActivePerm) {
+        if (!hasAnyModules) {
             tbody.innerHTML = `
                 <tr>
                     <td colspan="7" class="text-center py-6 text-slate-400 text-xs">

@@ -1,7 +1,7 @@
 from py4web import URL, action, redirect, request, response
 from ..middleware.auth_middleware import web_auth_required
 from ..utils.common import db, flash, session, view_page
-from ..utils.permission_utils import get_user_permissions
+from ..utils.permission_utils import get_user_permissions, clear_permission_cache
 from ..core.db import db_datetime
 import math
 import io
@@ -800,19 +800,34 @@ def roles_permissions():
     action_type = (request.query.get("action") or "").strip().lower()
     delete_role_id = (request.query.get("delete_role_id") or request.query.get("role_id") or "").strip().upper()
 
+    user_cid = session.user.get("cid", "") if (session and session.user) else ""
+    current_user_role = (session.user.get("user_role") or session.user.get("role_id") or "").strip().upper() if (session and session.user) else ""
+
     if action_type == "delete" and delete_role_id:
         if not perms.get("can_delete"):
             flash.set("Access Denied: You do not have permission to delete roles.", "danger")
             redirect(URL("administration/roles_permissions"))
             return
+
+        if current_user_role not in ("SYSTEM_ADMIN", "SUPER_ADMIN", "ROOT") and delete_role_id == current_user_role:
+            flash.set("Access Denied: You cannot delete your own active role.", "danger")
+            redirect(URL("administration/roles_permissions"))
+            return
+
+        if user_cid and current_user_role not in ("SYSTEM_ADMIN", "SUPER_ADMIN", "ROOT"):
+            r_chk = db.executesql("SELECT cid FROM roles WHERE UPPER(role_id) = %s LIMIT 1", [delete_role_id], as_dict=True)
+            if r_chk and (r_chk[0].get("cid") or "").upper() != user_cid.upper():
+                flash.set("Access Denied: You cannot delete a role belonging to another company.", "danger")
+                redirect(URL("administration/roles_permissions"))
+                return
+
         try:
             db.executesql("UPDATE users SET role_id = NULL WHERE UPPER(role_id) = %s", [delete_role_id])
             db.executesql("DELETE FROM role_module_permissions WHERE UPPER(role_id) = %s", [delete_role_id])
             db.executesql("DELETE FROM roles WHERE UPPER(role_id) = %s", [delete_role_id])
             db.commit()
             try:
-                from ..utils.menu_utils import clear_menu_cache
-                clear_menu_cache()
+                clear_permission_cache()
             except Exception:
                 pass
 
@@ -823,16 +838,29 @@ def roles_permissions():
 
         redirect(URL("administration/roles_permissions"))
 
+    # Build SQL to fetch roles filtered by company CID and excluding user's own role
+    where_clauses = ["status_type = 'ACTIVE'"]
+    where_params = []
+
+    if user_cid:
+        where_clauses.append("LOWER(cid) = LOWER(%s)")
+        where_params.append(user_cid)
+
+    if current_user_role and current_user_role not in ("SYSTEM_ADMIN", "SUPER_ADMIN", "ROOT"):
+        where_clauses.append("UPPER(role_id) != %s")
+        where_params.append(current_user_role)
+
+    where_sql = " WHERE " + " AND ".join(where_clauses)
     roles_rows = db.executesql(
-        "SELECT id, cid, role_id, role_name, note as description FROM roles WHERE status_type = 'ACTIVE' ORDER BY id ASC",
+        f"SELECT id, cid, role_id, role_name, note as description FROM roles {where_sql} ORDER BY id ASC",
+        placeholders=where_params,
         as_dict=True
     )
 
-    user_cid = session.user.get("cid", "") if (session and session.user) else ""
     comp_mod_set = None
     if user_cid:
         cm_rows = db.executesql(
-            "SELECT module_id FROM company_modules WHERE LOWER(cid) = LOWER(%s) AND status_type = 'ACTIVE'",
+            "SELECT module_id FROM company_modules WHERE LOWER(cid) = LOWER(%s) AND (status_type IS NULL OR UPPER(status_type) = 'ACTIVE')",
             [user_cid],
             as_dict=True
         )
@@ -844,45 +872,42 @@ def roles_permissions():
         as_dict=True
     )
     parent_map = {m["module_id"]: m["module_name"] for m in all_mods if not m["is_clickable"]}
+    clickable_mods = [m for m in all_mods if m["is_clickable"]]
+
+    if user_cid and comp_mod_set is not None:
+        clickable_mods = [m for m in clickable_mods if m["module_id"].upper() in comp_mod_set]
 
     all_roles = []
     for r in roles_rows:
         role_id = r["role_id"]
         perm_rows = db.executesql(
-            """SELECT p.*, m.module_name, m.parent_module_id, m.module_group, m.icon as module_icon, m.is_clickable
-               FROM role_module_permissions p
-               JOIN modules m ON p.module_id = m.module_id
-               WHERE p.role_id = %s AND (p.status_type IS NULL OR p.status_type = 'ACTIVE') AND (m.status_type IS NULL OR m.status_type = 'ACTIVE') AND m.is_clickable = 1
-               ORDER BY m.display_order ASC""",
-            [role_id],
+            "SELECT * FROM role_module_permissions WHERE UPPER(role_id) = %s AND (status_type IS NULL OR status_type = 'ACTIVE')",
+            [role_id.upper()],
             as_dict=True
         )
+        perm_map = {p["module_id"].upper(): p for p in perm_rows if p.get("module_id")}
 
         groups_dict = {}
-        for p in perm_rows:
-            mod_id = (p.get("module_id") or "").upper()
-            if comp_mod_set is not None and mod_id not in comp_mod_set:
-                continue
+        for m in clickable_mods:
+            mod_id = m["module_id"].upper()
+            p = perm_map.get(mod_id, {})
 
-            can_v = bool(p.get("can_view"))
-            can_c = bool(p.get("can_add") or p.get("can_create"))
-            can_e = bool(p.get("can_edit"))
-            can_d = bool(p.get("can_delete"))
-            can_ex = bool(p.get("can_export"))
-            can_app = bool(p.get("can_approve"))
+            can_v = bool(p.get("can_view", 0))
+            can_c = bool(p.get("can_add", 0) or p.get("can_create", 0))
+            can_e = bool(p.get("can_edit", 0))
+            can_d = bool(p.get("can_delete", 0))
+            can_ex = bool(p.get("can_export", 0))
+            can_app = bool(p.get("can_approve", 0))
 
-            if not (can_v or can_c or can_e or can_d or can_ex or can_app):
-                continue
-
-            p_id = p.get("parent_module_id")
-            g_name = parent_map.get(p_id) or p.get("module_group") or "General"
+            p_id = m.get("parent_module_id")
+            g_name = parent_map.get(p_id) or m.get("module_group") or "General"
             if g_name not in groups_dict:
                 groups_dict[g_name] = {"module_group": g_name, "modules": []}
-            
+
             groups_dict[g_name]["modules"].append({
-                "module_id": p.get("module_id"),
-                "module_name": p.get("module_name"),
-                "module_icon": p.get("module_icon") or "extension",
+                "module_id": m.get("module_id"),
+                "module_name": m.get("module_name"),
+                "module_icon": m.get("module_icon") or "extension",
                 "can_view": can_v,
                 "can_create": can_c,
                 "can_edit": can_e,
@@ -895,7 +920,7 @@ def roles_permissions():
         all_roles.append(r)
 
     selected_role_id = str(request.query.get("role_id") or request.params.get("role_id") or "").strip()
-    return dict(all_roles=all_roles, selected_role_id=selected_role_id)
+    return dict(all_roles=all_roles, selected_role_id=selected_role_id, user_cid=user_cid)
 
 
 @action("administration/role_manage", method=["GET", "POST"])
@@ -914,13 +939,28 @@ def role_manage(role_id=None):
         return
 
     user_id = session.user.get("user_id", "SYSTEM") if (session and session.user) else "SYSTEM"
+    user_cid = session.user.get("cid", "") if (session and session.user) else ""
+    current_user_role = (session.user.get("user_role") or session.user.get("role_id") or "").strip().upper() if (session and session.user) else ""
     db_datetime = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+
+    # Prevent non-system-admin user from editing their own role
+    target_check_role = (role_id or request.query.get("role_id") or request.params.get("role_id") or "").strip().upper()
+    if target_check_role and current_user_role not in ("SYSTEM_ADMIN", "SUPER_ADMIN", "ROOT"):
+        if target_check_role == current_user_role:
+            flash.set("Access Denied: You cannot modify your own role permissions.", "danger")
+            redirect(URL("administration/roles_permissions"))
+            return
 
     if request.method == "POST":
         data = request.json if request.json else request.forms
         raw_role_id = str(data.get("role_id") or "").strip().upper()
         custom_role_id = str(data.get("custom_role_id") or "").strip().upper()
-        cid = str(data.get("cid") or "").strip().upper() or None
+
+        if user_cid:
+            cid = user_cid.strip().upper()
+        else:
+            cid = str(data.get("cid") or "").strip().upper() or None
+
         role_name = str(data.get("role_name") or "").strip()
         description = str(data.get("description") or "").strip()
         status_type = str(data.get("status_type") or "ACTIVE").strip().upper()
@@ -1011,8 +1051,7 @@ def role_manage(role_id=None):
         db.commit()
 
         try:
-            from ..utils.menu_utils import clear_menu_cache
-            clear_menu_cache()
+            clear_permission_cache()
         except Exception:
             pass
 
@@ -1030,12 +1069,27 @@ def role_manage(role_id=None):
     if role_id:
         r_rows = db.executesql("SELECT cid, role_id, role_name, note as description, status_type FROM roles WHERE role_id = %s LIMIT 1", [role_id], as_dict=True)
         if r_rows:
-            cid = r_rows[0].get("cid", "") or ""
+            target_cid = (r_rows[0].get("cid", "") or "").strip()
+            if user_cid and current_user_role not in ("SYSTEM_ADMIN", "SUPER_ADMIN", "ROOT") and target_cid and target_cid.upper() != user_cid.upper():
+                flash.set("Access Denied: You do not have permission to manage roles for another company.", "danger")
+                redirect(URL("administration/roles_permissions"))
+                return
+            cid = target_cid
             role_name = r_rows[0].get("role_name", "")
             description = r_rows[0].get("description", "")
             status_type = r_rows[0].get("status_type", "ACTIVE") or "ACTIVE"
 
     companies = db.executesql("SELECT cid, company_name FROM companies WHERE status_type = 'ACTIVE' ORDER BY company_name ASC", as_dict=True)
+
+    comp_mod_set = None
+    if user_cid:
+        cm_rows = db.executesql(
+            "SELECT module_id FROM company_modules WHERE LOWER(cid) = LOWER(%s) AND (status_type IS NULL OR UPPER(status_type) = 'ACTIVE')",
+            [user_cid],
+            as_dict=True
+        )
+        if cm_rows:
+            comp_mod_set = set(m["module_id"].upper() for m in cm_rows if m.get("module_id"))
 
     all_mods = db.executesql(
         "SELECT module_id, module_name, parent_module_id, module_group, icon as module_icon, is_clickable FROM modules WHERE status_type = 'ACTIVE' ORDER BY display_order ASC",
@@ -1044,18 +1098,21 @@ def role_manage(role_id=None):
     parent_map = {m["module_id"]: m["module_name"] for m in all_mods if not m["is_clickable"]}
     clickable_mods = [m for m in all_mods if m["is_clickable"]]
 
+    if user_cid and comp_mod_set is not None:
+        clickable_mods = [m for m in clickable_mods if m["module_id"].upper() in comp_mod_set]
+
     if not clickable_mods:
         clickable_mods = [
             {"module_id": "DASHBOARD", "module_name": "Dashboard", "parent_module_id": None, "module_group": "General", "module_icon": "dashboard"},
             {"module_id": "EMPLOYEE_DIR", "module_name": "Employee Directory", "parent_module_id": "EMP_MGMT", "module_group": "HR", "module_icon": "badge"},
             {"module_id": "POSTING_TRANS", "module_name": "Postings & Transfers", "parent_module_id": "EMP_MGMT", "module_group": "HR", "module_icon": "swap_horiz"},
-            {"module_id": "COMPANY_MGMT", "module_name": "Company Management", "parent_module_id": "ADMINISTRATION", "module_group": "System", "module_icon": "domain"},
             {"module_id": "ROLES_PERM", "module_name": "Roles & Permissions", "parent_module_id": "ADMINISTRATION", "module_group": "System", "module_icon": "key"},
             {"module_id": "USER_MGMT", "module_name": "User Management", "parent_module_id": "ADMINISTRATION", "module_group": "System", "module_icon": "manage_accounts"},
-            {"module_id": "AUDIT_LOGS", "module_name": "Audit Logs", "parent_module_id": "ADMINISTRATION", "module_group": "System", "module_icon": "history"},
             {"module_id": "EMP_REPORTS", "module_name": "Employee Reports", "parent_module_id": "REPORTS_ANALYTICS", "module_group": "Reports", "module_icon": "description"},
-            {"module_id": "TRANSFER_LOGS", "module_name": "Movement & Transfer Logs", "parent_module_id": "REPORTS_ANALYTICS", "module_group": "Reports", "module_icon": "receipt_long"},
         ]
+
+    if user_cid and not cid:
+        cid = user_cid
 
     existing_perms = {}
     if role_id:
@@ -1093,6 +1150,7 @@ def role_manage(role_id=None):
     return dict(
         role_id=role_id,
         cid=cid,
+        user_cid=user_cid,
         companies=companies,
         role_name=role_name,
         description=description,
