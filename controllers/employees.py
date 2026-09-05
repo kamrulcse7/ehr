@@ -233,15 +233,16 @@ def employee_directory():
         stats_where.append("cid = %s")
         stats_params.append(cid)
 
-    stats_sql = f"""
-        SELECT COUNT(id) as total,
-            COUNT(CASE WHEN status_type = 'ACTIVE' THEN 1 END) as active,
-            COUNT(CASE WHEN status_type = 'PROBATIONARY' THEN 1 END) as probationary,
-            COUNT(CASE WHEN status_type = 'INACTIVE' THEN 1 END) as inactive
-        FROM employees
-        WHERE {" AND ".join(stats_where)}
-    """
-    stats_res = db.executesql(stats_sql, stats_params, as_dict=True)[0]
+    stats_res = {}
+    # stats_sql = f"""
+    #     SELECT COUNT(id) as total,
+    #         COUNT(CASE WHEN status_type = 'ACTIVE' THEN 1 END) as active,
+    #         COUNT(CASE WHEN status_type = 'PROBATIONARY' THEN 1 END) as probationary,
+    #         COUNT(CASE WHEN status_type = 'INACTIVE' THEN 1 END) as inactive
+    #     FROM employees
+    #     WHERE {" AND ".join(stats_where)}
+    # """
+    # stats_res = db.executesql(stats_sql, stats_params, as_dict=True)[0]
 
     total_pages = math.ceil(total_items / limit) if total_items > 0 else 1
     start_item = offset + 1 if total_items > 0 else 0
@@ -1106,15 +1107,17 @@ def postings_transfers():
         stats_where.append("cid = %s")
         stats_params.append(cid)
 
-    stats_sql = f"""
-        SELECT COUNT(id) as total,
-            COUNT(CASE WHEN joining_status IN ('JOINED', 'COMPLETED') THEN 1 END) as joined,
-            COUNT(CASE WHEN joining_status IN ('PENDING', 'RELEASED') THEN 1 END) as pending,
-            COUNT(CASE WHEN transfer_type = 'PROMOTION' THEN 1 END) as promotions
-        FROM employee_transfers
-        WHERE {" AND ".join(stats_where)}
-    """
-    stats_res = db.executesql(stats_sql, stats_params, as_dict=True)[0]
+    stats_res = {}
+    # stats_sql = f"""
+    #     SELECT COUNT(id) as total,
+    #         COUNT(CASE WHEN joining_status IN ('JOINED', 'COMPLETED') THEN 1 END) as joined,
+    #         COUNT(CASE WHEN joining_status IN ('PENDING', 'RELEASED') THEN 1 END) as pending,
+    #         COUNT(CASE WHEN transfer_type = 'PROMOTION' THEN 1 END) as promotions
+    #     FROM employee_transfers
+    #     WHERE {" AND ".join(stats_where)}
+    # """
+    # stats_res = db.executesql(stats_sql, stats_params, as_dict=True)[0]
+    
 
     total_pages = math.ceil(total_items / limit) if total_items > 0 else 1
     start_item = offset + 1 if total_items > 0 else 0

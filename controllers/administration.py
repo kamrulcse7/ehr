@@ -111,15 +111,16 @@ def companies():
         redirect(URL("administration/companies"))
 
     # 1. Fetch Summary Stats (excluding soft-deleted)
-    stats_sql = """
-    SELECT 
-        COUNT(CASE WHEN status_type != 'DELETED' THEN 1 END) AS total,
-        SUM(CASE WHEN status_type = 'ACTIVE' THEN 1 ELSE 0 END) AS active,
-        SUM(CASE WHEN status_type = 'INACTIVE' THEN 1 ELSE 0 END) AS inactive
-    FROM companies;
-    """
-    stats_rows = db.executesql(stats_sql, as_dict=True)
-    stats = stats_rows[0] if stats_rows else {"total": 0, "active": 0, "inactive": 0}
+    # stats_sql = """
+    # SELECT 
+    #     COUNT(CASE WHEN status_type != 'DELETED' THEN 1 END) AS total,
+    #     SUM(CASE WHEN status_type = 'ACTIVE' THEN 1 ELSE 0 END) AS active,
+    #     SUM(CASE WHEN status_type = 'INACTIVE' THEN 1 ELSE 0 END) AS inactive
+    # FROM companies;
+    # """
+    # stats_rows = db.executesql(stats_sql, as_dict=True)
+    # stats = stats_rows[0] if stats_rows else {"total": 0, "active": 0, "inactive": 0}
+    stats = {"total": 0, "active": 0, "inactive": 0}
 
     # 2. Filter & Search Parameters
     keywords = (request.query.get("keywords") or "").strip()
@@ -1322,14 +1323,15 @@ def users():
             return "\n".join(xml_data)
 
     # Stats Calculation
-    stats_sql = "SELECT COUNT(*) as total, SUM(CASE WHEN UPPER(status_type) = 'ACTIVE' THEN 1 ELSE 0 END) as active, SUM(CASE WHEN UPPER(status_type) IN ('INACTIVE', 'LOCKED', 'BLOCKED') THEN 1 ELSE 0 END) as inactive, SUM(CASE WHEN UPPER(role_id) LIKE %s THEN 1 ELSE 0 END) as admin FROM users WHERE 1=1"
-    stats_params = ['%ADMIN%']
-    if cid:
-        stats_sql += " AND LOWER(cid) = LOWER(%s)"
-        stats_params.append(cid)
+    # stats_sql = "SELECT COUNT(*) as total, SUM(CASE WHEN UPPER(status_type) = 'ACTIVE' THEN 1 ELSE 0 END) as active, SUM(CASE WHEN UPPER(status_type) IN ('INACTIVE', 'LOCKED', 'BLOCKED') THEN 1 ELSE 0 END) as inactive, SUM(CASE WHEN UPPER(role_id) LIKE %s THEN 1 ELSE 0 END) as admin FROM users WHERE 1=1"
+    # stats_params = ['%ADMIN%']
+    # if cid:
+    #     stats_sql += " AND LOWER(cid) = LOWER(%s)"
+    #     stats_params.append(cid)
     
-    stats_res = db.executesql(stats_sql, stats_params, as_dict=True)
-    st = stats_res[0] if stats_res else {}
+    # stats_res = db.executesql(stats_sql, stats_params, as_dict=True)
+    # st = stats_res[0] if stats_res else {}
+    st =  {}
     stats = {
         "total": st.get("total") or 0,
         "active": st.get("active") or 0,
