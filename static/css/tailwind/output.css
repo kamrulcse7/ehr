@@ -1321,6 +1321,10 @@ html.dark body {
   max-width: 36rem;
 }
 
+.max-w-\[140px\] {
+  max-width: 140px;
+}
+
 .flex-1 {
   flex: 1 1 0%;
 }

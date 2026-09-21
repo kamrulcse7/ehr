@@ -261,11 +261,12 @@
 
                                             <!-- Delete Button -->
                                             [[ if permissions and permissions.get('can_delete'): ]]
+                                            [[ is_del = (comp.get('status_type') == 'DELETED') ]]
                                             <button type="button"
-                                                onclick="confirmDeleteCompany('[[=URL('administration/companies', vars={'action': 'delete', 'id': comp.get('id')})]]', '[[= comp.get('company_name', '').replace('\'', '\\\'') ]]', '[[= comp.get('cid', '') ]]');"
-                                                title="Delete Company"
+                                                onclick="confirmDeleteCompany('[[=URL('administration/companies', vars={'action': 'delete', 'id': comp.get('id')})]]', '[[= comp.get('company_name', '').replace('\'', '\\\'') ]]', '[[= comp.get('cid', '') ]]', [[= 'true' if is_del else 'false' ]]);"
+                                                title="[[= 'Permanently Delete Company' if is_del else 'Delete Company' ]]"
                                                 class="p-1 rounded text-slate-400 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/40 transition-colors cursor-pointer">
-                                                <span class="material-symbols-outlined text-[16px] block">delete</span>
+                                                <span class="material-symbols-outlined text-[16px] block">[[= 'delete_forever' if is_del else 'delete' ]]</span>
                                             </button>
                                             [[ pass ]]
                                         </div>
@@ -407,12 +408,16 @@
         closeCustomDropdown(id);
     }
 
-    function confirmDeleteCompany(deleteUrl, companyName, cid) {
+    function confirmDeleteCompany(deleteUrl, companyName, cid, isDeleted) {
+        const title = isDeleted ? 'Permanently Delete Company' : 'Delete Company';
+        const msg = isDeleted
+            ? `Are you sure you want to <strong>permanently delete</strong> <strong>${companyName || 'this company'}</strong> ${cid ? '(' + cid + ')' : ''}? This action is permanent and cannot be undone.`
+            : `Are you sure you want to delete <strong>${companyName || 'this company'}</strong> ${cid ? '(' + cid + ')' : ''}? Status will be updated to DELETED.`;
         showConfirmModal({
-            title: 'Delete Company',
-            message: `Are you sure you want to delete <strong>${companyName || 'this company'}</strong> ${cid ? '(' + cid + ')' : ''}? This action is permanent and cannot be undone.`,
+            title: title,
+            message: msg,
             type: 'danger',
-            confirmText: 'Yes, Delete',
+            confirmText: isDeleted ? 'Yes, Permanently Delete' : 'Yes, Delete',
             cancelText: 'Cancel',
             onConfirm: function() {
                 window.location.href = deleteUrl;

@@ -36,18 +36,35 @@ def _save_company_branding_file(file_obj, prefix, cid_val, max_bytes=120 * 1024)
     return None
 
 
-def _delete_company_branding_file(file_url):
+def _delete_uploaded_file(file_url, subfolder=""):
+    """
+    Common utility to delete an uploaded file from disk (e.g. static/uploads/[subfolder]/filename).
+    :param file_url: File URL, relative path, or filename.
+    :param subfolder: Subfolder under static/uploads (e.g. 'company', 'user_photos').
+    """
     if not file_url:
         return
     if file_url.startswith("http://") or file_url.startswith("https://"):
         return
     filename = os.path.basename(file_url)
-    if filename:
-        UPLOAD_DIR = os.path.join(os.path.dirname(__file__), "..", "static", "uploads", "company")
-        file_path = os.path.join(UPLOAD_DIR, filename)
+    if not filename:
+        return
+    BASE_UPLOADS = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "static", "uploads"))
+    candidate_dirs = []
+    if subfolder:
+        candidate_dirs.append(os.path.join(BASE_UPLOADS, subfolder))
+    candidate_dirs.extend([
+        os.path.join(BASE_UPLOADS, "company"),
+        os.path.join(BASE_UPLOADS, "user_photos"),
+        BASE_UPLOADS
+    ])
+
+    for target_dir in candidate_dirs:
+        file_path = os.path.join(target_dir, filename)
         if os.path.exists(file_path):
             try:
                 os.remove(file_path)
+                break
             except Exception:
                 pass
 
@@ -93,17 +110,73 @@ def companies():
             return
         try:
             del_id = int(delete_id)
-            comp_rows = db.executesql("SELECT cid, company_name FROM companies WHERE id = %s LIMIT 1", [del_id], as_dict=True)
+            comp_rows = db.executesql("SELECT cid, company_name, logo_url, favicon_url, banner_url, status_type FROM companies WHERE id = %s LIMIT 1", [del_id], as_dict=True)
             if comp_rows:
                 comp = comp_rows[0]
                 cid = comp["cid"]
                 name = comp["company_name"]
+                status_type = comp.get("status_type")
                 updated_by = session.user.get("username") or session.user.get("user_id") or "SYSTEM"
-                db.executesql(
-                    "UPDATE companies SET status_type = 'DELETED', updated_on = NOW(), updated_by = %s WHERE id = %s",
-                    [updated_by, del_id]
-                )
-                flash.set(f"Company '{name}' ({cid}) status updated to DELETED.", "success")
+
+                if status_type == 'DELETED':
+                    # Permanent Delete - Remove company branding files via common delete function
+                    _delete_uploaded_file(comp.get("logo_url"), "company")
+                    _delete_uploaded_file(comp.get("favicon_url"), "company")
+                    _delete_uploaded_file(comp.get("banner_url"), "company")
+
+                    # Delete user profile_image files from users table according to table schema
+                    try:
+                        user_img_rows = db.executesql("SELECT profile_image FROM users WHERE cid = %s AND profile_image IS NOT NULL AND profile_image != ''", [cid], as_dict=True)
+                        for u_row in user_img_rows:
+                            _delete_uploaded_file(u_row.get("profile_image"), "user_photos")
+                    except Exception:
+                        pass
+
+                    # Delete employee photo_url files from employees table
+                    try:
+                        emp_photo_rows = db.executesql("SELECT photo_url FROM employees WHERE cid = %s AND photo_url IS NOT NULL AND photo_url != ''", [cid], as_dict=True)
+                        for e_row in emp_photo_rows:
+                            _delete_uploaded_file(e_row.get("photo_url"), "user_photos")
+                    except Exception:
+                        pass
+
+                    # Cascade delete all related records across all tables linked by cid
+                    cid_tables = [
+                        "attendance_log", "branches", "company_settings", "departments",
+                        "designations", "devices", "device_commands", "employees",
+                        "employee_biometrics", "employee_branches", "employee_department",
+                        "employee_designation", "employee_devices", "employee_shifts",
+                        "holidays", "holiday_exceptions", "roles", "shifts", "system_settings",
+                        "users", "users_2fa_config", "user_otps", "user_roles",
+                        "weekend_policies", "weekend_policy_exceptions"
+                    ]
+
+                    try:
+                        db.executesql("SET FOREIGN_KEY_CHECKS = 0;")
+                    except Exception:
+                        pass
+
+                    for tbl in cid_tables:
+                        try:
+                            db.executesql(f"DELETE FROM `{tbl}` WHERE cid = %s", [cid])
+                        except Exception:
+                            pass
+
+                    db.executesql("DELETE FROM companies WHERE id = %s", [del_id])
+
+                    try:
+                        db.executesql("SET FOREIGN_KEY_CHECKS = 1;")
+                    except Exception:
+                        pass
+
+                    flash.set(f"Company '{name}' ({cid}) and all associated data & files permanently deleted.", "success")
+                else:
+                    # Soft Delete
+                    db.executesql(
+                        "UPDATE companies SET status_type = 'DELETED', updated_on = NOW(), updated_by = %s WHERE id = %s",
+                        [updated_by, del_id]
+                    )
+                    flash.set(f"Company '{name}' ({cid}) status updated to DELETED.", "success")
             else:
                 flash.set("Company record not found.", "danger")
         except Exception as e:
@@ -138,8 +211,8 @@ def companies():
     if status:
         where_clauses.append("status_type = %s")
         placeholders.append(status)
-    else:
-        where_clauses.append("status_type != 'DELETED'")
+    # else:
+    #     where_clauses.append("status_type != 'DELETED'")
 
     where_sql = " AND ".join(where_clauses)
 
@@ -394,11 +467,11 @@ def company_manage(company_id=None):
             if uploaded_logo:
                 logo_url = uploaded_logo
                 if old_logo_url and old_logo_url != uploaded_logo:
-                    _delete_company_branding_file(old_logo_url)
+                    _delete_uploaded_file(old_logo_url, "company")
             elif remove_logo:
                 logo_url = None
                 if old_logo_url:
-                    _delete_company_branding_file(old_logo_url)
+                    _delete_uploaded_file(old_logo_url, "company")
             else:
                 logo_url = old_logo_url
 
