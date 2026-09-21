@@ -192,8 +192,8 @@
                                     class="w-full px-3 py-2 bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-semibold text-slate-800 dark:text-slate-200 cursor-not-allowed select-none">
                             </div>
                             <div>
-                                <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 mb-1">From Grade</label>
-                                <input type="text" id="from_grade_input" name="from_grade" readonly placeholder="Current Grade"
+                                <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 mb-1">From Grade / Category</label>
+                                <input type="text" id="from_grade_input" name="from_grade" readonly placeholder="Current Grade / Category"
                                     value="[[= (item.get('from_grade') or '') if item else (emp.get('emp_grade') if emp else '') ]]"
                                     class="w-full px-3 py-2 bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-semibold text-slate-800 dark:text-slate-200 cursor-not-allowed select-none">
                             </div>
@@ -220,8 +220,8 @@
                                     class="w-full px-3 py-2 bg-slate-50/50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-semibold text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all">
                             </div>
                             <div>
-                                <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 mb-1">To Grade <span class="text-rose-500">*</span></label>
-                                <input type="text" id="to_grade_input" name="to_grade" value="[[= (item.get('to_grade') or '') if item else (emp.get('emp_grade') if emp else '') ]]" required placeholder="Target Grade"
+                                <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 mb-1">To Grade / Category</label>
+                                <input type="text" id="to_grade_input" name="to_grade" value="[[= (item.get('to_grade') or '') if item else (emp.get('emp_grade') if emp else '') ]]" placeholder="Target Grade / Category"
                                     class="w-full px-3 py-2 bg-slate-50/50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-semibold text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all">
                             </div>
                         </div>

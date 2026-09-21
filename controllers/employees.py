@@ -120,14 +120,14 @@ def employee_directory():
 
         if not user_cid:
             headers = [
-                "ID", "Company ID (CID)", "Official ID", "Full Name", "Service Type", "Department", "Designation", "Grade",
+                "ID", "Company ID (CID)", "Official ID", "Full Name", "Service Type", "Department", "Designation", "Grade / Category",
                 "Mobile Number", "Email Address", "Gender", "Date of Birth",
                 "Blood Group", "Joining Date", "Retirement Date", "Educational Qualification", "Home District",
                 "Present Address", "Permanent Address", "NID Number", "Remarks", "Status"
             ]
         else:
             headers = [
-                "ID", "Official ID", "Full Name", "Service Type", "Department", "Designation", "Grade",
+                "ID", "Official ID", "Full Name", "Service Type", "Department", "Designation", "Grade / Category",
                 "Mobile Number", "Email Address", "Gender", "Date of Birth",
                 "Blood Group", "Joining Date", "Retirement Date", "Educational Qualification", "Home District",
                 "Present Address", "Permanent Address", "NID Number", "Remarks", "Status"
@@ -564,7 +564,7 @@ def import_directory():
         if not user_cid:
             headers = [
                 "Company ID (CID)", "Official ID", "Full Name", "Employment Type", "Department",
-                "Designation", "Grade", "Posting Place", "Posting Join Date", "Grade Join Date",
+                "Designation", "Grade / Category", "Posting Place", "Posting Join Date", "Grade Join Date",
                 "Mobile", "Email", "Gender", "DOB", "Blood Group", "Join Date",
                 "Confirmation Date", "Retirement Date", "Education", "Home District",
                 "Present Address", "Permanent Address", "NID Number", "Note", "Status"
@@ -579,7 +579,7 @@ def import_directory():
         else:
             headers = [
                 "Official ID", "Full Name", "Employment Type", "Department",
-                "Designation", "Grade", "Posting Place", "Posting Join Date", "Grade Join Date",
+                "Designation", "Grade / Category", "Posting Place", "Posting Join Date", "Grade Join Date",
                 "Mobile", "Email", "Gender", "DOB", "Blood Group", "Join Date",
                 "Confirmation Date", "Retirement Date", "Education", "Home District",
                 "Present Address", "Permanent Address", "NID Number", "Note", "Status"
@@ -717,14 +717,18 @@ def import_directory():
 
                 emp_id = get_val('emp_id', 'official id', 'official_id', 'employee id', 'id')
                 emp_name = get_val('emp_name', 'full name', 'name', 'employee name')
+                mobile = get_val('mobile', 'phone', 'contact', 'mobile number', 'mobile_number')
+                emp_department = get_val('emp_department', 'department', 'dept')
+                emp_designation = get_val('emp_designation', 'designation')
+                join_date_str = get_val('join_date', 'join date', 'joining date', 'joining_date')
                 row_cid = user_cid if user_cid else get_val('cid', 'company id', 'company_id', 'company')
                 
-                if not emp_id or not emp_name:
+                if not emp_id or not emp_name or not mobile or not emp_department or not emp_designation or not join_date_str:
                     stats["failed"] += 1
                     stats["errors"].append({
                         "row": row_num,
                         "emp_id": emp_id or "N/A",
-                        "error": "Official ID and Full Name are required."
+                        "error": "Missing required field(s). Official ID, Full Name, Mobile Number, Department, Designation, and Join Date are required."
                     })
                     continue
 
@@ -749,22 +753,16 @@ def import_directory():
                         continue
                     row_cid = company_dict[row_cid_upper]
 
-                mobile = get_val('mobile', 'phone', 'contact', 'mobile number', 'mobile_number') or ""
                 email = get_val('email', 'email address', 'email_address') or ""
-                
-                join_date_str = get_val('join_date', 'join date', 'joining date', 'joining_date')
                 join_date = parse_date(join_date_str)
                 if not join_date:
-                    if join_date_str:
-                        stats["failed"] += 1
-                        stats["errors"].append({
-                            "row": row_num,
-                            "emp_id": emp_id,
-                            "error": f"Invalid Join Date format: '{join_date_str}'"
-                        })
-                        continue
-                    else:
-                        join_date = db_datetime.strftime('%Y-%m-%d')
+                    stats["failed"] += 1
+                    stats["errors"].append({
+                        "row": row_num,
+                        "emp_id": emp_id,
+                        "error": f"Invalid Join Date format: '{join_date_str}'"
+                    })
+                    continue
 
                 dob = parse_date(get_val('dob', 'date of birth', 'date_of_birth'))
                 current_posting_join_date = parse_date(get_val('current_posting_join_date', 'branch_join_date', 'posting_join_date'))
@@ -773,9 +771,7 @@ def import_directory():
                 retirement_date = parse_date(get_val('retirement_date', 'retirement date'))
 
                 emp_type = get_val('emp_type', 'employment type', 'employment_type', 'type') or "PERMANENT"
-                emp_department = get_val('emp_department', 'department', 'dept')
-                emp_designation = get_val('emp_designation', 'designation')
-                emp_grade = get_val('emp_grade', 'grade')
+                emp_grade = get_val('emp_grade', 'grade', 'grade / category', 'grade_category', 'category')
                 current_branch_id = get_val('current_branch_id', 'branch_id', 'posting_place', 'branch')
                 current_branch_join_date = parse_date(get_val('current_branch_join_date', 'branch_join_date', 'posting_join_date'))
                 gender = get_val('gender', 'sex')
@@ -976,7 +972,7 @@ def postings_transfers():
             headers = [
                 "ID", "Company ID (CID)", "Official ID", "Full Name", "Transfer Order No", "Transfer Type",
                 "From Branch", "To Branch", "From Department", "To Department",
-                "From Designation", "To Designation", "From Grade", "To Grade",
+                "From Designation", "To Designation", "From Grade / Category", "To Grade / Category",
                 "Order Date", "Release Date", "Expected Joining Date",
                 "Remarks", "Official Note", "Status"
             ]
@@ -984,7 +980,7 @@ def postings_transfers():
             headers = [
                 "ID", "Official ID", "Full Name", "Transfer Order No", "Transfer Type",
                 "From Branch", "To Branch", "From Department", "To Department",
-                "From Designation", "To Designation", "From Grade", "To Grade",
+                "From Designation", "To Designation", "From Grade / Category", "To Grade / Category",
                 "Order Date", "Release Date", "Expected Joining Date",
                 "Remarks", "Official Note", "Status"
             ]
@@ -1435,7 +1431,7 @@ def import_transfer():
             headers = [
                 "Company ID (CID)", "Official ID", "Transfer Order No", "Transfer Type",
                 "Order Date", "Release Date", "Expected Joining Date", "Joining Status",
-                "To Posting Place", "To Dept", "To Designation", "To Grade",
+                "To Posting Place", "To Dept", "To Designation", "To Grade / Category",
                 "Transfer Reason", "Official Note"
             ]
             example = [
@@ -1448,7 +1444,7 @@ def import_transfer():
             headers = [
                 "Official ID", "Transfer Order No", "Transfer Type",
                 "Order Date", "Release Date", "Expected Joining Date", "Joining Status",
-                "To Posting Place", "To Dept", "To Designation", "To Grade",
+                "To Posting Place", "To Dept", "To Designation", "To Grade / Category",
                 "Transfer Reason", "Official Note"
             ]
             example = [
@@ -1624,12 +1620,12 @@ def import_transfer():
                 exp_joining = parse_date(get_val('expected_joining_date', 'expected joining date', 'joining date'))
                 status = (get_val('joining_status', 'status', 'joining status') or "PENDING").upper()
 
-                if not order_date or not release_date or not exp_joining or not to_branch or not to_dept or not to_desig or not to_grade:
+                if not order_date or not release_date or not exp_joining or not to_branch or not to_dept or not to_desig:
                     stats["failed"] += 1
                     stats["errors"].append({
                         "row": row_num,
                         "emp_id": emp_id,
-                        "error": "Missing required field(s). Order Date, Release Date, Expected Joining Date, To Posting Place, To Dept, To Designation, and To Grade are required."
+                        "error": "Missing required field(s). Order Date, Release Date, Expected Joining Date, To Posting Place, To Dept, and To Designation are required."
                     })
                     continue
 
