@@ -3,6 +3,7 @@ from datetime import timedelta
 from ..utils.common import session, flash, view_page
 from ..core.db import db, db_datetime
 from ..core.config import settings
+from ..utils.audit_utils import log_audit
 
 @action("auth/login", method=["GET", "POST"])
 @view_page("auth/login.html", title="Login | EMS Admin")
@@ -122,6 +123,9 @@ def login():
                     session.user = user
                     session.userorized = True
 
+                    # Record Audit Log for Successful Login
+                    log_audit("LOGIN", "AUTH", table_name="users", record_id=user.get("user_id"), new_values={"message": "User logged in successfully"}, user_info=user)
+
                     redirect(URL("dashboard"))
 
     return dict(error=error)
@@ -129,6 +133,8 @@ def login():
 @action("auth/logout")
 @action.uses(session)
 def logout():
+    if hasattr(session, "user") and session.user:
+        log_audit("LOGOUT", "AUTH", table_name="users", record_id=session.user.get("user_id"), new_values={"message": "User logged out"}, user_info=session.user)
     session.clear()
     try:
         response.delete_cookie(f"{settings.APP_NAME}_session")

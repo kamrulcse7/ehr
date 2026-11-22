@@ -1,0 +1,533 @@
+[[ extend 'layout.html' ]]
+[[ import json ]]
+
+<div class="w-full space-y-4 text-slate-700 dark:text-slate-200">
+    <div class="w-full space-y-4">
+
+        <!-- HEADER SECTION (Breadcrumb) -->
+        <div class="pb-2 border-b border-slate-200/80 dark:border-slate-800/80 flex items-center justify-between h-7">
+            <div class="flex items-center gap-0.5 text-xs font-medium">
+                <a href="[[=URL('administration/audit_logs')]]" class="text-slate-400 dark:text-slate-500 hover:text-primary transition-colors">[[= globals().get('active_parent_title') or 'Administration' ]]</a>
+                <span class="material-symbols-outlined text-[12px] text-slate-400 dark:text-slate-600 select-none -mx-0.5">chevron_right</span>
+                <span class="text-primary font-bold">[[= globals().get('active_child_title') or 'Audit Logs' ]]</span>
+            </div>
+        </div>
+
+        <!-- MAIN TABLE CONTAINER -->
+        <div class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-800/80 shadow-sm overflow-hidden p-4 space-y-3.5">
+
+            <!-- ACTION & FILTER ROW -->
+            <div class="flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-2.5 bg-slate-50/70 dark:bg-slate-800/40 p-2 rounded-xl border border-slate-200/60 dark:border-slate-800/60">
+
+                <!-- LEFT SIDE: FILTER FORM -->
+                <form action="[[=URL('administration/audit_logs')]]" method="GET" class="flex flex-wrap items-center gap-2 grow">
+                    <input type="hidden" name="limit" value="[[= pagination.get('limit', 15) ]]">
+
+                    <!-- Search Input -->
+                    <div class="relative flex items-center w-full sm:w-72">
+                        <span class="material-symbols-outlined absolute left-2 top-1/2 -translate-y-1/2 text-slate-400 text-[15px] pointer-events-none z-10 leading-none">search</span>
+                        <input type="text" name="keywords" value="[[= request.query.get('keywords', '') ]]"
+                            placeholder="Search User, Action, Module, Table, Record, IP..." autocomplete="off"
+                            class="w-full h-[28px] py-0 pl-7 pr-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-md text-[11px] font-medium text-slate-800 dark:text-slate-200 placeholder:text-slate-400 focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary transition-all leading-none">
+                    </div>
+
+                    <!-- Date & Time Range Filter -->
+                    <div class="flex items-center gap-1.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-md px-2 py-0 h-[28px]">
+                        <span class="material-symbols-outlined text-slate-400 text-[14px] leading-none pointer-events-none">schedule</span>
+                        <input type="datetime-local" name="date_from" value="[[= request.query.get('date_from', '') ]]" title="From Date & Time"
+                            class="bg-transparent text-[11px] font-medium text-slate-800 dark:text-slate-200 focus:outline-none leading-none">
+                        <span class="text-slate-400 text-[11px] font-semibold">to</span>
+                        <input type="datetime-local" name="date_to" value="[[= request.query.get('date_to', '') ]]" title="To Date & Time"
+                            class="bg-transparent text-[11px] font-medium text-slate-800 dark:text-slate-200 focus:outline-none leading-none">
+                    </div>
+
+                    <!-- Filter Action Button -->
+                    <button type="submit"
+                        class="h-[28px] px-3 bg-slate-800 hover:bg-slate-900 dark:bg-slate-700 dark:hover:bg-slate-600 text-white rounded-md text-[11px] font-semibold shadow-xs transition-all inline-flex items-center justify-center gap-1 shrink-0 cursor-pointer">
+                        <span class="material-symbols-outlined text-[14px] leading-none">filter_list</span>
+                        <span class="leading-none">Filter</span>
+                    </button>
+
+                    <!-- Reset Filter Button -->
+                    [[ if request.query.get('keywords') or request.query.get('date_from') or request.query.get('date_to'): ]]
+                    <a href="[[=URL('administration/audit_logs')]]" title="Clear Filters"
+                        class="h-[28px] px-2 bg-rose-50 hover:bg-rose-100 dark:bg-rose-950/40 dark:hover:bg-rose-900/50 text-rose-600 dark:text-rose-400 border border-rose-200/60 dark:border-rose-800/60 rounded-md transition-all inline-flex items-center justify-center shrink-0">
+                        <span class="material-symbols-outlined text-[14px] leading-none">filter_list_off</span>
+                    </a>
+                    [[ pass ]]
+                </form>
+
+                <!-- RIGHT SIDE: ACTION BUTTONS (EXPORT / CLEAR) -->
+                <div class="flex items-center gap-1.5 shrink-0 self-end lg:self-center">
+                    [[ if permissions and permissions.get('can_export'): ]]
+                    <!-- Export Dropdown -->
+                    <div class="relative">
+                        <button type="button" id="exportDropdownBtn" onclick="toggleExportDropdown(event)"
+                            class="h-[28px] px-2.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700/60 text-slate-700 dark:text-slate-200 rounded-md text-[11px] font-semibold shadow-2xs transition-all inline-flex items-center gap-1 cursor-pointer">
+                            <span class="material-symbols-outlined text-[15px] text-slate-500 dark:text-slate-400">download</span>
+                            <span>Export</span>
+                            <span class="material-symbols-outlined text-[13px] text-slate-400">expand_more</span>
+                        </button>
+                        <div id="exportDropdownMenu"
+                            class="hidden absolute right-0 top-full mt-1 w-32 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl shadow-xl z-50 p-1 space-y-0.5">
+                            <a href="[[= URL('administration/audit_logs', vars=request.query | {'export': 'csv'}) ]]"
+                                class="flex items-center gap-2 px-2.5 py-1.5 text-xs font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors">
+                                <span class="material-symbols-outlined text-[15px] text-emerald-500">csv</span>
+                                CSV
+                            </a>
+                            <a href="[[= URL('administration/audit_logs', vars=request.query | {'export': 'xlsx'}) ]]"
+                                class="flex items-center gap-2 px-2.5 py-1.5 text-xs font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors">
+                                <span class="material-symbols-outlined text-[15px] text-emerald-600">table_view</span>
+                                Excel (XLS)
+                            </a>
+                        </div>
+                    </div>
+                    [[ pass ]]
+
+                    [[ if permissions and permissions.get('can_delete'): ]]
+                    <button type="button" onclick="confirmClearAllLogs()"
+                        class="h-[28px] px-2.5 bg-rose-50 hover:bg-rose-100 dark:bg-rose-950/40 dark:hover:bg-rose-900/50 text-rose-600 dark:text-rose-400 border border-rose-200/60 dark:border-rose-800/60 rounded-md text-[11px] font-semibold shadow-2xs transition-all inline-flex items-center gap-1 cursor-pointer"
+                        title="Clear all audit logs">
+                        <span class="material-symbols-outlined text-[15px]">delete_sweep</span>
+                        <span class="hidden sm:inline">Clear Logs</span>
+                    </button>
+                    [[ pass ]]
+                </div>
+
+            </div>
+
+            <!-- TABLE CONTAINER -->
+            <div class="overflow-x-auto rounded-xl border border-slate-200/80 dark:border-slate-800">
+                <table class="w-full text-left border-collapse text-xs">
+                    <thead>
+                        <tr class="bg-slate-100/70 dark:bg-slate-800/60 text-[10px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 border-b border-slate-200/80 dark:border-slate-800">
+                            <th class="py-2.5 px-3 min-w-[140px]">Timestamp</th>
+                            <th class="py-2.5 px-3 min-w-[150px]">User</th>
+                            <th class="py-2.5 px-2 text-center w-24">Action</th>
+                            <th class="py-2.5 px-3 min-w-[130px]">Module / Table</th>
+                            <th class="py-2.5 px-3 min-w-[100px]">Record ID</th>
+                            <th class="py-2.5 px-3 min-w-[110px]">IP Address</th>
+                            <th class="py-2.5 px-3 text-center w-20">Details</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-100 dark:divide-slate-800/60">
+                        [[ if not audit_logs: ]]
+                        <tr>
+                            <td colspan="7" class="py-12 text-center text-slate-400">
+                                <div class="flex flex-col items-center justify-center gap-2">
+                                    <span class="material-symbols-outlined text-3xl text-slate-300 dark:text-slate-600">history</span>
+                                    <span class="text-xs font-semibold">No audit logs found matching your criteria.</span>
+                                </div>
+                            </td>
+                        </tr>
+                        [[ else: ]]
+                        [[ for l in audit_logs: ]]
+                        <tr class="hover:bg-slate-50/70 dark:hover:bg-slate-800/40 transition-colors">
+                            
+                            <!-- TIMESTAMP -->
+                            <td class="py-2 px-3 whitespace-nowrap text-slate-600 dark:text-slate-300 font-mono text-[11px]">
+                                [[= l.get('formatted_time', '--') ]]
+                            </td>
+
+                            <!-- USER -->
+                            <td class="py-2 px-3">
+                                <div class="font-bold text-slate-800 dark:text-slate-100 flex items-center gap-1.5 truncate max-w-[200px]">
+                                    <span>[[= l.get('user_name') or l.get('user_id') or '--' ]]</span>
+                                    [[ if not user_cid and l.get('cid'): ]]
+                                    <span class="px-1 py-0.2 text-[9px] font-mono font-bold bg-sky-100 dark:bg-sky-950 text-sky-700 dark:text-sky-300 rounded">[[= l.get('cid') ]]</span>
+                                    [[ pass ]]
+                                </div>
+                                <div class="text-[10px] font-mono text-slate-400 dark:text-slate-500">
+                                    ID: [[= l.get('user_id', '--') ]]
+                                </div>
+                            </td>
+
+                            <!-- ACTION BADGE -->
+                            <td class="py-2 px-2 text-center whitespace-nowrap">
+                                [[ act = (l.get('action') or '').upper() ]]
+                                [[ if act == 'CREATE': ]]
+                                <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 dark:bg-emerald-950/50 text-emerald-700 dark:text-emerald-400 border border-emerald-200/60 dark:border-emerald-800/60">
+                                    CREATE
+                                </span>
+                                [[ elif act == 'UPDATE': ]]
+                                <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-sky-50 dark:bg-sky-950/50 text-sky-700 dark:text-sky-400 border border-sky-200/60 dark:border-sky-800/60">
+                                    UPDATE
+                                </span>
+                                [[ elif act == 'DELETE': ]]
+                                <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-rose-50 dark:bg-rose-950/50 text-rose-700 dark:text-rose-400 border border-rose-200/60 dark:border-rose-800/60">
+                                    DELETE
+                                </span>
+                                [[ elif act == 'LOGIN': ]]
+                                <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-indigo-50 dark:bg-indigo-950/50 text-indigo-700 dark:text-indigo-400 border border-indigo-200/60 dark:border-indigo-800/60">
+                                    LOGIN
+                                </span>
+                                [[ elif act == 'LOGOUT': ]]
+                                <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200/60 dark:border-slate-700/60">
+                                    LOGOUT
+                                </span>
+                                [[ else: ]]
+                                <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-purple-50 dark:bg-purple-950/50 text-purple-700 dark:text-purple-400 border border-purple-200/60 dark:border-purple-800/60">
+                                    [[= act or '--' ]]
+                                </span>
+                                [[ pass ]]
+                            </td>
+
+                            <!-- MODULE & TABLE -->
+                            <td class="py-2 px-3">
+                                <div class="font-bold text-slate-800 dark:text-slate-200">
+                                    [[= l.get('module', '--') ]]
+                                </div>
+                                <div class="text-[10px] font-mono text-slate-400 dark:text-slate-500">
+                                    [[= l.get('table_name') or '--' ]]
+                                </div>
+                            </td>
+
+                            <!-- RECORD ID -->
+                            <td class="py-2 px-3 whitespace-nowrap font-mono text-[11px] text-slate-600 dark:text-slate-300">
+                                [[= l.get('record_id') or '--' ]]
+                            </td>
+
+                            <!-- IP ADDRESS -->
+                            <td class="py-2 px-3 whitespace-nowrap font-mono text-[11px] text-slate-500 dark:text-slate-400">
+                                [[= l.get('ip_address') or '--' ]]
+                            </td>
+
+                            <!-- DETAILS ACTION -->
+                            <td class="py-2 px-3 text-center whitespace-nowrap">
+                                <button type="button" 
+                                    onclick="openLogDetails([[= l.get('id') ]])"
+                                    class="inline-flex items-center justify-center w-7 h-7 rounded-lg text-slate-500 hover:text-primary hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
+                                    title="View Change Details">
+                                    <span class="material-symbols-outlined text-[18px]">visibility</span>
+                                </button>
+                                [[ if permissions and permissions.get('can_delete'): ]]
+                                <button type="button" 
+                                    onclick="confirmDeleteSingleLog([[= l.get('id') ]])"
+                                    class="inline-flex items-center justify-center w-7 h-7 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/40 transition-colors cursor-pointer"
+                                    title="Delete Log">
+                                    <span class="material-symbols-outlined text-[16px]">delete</span>
+                                </button>
+                                [[ pass ]]
+                            </td>
+
+                        </tr>
+                        [[ pass ]]
+                        [[ pass ]]
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- PAGINATION TOOLBAR -->
+            <div class="flex flex-col sm:flex-row items-center justify-between gap-3 pt-2 text-xs text-slate-500">
+                <div class="flex items-center gap-2">
+                    <span>Show</span>
+                    <div class="relative custom-dropdown-container">
+                        <button type="button" onclick="toggleCustomDropdown('limit', false)"
+                            class="h-7 px-2.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg font-bold text-slate-700 dark:text-slate-200 flex items-center gap-1 cursor-pointer">
+                            <span>[[= pagination.get('limit', 15) ]]</span>
+                            <span class="material-symbols-outlined text-[14px]">expand_more</span>
+                        </button>
+                        <div id="limit_dropdown_menu"
+                            class="custom-dropdown-menu hidden absolute left-0 bottom-full mb-1 w-16 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl shadow-xl z-50 p-1 space-y-0.5">
+                            [[ for l in [10, 15, 25, 50, 100]: ]]
+                            <a href="[[= URL('administration/audit_logs', vars=request.query | {'limit': l, 'page': 1}) ]]"
+                                class="block text-center py-1 rounded hover:bg-slate-100 dark:hover:bg-slate-800 font-semibold [[= 'text-primary' if l == pagination.get('limit', 15) else '' ]]">
+                                [[= l ]]
+                            </a>
+                            [[ pass ]]
+                        </div>
+                    </div>
+                    <span>per page</span>
+                    <span class="text-slate-300 dark:text-slate-700">|</span>
+                    <div>
+                        Showing <span class="font-bold text-slate-700 dark:text-slate-200">[[= pagination.get('start_item', 0) ]]</span>
+                        - <span class="font-bold text-slate-700 dark:text-slate-200">[[= pagination.get('end_item', 0) ]]</span>
+                        of <span class="font-bold text-slate-700 dark:text-slate-200">[[= pagination.get('total_items', 0) ]]</span> records
+                    </div>
+                </div>
+
+                <!-- Page numbers -->
+                <div class="flex items-center gap-1 select-none">
+                    [[ cur_p = pagination.get('current_page', 1) ]]
+                    [[ tot_p = pagination.get('total_pages', 1) ]]
+
+                    [[ if cur_p > 1: ]]
+                    <a href="[[= URL('administration/audit_logs', vars=request.query | {'page': cur_p - 1}) ]]"
+                        class="w-7 h-7 rounded-lg border border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 flex items-center justify-center transition-colors text-slate-600 dark:text-slate-300">
+                        <span class="material-symbols-outlined text-[14px]">chevron_left</span>
+                    </a>
+                    [[ else: ]]
+                    <button class="w-7 h-7 rounded-lg border border-slate-200/50 dark:border-slate-800/50 flex items-center justify-center text-slate-300 dark:text-slate-700 cursor-not-allowed" disabled>
+                        <span class="material-symbols-outlined text-[14px]">chevron_left</span>
+                    </button>
+                    [[ pass ]]
+
+                    [[
+                    window = 1
+                    left_side = cur_p - window
+                    right_side = cur_p + window
+                    ]]
+
+                    [[ for p in range(1, tot_p + 1): ]]
+                    [[ if p == 1 or p == tot_p or (p >= left_side and p <= right_side): ]]
+                        [[ if p == cur_p: ]]
+                        <span class="w-7 h-7 rounded-lg bg-primary text-white font-bold flex items-center justify-center shadow-2xs">
+                            [[= p ]]
+                        </span>
+                        [[ else: ]]
+                        <a href="[[= URL('administration/audit_logs', vars=request.query | {'page': p}) ]]"
+                            class="w-7 h-7 rounded-lg border border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 font-medium flex items-center justify-center text-slate-600 dark:text-slate-300 transition-colors">
+                            [[= p ]]
+                        </a>
+                        [[ pass ]]
+                    [[ elif p == left_side - 1 or p == right_side + 1: ]]
+                        <span class="w-7 h-7 flex items-center justify-center text-slate-400 font-bold">...</span>
+                    [[ pass ]]
+                    [[ pass ]]
+
+                    [[ if cur_p < tot_p: ]]
+                    <a href="[[= URL('administration/audit_logs', vars=request.query | {'page': cur_p + 1}) ]]"
+                        class="w-7 h-7 rounded-lg border border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 flex items-center justify-center transition-colors text-slate-600 dark:text-slate-300">
+                        <span class="material-symbols-outlined text-[14px]">chevron_right</span>
+                    </a>
+                    [[ else: ]]
+                    <button class="w-7 h-7 rounded-lg border border-slate-200/50 dark:border-slate-800/50 flex items-center justify-center text-slate-300 dark:text-slate-700 cursor-not-allowed" disabled>
+                        <span class="material-symbols-outlined text-[14px]">chevron_right</span>
+                    </button>
+                    [[ pass ]]
+                </div>
+            </div>
+
+        </div>
+
+    </div>
+</div>
+
+<!-- AUDIT LOG DETAILS MODAL -->
+<div id="auditLogModal" class="fixed inset-0 z-[100] hidden bg-slate-950/75 backdrop-blur-xs flex items-center justify-center p-4 transition-all duration-200" onclick="if(event.target===this) closeAuditModal()">
+    <div class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-2xl max-w-2xl w-full max-h-[85vh] overflow-hidden flex flex-col animate-in fade-in zoom-in-95 duration-150">
+        
+        <!-- Header -->
+        <div class="px-5 py-3 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between bg-slate-50/60 dark:bg-slate-800/40">
+            <div class="flex items-center gap-2">
+                <span class="material-symbols-outlined text-primary text-[20px]">history_edu</span>
+                <h3 class="text-xs font-extrabold uppercase tracking-wider text-slate-800 dark:text-slate-100">
+                    Audit Log Details
+                </h3>
+            </div>
+            <button type="button" onclick="closeAuditModal()" class="text-slate-400 hover:text-slate-700 dark:hover:text-white p-1 rounded-lg hover:bg-slate-200/60 dark:hover:bg-slate-800 transition-colors cursor-pointer">
+                <span class="material-symbols-outlined text-lg block">close</span>
+            </button>
+        </div>
+
+        <!-- Body -->
+        <div class="p-5 space-y-4 overflow-y-auto">
+            <!-- Metadata Grid -->
+            <div class="grid grid-cols-2 sm:grid-cols-3 gap-2.5 p-3 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200/60 dark:border-slate-700/60 text-xs">
+                <div>
+                    <span class="text-[10px] text-slate-400 dark:text-slate-500 font-bold uppercase block">User</span>
+                    <span id="modal-user" class="font-bold text-slate-800 dark:text-slate-100">--</span>
+                </div>
+                <div>
+                    <span class="text-[10px] text-slate-400 dark:text-slate-500 font-bold uppercase block">Action</span>
+                    <span id="modal-action" class="font-bold">--</span>
+                </div>
+                <div>
+                    <span class="text-[10px] text-slate-400 dark:text-slate-500 font-bold uppercase block">Module / Table</span>
+                    <span id="modal-module" class="font-mono text-slate-800 dark:text-slate-200">--</span>
+                </div>
+                <div>
+                    <span class="text-[10px] text-slate-400 dark:text-slate-500 font-bold uppercase block">Record ID</span>
+                    <span id="modal-record-id" class="font-mono text-slate-800 dark:text-slate-200">--</span>
+                </div>
+                <div>
+                    <span class="text-[10px] text-slate-400 dark:text-slate-500 font-bold uppercase block">IP Address</span>
+                    <span id="modal-ip" class="font-mono text-slate-800 dark:text-slate-200">--</span>
+                </div>
+                <div>
+                    <span class="text-[10px] text-slate-400 dark:text-slate-500 font-bold uppercase block">Timestamp</span>
+                    <span id="modal-timestamp" class="font-mono text-slate-600 dark:text-slate-400">--</span>
+                </div>
+                <div class="col-span-2 sm:col-span-3">
+                    <span class="text-[10px] text-slate-400 dark:text-slate-500 font-bold uppercase block">User Agent</span>
+                    <span id="modal-agent" class="text-[11px] font-mono text-slate-500 dark:text-slate-400 truncate block">--</span>
+                </div>
+            </div>
+
+            <!-- Value Diffs (Old Values vs New Values) -->
+            <div class="space-y-3">
+                <div id="modal-new-container">
+                    <div class="flex items-center justify-between mb-1">
+                        <span class="text-[11px] font-bold uppercase text-emerald-600 dark:text-emerald-400 flex items-center gap-1">
+                            <span class="material-symbols-outlined text-[14px]">check_circle</span> New Values / Changes
+                        </span>
+                    </div>
+                    <pre id="modal-new-val" class="p-3 bg-slate-900 text-emerald-400 rounded-xl text-[11px] font-mono overflow-x-auto max-h-48 border border-slate-800 whitespace-pre-wrap"></pre>
+                </div>
+
+                <div id="modal-old-container">
+                    <div class="flex items-center justify-between mb-1">
+                        <span class="text-[11px] font-bold uppercase text-rose-500 dark:text-rose-400 flex items-center gap-1">
+                            <span class="material-symbols-outlined text-[14px]">history</span> Old Values / Previous
+                        </span>
+                    </div>
+                    <pre id="modal-old-val" class="p-3 bg-slate-900 text-rose-300 rounded-xl text-[11px] font-mono overflow-x-auto max-h-48 border border-slate-800 whitespace-pre-wrap"></pre>
+                </div>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <div class="px-5 py-3 bg-slate-50/80 dark:bg-slate-800/50 border-t border-slate-100 dark:border-slate-800 flex items-center justify-end">
+            <button type="button" onclick="closeAuditModal()"
+                class="h-8 px-4 text-xs font-bold text-slate-700 dark:text-slate-200 bg-white hover:bg-slate-100 dark:bg-slate-800 dark:hover:bg-slate-700 rounded-lg transition-all border border-slate-200 dark:border-slate-700 shadow-2xs cursor-pointer">
+                Close
+            </button>
+        </div>
+
+    </div>
+</div>
+
+<!-- CLIENT JAVASCRIPT -->
+<script>
+    // Client-side dataset of logs for modal inspection
+    window.RAW_LOGS = [[= XML(json.dumps(audit_logs, default=str)) ]];
+
+    function openLogDetails(logId) {
+        const log = (window.RAW_LOGS || []).find(l => Number(l.id) === Number(logId));
+        if (!log) return;
+
+        document.getElementById('modal-user').textContent = (log.user_name || log.user_id || '--') + (log.user_id ? ` (${log.user_id})` : '');
+        document.getElementById('modal-action').textContent = log.action || '--';
+        document.getElementById('modal-module').textContent = `${log.module || '--'} / ${log.table_name || '--'}`;
+        document.getElementById('modal-record-id').textContent = log.record_id || '--';
+        document.getElementById('modal-ip').textContent = log.ip_address || '--';
+        document.getElementById('modal-timestamp').textContent = log.formatted_time || log.created_on || '--';
+        document.getElementById('modal-agent').textContent = log.user_agent || '--';
+
+        const newCont = document.getElementById('modal-new-container');
+        const oldCont = document.getElementById('modal-old-container');
+        const newPre = document.getElementById('modal-new-val');
+        const oldPre = document.getElementById('modal-old-val');
+
+        function formatJSON(val) {
+            if (!val) return null;
+            try {
+                const parsed = typeof val === 'string' ? JSON.parse(val) : val;
+                return JSON.stringify(parsed, null, 2);
+            } catch (e) {
+                return String(val);
+            }
+        }
+
+        const newFormatted = formatJSON(log.new_values);
+        const oldFormatted = formatJSON(log.old_values);
+
+        if (newFormatted) {
+            newPre.textContent = newFormatted;
+            newCont.classList.remove('hidden');
+        } else {
+            newCont.classList.add('hidden');
+        }
+
+        if (oldFormatted) {
+            oldPre.textContent = oldFormatted;
+            oldCont.classList.remove('hidden');
+        } else {
+            oldCont.classList.add('hidden');
+        }
+
+        document.getElementById('auditLogModal').classList.remove('hidden');
+        document.body.style.overflow = 'hidden';
+    }
+
+    function closeAuditModal() {
+        const modal = document.getElementById('auditLogModal');
+        if (modal) modal.classList.add('hidden');
+        document.body.style.overflow = '';
+    }
+
+    function confirmDeleteSingleLog(logId) {
+        showConfirmModal({
+            title: 'Delete Audit Log Entry',
+            message: `Are you sure you want to permanently delete audit log record <strong>#${logId}</strong>?`,
+            type: 'danger',
+            confirmText: 'Yes, Delete',
+            cancelText: 'Cancel',
+            onConfirm: function() {
+                window.location.href = "[[=URL('administration/audit_logs')]]?action=delete&id=" + encodeURIComponent(logId);
+            }
+        });
+    }
+
+    function confirmClearAllLogs() {
+        showConfirmModal({
+            title: 'Clear All Audit Logs',
+            message: 'Are you sure you want to <strong>delete all audit logs</strong>? This operation is permanent and cannot be undone.',
+            type: 'danger',
+            confirmText: 'Yes, Clear All Logs',
+            cancelText: 'Cancel',
+            onConfirm: function() {
+                window.location.href = "[[=URL('administration/audit_logs')]]?action=clear";
+            }
+        });
+    }
+
+    // Dropdown helpers
+    function toggleCustomDropdown(id, isMulti) {
+        const menu = document.getElementById(id + '_dropdown_menu');
+        const arrow = document.getElementById(id + '_arrow_icon');
+        const isHidden = menu.classList.contains('hidden');
+
+        document.querySelectorAll('.custom-dropdown-menu').forEach(m => m.classList.add('hidden'));
+        document.querySelectorAll('.custom-dropdown-arrow').forEach(a => a.classList.remove('rotate-180'));
+
+        if (isHidden) {
+            menu.classList.remove('hidden');
+            if (arrow) arrow.classList.add('rotate-180');
+        } else {
+            closeCustomDropdown(id);
+        }
+    }
+
+    function closeCustomDropdown(id) {
+        const menu = document.getElementById(id + '_dropdown_menu');
+        const arrow = document.getElementById(id + '_arrow_icon');
+        if (menu) menu.classList.add('hidden');
+        if (arrow) arrow.classList.remove('rotate-180');
+    }
+
+    function selectCustomOption(id, val, label) {
+        const hiddenInput = document.getElementById(id + '_hidden_input');
+        const textSpan = document.getElementById(id + '_selected_text');
+        if (hiddenInput) hiddenInput.value = val;
+        if (textSpan) textSpan.textContent = label;
+        closeCustomDropdown(id);
+    }
+
+    function toggleExportDropdown(event) {
+        event.stopPropagation();
+        const menu = document.getElementById('exportDropdownMenu');
+        if (menu) menu.classList.toggle('hidden');
+    }
+
+    document.addEventListener('click', function(event) {
+        if (!event.target.closest('.custom-dropdown-container')) {
+            document.querySelectorAll('.custom-dropdown-menu').forEach(m => m.classList.add('hidden'));
+            document.querySelectorAll('.custom-dropdown-arrow').forEach(a => a.classList.remove('rotate-180'));
+        }
+
+        const menu = document.getElementById('exportDropdownMenu');
+        const btn = document.getElementById('exportDropdownBtn');
+        if (menu && !menu.classList.contains('hidden')) {
+            if (!menu.contains(event.target) && !btn.contains(event.target)) {
+                menu.classList.add('hidden');
+            }
+        }
+    });
+
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+            closeAuditModal();
+        }
+    });
+</script>

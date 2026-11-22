@@ -2,12 +2,14 @@ from py4web import URL, action, redirect, request, response
 from ..middleware.auth_middleware import web_auth_required
 from ..utils.common import db, flash, session, view_page
 from ..utils.permission_utils import get_user_permissions, clear_permission_cache
+from ..utils.audit_utils import log_audit
 from ..core.db import db_datetime
 import math
 import io
 import csv
 import os
 import time
+import xml.sax.saxutils as xml_escape
 from datetime import datetime
 
 
@@ -1987,5 +1989,260 @@ def user_manage(user_id=None):
         target_user=target_user,
         page_title=page_title,
         mode=mode
+    )
+
+
+@action("administration/audit_logs")
+@view_page("administration/audit_logs.html", title="Audit Logs | Administration")
+@web_auth_required
+def audit_logs():
+    user_cid = session.user.get("cid", "")
+    perms = get_user_permissions(session.user, "AUDIT_LOGS")
+
+    if not perms.get("can_view"):
+        flash.set("Access Denied: You do not have permission to view audit logs.", "danger")
+        redirect(URL("dashboard"))
+        return
+
+    action_type = request.query.get("action", "").strip().lower()
+    delete_id = request.query.get("id") or request.query.get("delete_id")
+
+    # Handle deletion / clearing if permitted
+    if action_type == "delete" and delete_id:
+        if not perms.get("can_delete"):
+            flash.set("Access Denied: You do not have permission to delete audit logs.", "danger")
+            redirect(URL("administration/audit_logs"))
+            return
+        try:
+            del_where = ["id = %s"]
+            del_params = [int(delete_id)]
+            if user_cid:
+                del_where.append("LOWER(cid) = LOWER(%s)")
+                del_params.append(user_cid)
+            db.executesql(f"DELETE FROM audit_logs WHERE {' AND '.join(del_where)}", del_params)
+            db.commit()
+            flash.set("Audit log entry deleted successfully.", "success")
+        except Exception as e:
+            flash.set(f"Failed to delete audit log: {str(e)}", "danger")
+        redirect(URL("administration/audit_logs"))
+        return
+
+    if action_type == "clear":
+        if not perms.get("can_delete"):
+            flash.set("Access Denied: You do not have permission to clear audit logs.", "danger")
+            redirect(URL("administration/audit_logs"))
+            return
+        try:
+            clear_where = []
+            clear_params = []
+            if user_cid:
+                clear_where.append("LOWER(cid) = LOWER(%s)")
+                clear_params.append(user_cid)
+            where_sql = f"WHERE {' AND '.join(clear_where)}" if clear_where else ""
+            db.executesql(f"DELETE FROM audit_logs {where_sql}", clear_params)
+            db.commit()
+            log_audit("DELETE", "AUDIT_LOGS", table_name="audit_logs", record_id="ALL", new_values={"message": "Audit logs cleared"})
+            flash.set("Audit logs cleared successfully.", "success")
+        except Exception as e:
+            flash.set(f"Failed to clear audit logs: {str(e)}", "danger")
+        redirect(URL("administration/audit_logs"))
+        return
+
+    # Filter params
+    keywords = request.query.get("keywords", "").strip()
+    act_filter = request.query.get("act", "").strip()
+    mod_filter = request.query.get("module", "").strip()
+    date_from = request.query.get("date_from", "").strip()
+    date_to = request.query.get("date_to", "").strip()
+    cid = user_cid if user_cid else request.query.get("cid", "").strip()
+    export_format = request.query.get("export", "").strip().lower()
+
+    where_clauses = ["1=1"]
+    params = []
+
+    if cid:
+        where_clauses.append("LOWER(cid) = LOWER(%s)")
+        params.append(cid)
+
+    if keywords:
+        where_clauses.append("(user_id LIKE %s OR user_name LIKE %s OR action LIKE %s OR module LIKE %s OR table_name LIKE %s OR record_id LIKE %s OR ip_address LIKE %s)")
+        kw_pattern = f"%{keywords}%"
+        params.extend([kw_pattern] * 7)
+
+    if act_filter:
+        where_clauses.append("UPPER(action) = %s")
+        params.append(act_filter.upper())
+
+    if mod_filter:
+        where_clauses.append("UPPER(module) = %s")
+        params.append(mod_filter.upper())
+
+    if date_from:
+        clean_from = date_from.replace("T", " ").strip()
+        if len(clean_from) == 10:
+            clean_from += " 00:00:00"
+        elif len(clean_from) == 16:
+            clean_from += ":00"
+        where_clauses.append("created_on >= %s")
+        params.append(clean_from)
+
+    if date_to:
+        clean_to = date_to.replace("T", " ").strip()
+        if len(clean_to) == 10:
+            clean_to += " 23:59:59"
+        elif len(clean_to) == 16:
+            clean_to += ":59"
+        where_clauses.append("created_on <= %s")
+        params.append(clean_to)
+
+    where_str = " AND ".join(where_clauses)
+
+    query_sql = f"""
+        SELECT id, COALESCE(cid, '') AS cid, user_id, user_name, action, module, 
+               table_name, record_id, old_values, new_values, ip_address, user_agent, created_on
+        FROM audit_logs
+        WHERE {where_str}
+        ORDER BY id DESC
+    """
+    try:
+        raw_logs = db.executesql(query_sql, params, as_dict=True)
+    except Exception:
+        raw_logs = []
+
+    # Format created_on datetime for display
+    for l in raw_logs:
+        dt = l.get("created_on")
+        if isinstance(dt, datetime):
+            l["formatted_time"] = dt.strftime("%d %b %Y, %I:%M %p")
+        elif dt:
+            l["formatted_time"] = str(dt)
+        else:
+            l["formatted_time"] = "--"
+
+    # Distinct modules for filter dropdown
+    try:
+        distinct_modules_sql = "SELECT DISTINCT module FROM audit_logs WHERE module IS NOT NULL AND module != '' ORDER BY module"
+        mod_rows = db.executesql(distinct_modules_sql, as_dict=True)
+        available_modules = [m["module"] for m in mod_rows if m.get("module")]
+    except Exception:
+        available_modules = []
+
+    # Export handling
+    if export_format in ["csv", "xlsx", "xls"] and perms.get("can_export"):
+        filename = f"audit_logs_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
+        headers = ["ID"]
+        if not user_cid:
+            headers.append("Company ID")
+        headers.extend(["User ID", "User Name", "Action", "Module", "Table", "Record ID", "IP Address", "Timestamp"])
+
+        if export_format == "csv":
+            output = io.StringIO()
+            writer = csv.writer(output)
+            writer.writerow(headers)
+            for l in raw_logs:
+                row_vals = [l.get("id")]
+                if not user_cid:
+                    row_vals.append(l.get("cid", ""))
+                row_vals.extend([
+                    l.get("user_id", ""), l.get("user_name", ""),
+                    l.get("action", ""), l.get("module", ""),
+                    l.get("table_name", ""), l.get("record_id", ""),
+                    l.get("ip_address", ""), l.get("formatted_time", "")
+                ])
+                writer.writerow(row_vals)
+            response.headers['Content-Type'] = 'text/csv; charset=utf-8'
+            response.headers['Content-Disposition'] = f'attachment; filename="{filename}.csv"'
+            return output.getvalue()
+
+        if export_format in ["xlsx", "xls"]:
+            xml_data = [
+                '<?xml version="1.0" encoding="UTF-8"?>',
+                '<?mso-application progid="Excel.Sheet"?>',
+                '<Workbook xmlns="urn:schemas-microsoft-com:office:spreadsheet" xmlns:ss="urn:schemas-microsoft-com:office:spreadsheet">',
+                '<Styles>',
+                '<Style ss:ID="HeaderStyle"><Font ss:FontName="Calibri" ss:Size="11" ss:Color="#FFFFFF" ss:Bold="1"/><Interior ss:Color="#0F172A" ss:Pattern="Solid"/><Alignment ss:Horizontal="Center" ss:Vertical="Center"/></Style>',
+                '<Style ss:ID="DataLeft"><Font ss:FontName="Calibri" ss:Size="10"/><Alignment ss:Horizontal="Left" ss:Vertical="Center"/></Style>',
+                '<Style ss:ID="DataCenter"><Font ss:FontName="Calibri" ss:Size="10"/><Alignment ss:Horizontal="Center" ss:Vertical="Center"/></Style>',
+                '</Styles>',
+                '<Worksheet ss:Name="AuditLogs"><Table>',
+                '<Row ss:Height="26">'
+            ]
+            for h in headers:
+                xml_data.append(f'  <Cell ss:StyleID="HeaderStyle"><Data ss:Type="String">{xml_escape.escape(h)}</Data></Cell>')
+            xml_data.append('</Row>')
+            for l in raw_logs:
+                xml_data.append('<Row ss:Height="22">')
+                xml_data.append(f'  <Cell ss:StyleID="DataCenter"><Data ss:Type="String">{l.get("id", "")}</Data></Cell>')
+                if not user_cid:
+                    xml_data.append(f'  <Cell ss:StyleID="DataCenter"><Data ss:Type="String">{xml_escape.escape(str(l.get("cid", "")))}</Data></Cell>')
+                xml_data.append(f'  <Cell ss:StyleID="DataCenter"><Data ss:Type="String">{xml_escape.escape(str(l.get("user_id", "")))}</Data></Cell>')
+                xml_data.append(f'  <Cell ss:StyleID="DataLeft"><Data ss:Type="String">{xml_escape.escape(str(l.get("user_name", "")))}</Data></Cell>')
+                xml_data.append(f'  <Cell ss:StyleID="DataCenter"><Data ss:Type="String">{xml_escape.escape(str(l.get("action", "")))}</Data></Cell>')
+                xml_data.append(f'  <Cell ss:StyleID="DataLeft"><Data ss:Type="String">{xml_escape.escape(str(l.get("module", "")))}</Data></Cell>')
+                xml_data.append(f'  <Cell ss:StyleID="DataLeft"><Data ss:Type="String">{xml_escape.escape(str(l.get("table_name", "")))}</Data></Cell>')
+                xml_data.append(f'  <Cell ss:StyleID="DataCenter"><Data ss:Type="String">{xml_escape.escape(str(l.get("record_id", "")))}</Data></Cell>')
+                xml_data.append(f'  <Cell ss:StyleID="DataCenter"><Data ss:Type="String">{xml_escape.escape(str(l.get("ip_address", "")))}</Data></Cell>')
+                xml_data.append(f'  <Cell ss:StyleID="DataCenter"><Data ss:Type="String">{xml_escape.escape(str(l.get("formatted_time", "")))}</Data></Cell>')
+                xml_data.append('</Row>')
+            xml_data.append('</Table></Worksheet></Workbook>')
+            response.headers['Content-Type'] = 'application/vnd.ms-excel; charset=utf-8'
+            response.headers['Content-Disposition'] = f'attachment; filename="{filename}.xls"'
+            return "\n".join(xml_data)
+
+    # Limit and Pagination Logic
+    try:
+        limit = max(1, int(request.query.get("limit", 15)))
+    except (ValueError, TypeError):
+        limit = 15
+
+    total_filtered = len(raw_logs)
+    total_pages = math.ceil(total_filtered / limit) if total_filtered > 0 else 1
+
+    try:
+        page = int(request.query.get("page", 1))
+    except (ValueError, TypeError):
+        page = 1
+
+    if page < 1:
+        page = 1
+    elif page > total_pages and total_pages > 0:
+        page = total_pages
+
+    start_idx = (page - 1) * limit
+    end_idx = start_idx + limit
+    paginated_logs = raw_logs[start_idx:end_idx]
+
+    pagination = {
+        "current_page": page,
+        "limit": limit,
+        "page_size": limit,
+        "total_pages": total_pages,
+        "total_items": total_filtered,
+        "start_item": start_idx + 1 if total_filtered > 0 else 0,
+        "end_item": min(end_idx, total_filtered),
+    }
+
+    # Summary Stats
+    total_count = total_filtered
+    create_count = sum(1 for l in raw_logs if (l.get("action") or "").upper() == "CREATE")
+    update_count = sum(1 for l in raw_logs if (l.get("action") or "").upper() == "UPDATE")
+    delete_count = sum(1 for l in raw_logs if (l.get("action") or "").upper() == "DELETE")
+    login_count = sum(1 for l in raw_logs if (l.get("action") or "").upper() in ("LOGIN", "LOGOUT"))
+
+    stats = {
+        "total": total_count,
+        "create": create_count,
+        "update": update_count,
+        "delete": delete_count,
+        "login": login_count,
+    }
+
+    return dict(
+        audit_logs=paginated_logs,
+        pagination=pagination,
+        permissions=perms,
+        user_cid=user_cid,
+        stats=stats,
+        available_modules=available_modules
     )
 

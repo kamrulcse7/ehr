@@ -12,6 +12,26 @@ CREATE TABLE system_settings (
   updated_by varchar(50) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci COMMENT='System Configuration Table';
 
+CREATE TABLE audit_logs (
+  id int(11) NOT NULL AUTO_INCREMENT,
+  cid varchar(50) DEFAULT NULL COMMENT 'Company ID for multi-tenant support',
+  user_id varchar(30) DEFAULT NULL COMMENT 'ID of the user performing the action',
+  user_name varchar(100) DEFAULT NULL COMMENT 'Cached display name of the user',
+  action varchar(30) NOT NULL COMMENT 'e.g. CREATE, UPDATE, DELETE, LOGIN, EXPORT',
+  module varchar(50) NOT NULL COMMENT 'System module name e.g. Employee, User, Attendance',
+  table_name varchar(50) DEFAULT NULL COMMENT 'Target database table name',
+  record_id varchar(50) DEFAULT NULL COMMENT 'Primary key / ID of the affected record',
+  old_values longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin DEFAULT NULL COMMENT 'JSON snapshot of record before change',
+  new_values longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin DEFAULT NULL COMMENT 'JSON snapshot of record after change',
+  ip_address varchar(45) DEFAULT NULL COMMENT 'Client IPv4 / IPv6 address',
+  user_agent varchar(255) DEFAULT NULL COMMENT 'Browser / Client details',
+  created_on datetime DEFAULT current_timestamp(),
+  PRIMARY KEY (id),
+  KEY idx_cid_created (cid, created_on),
+  KEY idx_user_id (user_id),
+  KEY idx_table_record (table_name, record_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci COMMENT='System Audit Logs';
+
 CREATE TABLE modules (
   id int PRIMARY KEY AUTO_INCREMENT,
   module_id varchar(30) NOT NULL UNIQUE COMMENT 'Unique code e.g. HR_EMP, HR_ATT',
