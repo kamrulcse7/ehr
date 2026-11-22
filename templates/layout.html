@@ -70,7 +70,7 @@
                                 class="submenu-container max-h-0 overflow-hidden transition-all duration-300 ease-in-out bg-slate-50/50 dark:bg-slate-950/30 rounded-lg mt-0.5 pl-8 pr-1.5 flex flex-col gap-0.5 [[ if is_p_active: ]] active-menu-parent [[ pass ]]">
                                 [[ for child in menu.get('children'): ]]
                                     [[ is_c_active = (active_c_title and active_c_title == child.get('display_title')) ]]
-                                    <a data-title="[[=child.get('display_title')]]" href="[[=URL(child.get('route_path', '').lstrip('/')) if child.get('route_path') else '#']] "
+                                    <a data-title="[[=child.get('display_title')]]" href="[[=URL(child.get('route_path', '').lstrip('/')) if child.get('route_path') else '#']]"
                                         class="block py-1 px-2.5 text-[11px] font-medium transition-all duration-150 [[ if is_c_active: ]] text-primary dark:text-white font-bold bg-primary/10 dark:bg-primary/20 pl-3 rounded-r-md border-l-2 border-primary is-active-child [[ else: ]] text-slate-600 dark:text-slate-400 hover:text-primary dark:hover:text-white [[ pass ]]">[[=child.get('display_title')]]</a>
                                 [[ pass ]]
                             </div>
@@ -79,7 +79,7 @@
                         <!-- Direct Menu Link -->
                         [[ is_direct_active = (active_p_title and active_p_title == menu.get('display_title')) ]]
                         <div class="menu-item-wrapper relative group">
-                            <a data-title="[[=menu.get('display_title')]]" href="[[=URL(menu.get('route_path', '').lstrip('/')) if menu.get('route_path') else '#']] "
+                            <a data-title="[[=menu.get('display_title')]]" href="[[=URL(menu.get('route_path', '').lstrip('/')) if menu.get('route_path') else '#']]"
                                 class="menu-link flex items-center gap-2.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all duration-150 [[ if is_direct_active: ]] bg-slate-200 dark:bg-slate-800 text-slate-900 dark:text-white font-bold [[ else: ]] text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white [[ pass ]]">
                                 <span
                                     class="material-symbols-outlined group-hover:text-primary text-[18px] shrink-0 [[ if is_direct_active: ]] text-primary [[ else: ]] text-slate-500 dark:text-slate-400 [[ pass ]]">[[=menu.get('icon') or 'dashboard']]</span>
@@ -424,6 +424,7 @@
 
         function showFlyout(wrapper) {
             if (!sidebar.classList.contains("sidebar-mini") || !sidebarFlyout) return;
+            const currentPath = window.location.pathname;
 
             const subLinks = wrapper.querySelectorAll(".submenu-container a");
 
@@ -459,7 +460,7 @@
 
             subLinks.forEach(sub => {
                 const subTitle = sub.getAttribute("data-title") || sub.textContent.trim();
-                const subHref = sub.getAttribute("href") || "#";
+                const subHref = (sub.getAttribute("href") || "#").trim();
                 const helperAnchor = document.createElement('a');
                 helperAnchor.href = sub.href;
                 const isSubActive = sub.classList.contains("is-active-child") || currentPath === helperAnchor.pathname || window.location.href.includes(sub.href);
@@ -673,14 +674,16 @@
             });
 
             menuLinks.forEach(link => {
-                const linkHref = link.getAttribute("href");
+                const linkHref = (link.getAttribute("href") || "").trim();
                 if (!linkHref || linkHref === "#") return;
 
                 const helperAnchor = document.createElement('a');
                 helperAnchor.href = link.href;
-                const linkPath = helperAnchor.pathname;
+                const linkPath = helperAnchor.pathname.replace(/\/+$/, "");
+                const curCleanPath = currentPath.replace(/\/+$/, "");
 
-                if (currentPath === linkPath || (linkPath !== '/' && currentPath.startsWith(linkPath))) {
+                const isRootApp = !linkPath || linkPath === '/' || linkPath === '/ehr';
+                if (curCleanPath === linkPath || (!isRootApp && curCleanPath.startsWith(linkPath + '/'))) {
                     const parentContainer = link.closest(".submenu-container");
 
                     if (parentContainer) {
