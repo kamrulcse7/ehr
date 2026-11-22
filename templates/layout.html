@@ -21,6 +21,8 @@
     }
 </style>
 <div class="fixed inset-0 w-screen h-screen flex overflow-hidden bg-slate-50 font-sans text-slate-800">
+    <!-- Top SPA Progress Loading Bar -->
+    <div id="spa-progress-bar" class="fixed top-0 left-0 h-[3px] bg-primary z-[9999] transition-all duration-300 ease-out opacity-0 pointer-events-none w-0"></div>
 
     <!-- Sidebar (Compact Width & Compact Styling) -->
     <aside id="main-sidebar"
@@ -596,90 +598,274 @@
             }
         });
 
-        // Active Menu Item Highlighter
-        const currentPath = window.location.pathname;
-        const menuLinks = document.querySelectorAll(".menu-link, .submenu-container a");
-
-        // First expand any server-designated active parent containers
-        document.querySelectorAll(".submenu-container.active-menu-parent").forEach(parentContainer => {
-            if (!sidebar.classList.contains("sidebar-mini")) {
-                parentContainer.style.maxHeight = parentContainer.scrollHeight + "px";
-            }
-        });
-
-        menuLinks.forEach(link => {
-            const linkHref = link.getAttribute("href");
-            if (!linkHref || linkHref === "#") return;
-
-            const helperAnchor = document.createElement('a');
-            helperAnchor.href = link.href;
-            const linkPath = helperAnchor.pathname;
-
-            if (currentPath === linkPath || window.location.href.includes(link.href)) {
-                const parentContainer = link.closest(".submenu-container");
-
-                if (parentContainer) {
-                    parentContainer.classList.add("active-menu-parent");
-                    if (!sidebar.classList.contains("sidebar-mini")) {
-                        parentContainer.style.maxHeight = parentContainer.scrollHeight + "px";
-                    }
-
-                    const parentWrapper = parentContainer.closest(".menu-item-wrapper");
-                    const arrow = parentWrapper?.querySelector(".arrow-icon");
-                    if (arrow && !sidebar.classList.contains("sidebar-mini")) arrow.classList.add("rotate-90");
-
-                    const parentButton = parentWrapper?.querySelector(".submenu-toggle");
-                    if (parentButton) {
-                        parentButton.classList.add("bg-slate-200", "dark:bg-slate-800", "text-slate-900", "dark:text-white", "font-bold");
-                        parentButton.classList.remove("text-slate-700", "dark:text-slate-300");
-
-                        const parentIcon = parentButton.querySelector(".material-symbols-outlined");
-                        if (parentIcon) {
-                            parentIcon.classList.remove("text-slate-500", "dark:text-slate-400");
-                            parentIcon.classList.add("text-primary");
-                        }
-                    }
-
-                    link.classList.add("text-primary", "dark:text-white", "font-bold", "bg-primary/10", "dark:bg-primary/20", "pl-3", "rounded-r-md", "border-l-2", "border-primary");
-                    link.classList.remove("text-slate-600", "dark:text-slate-400");
-                }
-            }
-        });
-
+        // ==========================================
+        // 1. FULLSCREEN MANAGEMENT (PERSISTENT & SEAMLESS)
+        // ==========================================
         const fullscreenBtn = document.getElementById("fullscreen-toggle-btn");
         const fsIcon = document.getElementById("fs-icon");
+
+        const updateFsUI = () => {
+            const isFS = !!document.fullscreenElement;
+            if (fsIcon) fsIcon.innerText = isFS ? "fullscreen_exit" : "fullscreen";
+            if (fullscreenBtn) fullscreenBtn.title = isFS ? "Exit Fullscreen" : "Toggle Fullscreen";
+            sessionStorage.setItem("app_fullscreen", isFS ? "1" : "0");
+        };
+
         const toggleFS = () => {
             if (!document.fullscreenElement) {
-                document.documentElement.requestFullscreen().catch(err => console.log(err));
+                document.documentElement.requestFullscreen()
+                    .then(() => updateFsUI())
+                    .catch(err => console.log("Fullscreen request failed:", err));
             } else {
-                document.exitFullscreen();
+                document.exitFullscreen()
+                    .then(() => updateFsUI())
+                    .catch(err => console.log("Exit fullscreen failed:", err));
             }
         };
 
         fullscreenBtn?.addEventListener("click", toggleFS);
-        document.addEventListener("fullscreenchange", () => {
-            if (fsIcon) fsIcon.innerText = document.fullscreenElement ? "fullscreen_exit" : "fullscreen";
+        document.addEventListener("fullscreenchange", updateFsUI);
+
+        // Auto-restore fullscreen on first click if restored after a hard reload/navigation
+        if (sessionStorage.getItem("app_fullscreen") === "1" && !document.fullscreenElement) {
+            const restoreFullscreenOnClick = () => {
+                if (sessionStorage.getItem("app_fullscreen") === "1" && !document.fullscreenElement) {
+                    document.documentElement.requestFullscreen()
+                        .then(() => updateFsUI())
+                        .catch(() => {});
+                }
+                window.removeEventListener("click", restoreFullscreenOnClick);
+            };
+            window.addEventListener("click", restoreFullscreenOnClick, { once: true });
+        }
+
+        // ==========================================
+        // 2. ACTIVE MENU HIGHLIGHTER FUNCTION
+        // ==========================================
+        function updateActiveMenu(targetPath) {
+            const currentPath = targetPath || window.location.pathname;
+            const menuLinks = document.querySelectorAll(".menu-link, .submenu-container a");
+
+            // Reset existing active styling
+            menuLinks.forEach(link => {
+                link.classList.remove("text-primary", "dark:text-white", "font-bold", "bg-primary/10", "dark:bg-primary/20", "pl-3", "rounded-r-md", "border-l-2", "border-primary", "is-active-child");
+                if (link.classList.contains("menu-link")) {
+                    link.classList.remove("bg-slate-200", "dark:bg-slate-800", "text-slate-900", "dark:text-white", "font-bold");
+                    link.classList.add("text-slate-700", "dark:text-slate-300");
+                    const icon = link.querySelector(".material-symbols-outlined");
+                    if (icon) {
+                        icon.classList.remove("text-primary");
+                        icon.classList.add("text-slate-500", "dark:text-slate-400");
+                    }
+                } else {
+                    link.classList.add("text-slate-600", "dark:text-slate-400");
+                }
+            });
+
+            document.querySelectorAll(".submenu-toggle").forEach(btn => {
+                btn.classList.remove("bg-slate-200", "dark:bg-slate-800", "text-slate-900", "dark:text-white", "font-bold");
+                btn.classList.add("text-slate-700", "dark:text-slate-300");
+                const icon = btn.querySelector(".material-symbols-outlined");
+                if (icon) {
+                    icon.classList.remove("text-primary");
+                    icon.classList.add("text-slate-500", "dark:text-slate-400");
+                }
+            });
+
+            menuLinks.forEach(link => {
+                const linkHref = link.getAttribute("href");
+                if (!linkHref || linkHref === "#") return;
+
+                const helperAnchor = document.createElement('a');
+                helperAnchor.href = link.href;
+                const linkPath = helperAnchor.pathname;
+
+                if (currentPath === linkPath || (linkPath !== '/' && currentPath.startsWith(linkPath))) {
+                    const parentContainer = link.closest(".submenu-container");
+
+                    if (parentContainer) {
+                        parentContainer.classList.add("active-menu-parent");
+                        if (!sidebar.classList.contains("sidebar-mini")) {
+                            parentContainer.style.maxHeight = parentContainer.scrollHeight + "px";
+                        }
+
+                        const parentWrapper = parentContainer.closest(".menu-item-wrapper");
+                        const arrow = parentWrapper?.querySelector(".arrow-icon");
+                        if (arrow && !sidebar.classList.contains("sidebar-mini")) arrow.classList.add("rotate-90");
+
+                        const parentButton = parentWrapper?.querySelector(".submenu-toggle");
+                        if (parentButton) {
+                            parentButton.classList.add("bg-slate-200", "dark:bg-slate-800", "text-slate-900", "dark:text-white", "font-bold");
+                            parentButton.classList.remove("text-slate-700", "dark:text-slate-300");
+
+                            const parentIcon = parentButton.querySelector(".material-symbols-outlined");
+                            if (parentIcon) {
+                                parentIcon.classList.remove("text-slate-500", "dark:text-slate-400");
+                                parentIcon.classList.add("text-primary");
+                            }
+                        }
+
+                        link.classList.add("text-primary", "dark:text-white", "font-bold", "bg-primary/10", "dark:bg-primary/20", "pl-3", "rounded-r-md", "border-l-2", "border-primary", "is-active-child");
+                        link.classList.remove("text-slate-600", "dark:text-slate-400");
+                    } else if (link.classList.contains("menu-link")) {
+                        link.classList.add("bg-slate-200", "dark:bg-slate-800", "text-slate-900", "dark:text-white", "font-bold");
+                        link.classList.remove("text-slate-700", "dark:text-slate-300");
+                        const icon = link.querySelector(".material-symbols-outlined");
+                        if (icon) {
+                            icon.classList.remove("text-slate-500", "dark:text-slate-400");
+                            icon.classList.add("text-primary");
+                        }
+                    }
+                }
+            });
+        }
+
+        // Run initially for current page
+        updateActiveMenu(window.location.pathname);
+
+        // ==========================================
+        // 3. SEAMLESS SPA / PJAX NAVIGATION (PRESERVES FULLSCREEN)
+        // ==========================================
+        const progressBar = document.getElementById("spa-progress-bar");
+
+        function showProgressBar() {
+            if (!progressBar) return;
+            progressBar.style.width = "0%";
+            progressBar.style.opacity = "1";
+            setTimeout(() => { progressBar.style.width = "70%"; }, 20);
+        }
+
+        function hideProgressBar() {
+            if (!progressBar) return;
+            progressBar.style.width = "100%";
+            setTimeout(() => {
+                progressBar.style.opacity = "0";
+                setTimeout(() => { progressBar.style.width = "0%"; }, 250);
+            }, 100);
+        }
+
+        async function spaNavigate(url, pushState = true) {
+            showProgressBar();
+            try {
+                const response = await fetch(url, {
+                    headers: { 'X-Requested-With': 'XMLHttpRequest' }
+                });
+
+                if (!response.ok) {
+                    window.location.href = url;
+                    return;
+                }
+
+                const html = await response.text();
+                const parser = new DOMParser();
+                const doc = parser.parseFromString(html, 'text/html');
+
+                const newMain = doc.querySelector('main');
+                const currentMain = document.querySelector('main');
+
+                if (newMain && currentMain) {
+                    if (doc.title) document.title = doc.title;
+                    currentMain.innerHTML = newMain.innerHTML;
+                    currentMain.scrollTop = 0;
+
+                    if (pushState) {
+                        history.pushState({ spa: true, url: url }, '', url);
+                    }
+
+                    // Re-execute scripts inside newly loaded content
+                    const scripts = currentMain.querySelectorAll('script');
+                    scripts.forEach(oldScript => {
+                        const newScript = document.createElement('script');
+                        Array.from(oldScript.attributes).forEach(attr => {
+                            newScript.setAttribute(attr.name, attr.value);
+                        });
+                        newScript.textContent = oldScript.textContent;
+                        oldScript.parentNode.replaceChild(newScript, oldScript);
+                    });
+
+                    // Update active menu styling
+                    updateActiveMenu(new URL(url, window.location.origin).pathname);
+
+                    // Re-bind floating tooltips for menu targets
+                    bindSidebarTooltips();
+                } else {
+                    window.location.href = url;
+                }
+            } catch (err) {
+                console.error("SPA Navigation Error:", err);
+                window.location.href = url;
+            } finally {
+                hideProgressBar();
+            }
+        }
+
+        // Handle Browser Back / Forward History Navigation
+        window.addEventListener('popstate', () => {
+            spaNavigate(window.location.href, false);
         });
 
-        // Dynamic Floating Tooltip for Sidebar Menu Items
-        const sidebarTooltip = document.getElementById("sidebar-tooltip");
-        if (sidebarTooltip) {
+        // Intercept link clicks inside Sidebar, Flyout, and Breadcrumbs
+        document.addEventListener('click', function(e) {
+            const link = e.target.closest('a');
+            if (!link) return;
+
+            const isSidebarLink = link.closest('#sidebar-menu') || link.closest('#sidebar-flyout');
+            const isBreadcrumb = link.closest('.breadcrumb') || link.dataset.spa !== undefined;
+
+            if (!isSidebarLink && !isBreadcrumb && !link.classList.contains('spa-link')) return;
+
+            const href = link.getAttribute('href');
+            if (!href || href === '#' || href.startsWith('javascript:')) return;
+            if (link.hasAttribute('download') || link.target === '_blank') return;
+            if (link.classList.contains('no-spa')) return;
+            if (href.includes('/auth/logout') || href.includes('action=delete') || href.includes('action=download')) return;
+
+            try {
+                const targetUrl = new URL(link.href, window.location.origin);
+                if (targetUrl.origin !== window.location.origin) return;
+
+                e.preventDefault();
+
+                // Close flyout if visible
+                if (typeof sidebarFlyout !== 'undefined' && sidebarFlyout) {
+                    sidebarFlyout.classList.add('hidden');
+                }
+
+                // Close mobile sidebar if open
+                if (window.innerWidth < 768 && sidebar && !sidebar.classList.contains('-translate-x-full')) {
+                    sidebar.classList.add('-translate-x-full');
+                    if (backdrop) backdrop.classList.add('hidden');
+                }
+
+                spaNavigate(targetUrl.href, true);
+            } catch (err) {
+                // Allow default navigation if URL parsing fails
+            }
+        });
+
+        // ==========================================
+        // 4. DYNAMIC FLOATING TOOLTIP FOR SIDEBAR
+        // ==========================================
+        function bindSidebarTooltips() {
+            const sidebarTooltip = document.getElementById("sidebar-tooltip");
+            if (!sidebarTooltip) return;
+
             const menuTargets = document.querySelectorAll("#sidebar-menu .submenu-toggle, #sidebar-menu .menu-link, #sidebar-menu .submenu-container a");
             
             menuTargets.forEach(el => {
+                if (el._hasTooltip) return;
+                el._hasTooltip = true;
+
                 el.addEventListener("mouseenter", function () {
                     const isMini = sidebar.classList.contains("sidebar-mini");
                     const parentWrapper = this.closest(".menu-item-wrapper");
                     const hasSubmenus = parentWrapper ? (parentWrapper.querySelectorAll(".submenu-container a").length > 0) : false;
                     
-                    // In mini mode, items WITH submenus use the flyout panel.
-                    // Items WITHOUT submenus (like Dashboard) show simple tooltip!
                     if (isMini && hasSubmenus) return;
 
                     const textSpan = this.querySelector(".sidebar-text");
                     const isTruncated = textSpan ? (textSpan.scrollWidth > textSpan.clientWidth) : false;
 
-                    // If NOT in mini mode, only show tooltip if text is truncated
                     if (!isMini && !isTruncated) return;
 
                     const fullText = (
@@ -708,6 +894,8 @@
                 });
             });
         }
+
+        bindSidebarTooltips();
     });
 </script>
 
