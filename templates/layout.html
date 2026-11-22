@@ -783,6 +783,10 @@
                         oldScript.parentNode.replaceChild(newScript, oldScript);
                     });
 
+                    // Trigger lifecycle events so page initialization scripts run
+                    document.dispatchEvent(new Event('DOMContentLoaded'));
+                    window.dispatchEvent(new Event('load'));
+
                     // Update active menu styling
                     updateActiveMenu(new URL(url, window.location.origin).pathname);
 
@@ -896,7 +900,7 @@
         }
 
         bindSidebarTooltips();
-    });
+    }, { once: true });
 </script>
 
 <!-- Floating Tooltip Container -->

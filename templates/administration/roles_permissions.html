@@ -329,8 +329,14 @@
     }
 
     // Initialize Page
-    document.addEventListener('DOMContentLoaded', () => {
+    function initRolesPage() {
         const initialRoleId = "[[= selected_role_id or '' ]]";
         switchRole(initialRoleId);
-    });
+    }
+
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initRolesPage);
+    } else {
+        initRolesPage();
+    }
 </script>
